@@ -64,45 +64,63 @@ Do not install new libraries without approval.
 
 ## Architecture
 
-Use this folder structure (all folders inside `src/`):
+All application code lives inside `src/`. Config files (app.json, tsconfig.json, babel.config.js, package.json) stay at the project root.
 
 ```
-app/
-  (auth)/
-  (tabs)/
+src/
+  app/
+    (auth)/
+    (tabs)/
+    _layout.tsx
+    index.tsx
+    +not-found.tsx
 
-components/
+  assets/
 
-constants/
+  components/
 
-data/
+  constants/
 
-hooks/
+  features/
+    auth/
+      components/
+      hooks/
+      api.ts
+    profile/
+      components/
+      hooks/
+      api.ts
 
-lib/
-  supabase.ts
-  ai.ts
-  notifications.ts
-  revenuecat.ts
+  hooks/
 
-store/
+  services/
+    supabase.ts
+    ai.ts
+    notifications.ts
+    revenuecat.ts
 
-types/
+  store/
 
-assets/
+  types/
 
-providers/
+  utils/
+
+  providers/
 ```
 
 **app/** is for routes and screens only. Screens compose components and call hooks or stores. They must not contain large reusable UI blocks or business logic.
 
-**components/** is for reusable UI. Create a component when it is reused in multiple places, when it makes a screen easier to read, or when it represents a clear UI concept. Examples: `TaskCard`, `RescheduleSheet`, `AddTaskSheet`, `TaskDetailSheet`. Do not create components too early.
+**assets/** holds static files (images, fonts, SVGs).
 
-**data/** holds hardcoded content such as onboarding steps and example notification copy. Keep it typed.
+**components/** is for global/shared reusable UI. Create a component when it is reused in multiple places, when it makes a screen easier to read, or when it represents a clear UI concept. Examples: `TaskCard`, `RescheduleSheet`, `AddTaskSheet`, `TaskDetailSheet`. Do not create components too early.
 
-**hooks/** holds custom hooks for business logic: fetching tasks, triggering reschedule, syncing notifications.
+**constants/** holds constants (colors, layout dimensions, API endpoints, images).
 
-**lib/** holds external service helpers.
+**features/** holds feature-based domains. Each feature has its own `components/`, `hooks/`, and `api.ts`. Use this for feature-specific logic that doesn't need to be global. Examples: `auth/`, `profile/`.
+
+**hooks/** holds global/shared custom hooks (e.g. `useTheme`).
+
+**services/** holds external service helpers and API clients.
 
 - `supabase.ts` — exports the Supabase client.
 - `ai.ts` — calls the Supabase Edge Function that proxies OpenRouter. Never call OpenRouter directly from the client.
@@ -110,6 +128,10 @@ providers/
 - `revenuecat.ts` — exports the RevenueCat client and paywall helpers.
 
 **store/** holds Zustand stores. Do not persist auth state here. Do not cache task data in Zustand — fetch from Supabase directly via hooks and keep UI state (optimistic updates, undo snapshot) in Zustand.
+
+**types/** holds all shared TypeScript type definitions. Do not define types inline in screens or components.
+
+**utils/** holds helper functions (date formatters, math utilities, hardcoded data like onboarding steps).
 
 **providers/** holds React context providers (theme, RevenueCat, safe area).
 
@@ -137,7 +159,7 @@ Use `StyleSheet.create` for all styles. Do not use NativeWind or className-based
 
 Avoid using borders as much as possible. Use different surface colors and/or shadows to create visual separation.
 
-Static base tokens (colors, spacing, typography, border radii, shadows) are defined in `constants/theme.ts` and adapt to the system theme via `createTheme(isDark)`.
+Static base tokens (colors, spacing, typography, border radii, shadows) are defined in `src/constants/theme.ts` and adapt to the system theme via `createTheme(isDark)`. The theme uses Material Design 3 naming conventions (e.g. `onBackground`, `onSurface`, `surfaceVariant`).
 
 For component styles that depend on theme colors or values, use a **theme-aware style factory** pattern:
 
@@ -166,8 +188,7 @@ For component styles that depend on theme colors or values, use a **theme-aware 
    const styles = useMemo(() => StyleSheet.create({ ... }), [theme]);
    ```
 
-Do not hardcode color or spacing values inline. Always reference tokens from `constants/theme.ts` or the current theme object.
-Refer to `constants/ThemeExampleStylesheet.tsx` as a reference if needed.
+Do not hardcode color or spacing values inline. Always reference tokens from `src/constants/theme.ts` or the current theme object.
 
 ---
 
@@ -175,7 +196,7 @@ Refer to `constants/ThemeExampleStylesheet.tsx` as a reference if needed.
 
 Use centralized image imports.
 
-1. Check if `constants/images.ts` exists.
+1. Check if `src/constants/images.ts` exists.
 2. If not, create it.
 3. Import all app images there and export a typed `images` object.
 4. Use images only through this object.
@@ -223,7 +244,7 @@ Every table must include a `user_id` column referencing the authenticated user. 
 ### Core schema (reference)
 
 ```ts
-// types/task.ts
+// src/types/task.ts
 export type Task = {
   id: string; // uuid
   userId: string;
@@ -241,7 +262,7 @@ export type Task = {
 ```
 
 ```ts
-// types/userPreferences.ts
+// src/types/userPreferences.ts
 export type UserPreferences = {
   userId: string;
   productivityPeak: "morning" | "afternoon" | "evening" | "varies";
@@ -308,10 +329,10 @@ The Edge Function tries models in this order and falls back on error or timeout:
 
 ## Notifications
 
-All notification logic lives in `lib/notifications.ts`. No other file schedules or cancels notifications.
+All notification logic lives in `src/services/notifications.ts`. No other file schedules or cancels notifications.
 
 ```ts
-// lib/notifications.ts
+// src/services/notifications.ts
 export async function syncNotifications(tasks: Task[]): Promise<void> {
   await Notifications.cancelAllScheduledNotificationsAsync();
   for (const task of tasks) {
@@ -337,9 +358,9 @@ Request notification permissions during onboarding, before the first screen that
 
 ## Payments
 
-RevenueCat handles all payment logic. The client lives in `lib/revenuecat.ts`.
+RevenueCat handles all payment logic. The client lives in `src/services/revenuecat.ts`.
 
-- Gate AI reschedule behind a paywall. Free users may have a limited number of reschedules per day (define the limit in `constants/limits.ts`).
+- Gate AI reschedule behind a paywall. Free users may have a limited number of reschedules per day (define the limit in `src/constants/limits.ts`).
 - Show the RevenueCat paywall sheet when a free user hits the limit or taps an upsell surface.
 - Never implement custom receipt validation — RevenueCat handles this.
 - Never store subscription status in Supabase manually — read it from RevenueCat at runtime.
@@ -362,13 +383,13 @@ Request notification permissions after Screen 3, before entering the main app.
 
 Use Supabase Auth. Do not build custom auth.
 
-- The Supabase client lives in `lib/supabase.ts`.
+- The Supabase client lives in `src/services/supabase.ts`.
 - Use `supabase.auth.getSession()` to read the current session.
 - Protect routes using Expo Router layout guards in `app/(auth)/`.
 - Never store the access token manually — Supabase handles refresh.
 
 ```ts
-// lib/supabase.ts
+// src/services/supabase.ts
 import { createClient } from "@supabase/supabase-js";
 import { SUPABASE_URL, SUPABASE_ANON_KEY } from "@env";
 
