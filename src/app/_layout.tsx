@@ -6,7 +6,9 @@ import { useAuth } from '@/features/auth/hooks/useAuth';
 
 function RootNavigator() {
   const theme = useTheme();
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated, loading } = useAuth();
+
+  if (loading) return null;
 
   return (
     <>

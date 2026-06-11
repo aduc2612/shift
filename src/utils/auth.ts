@@ -12,7 +12,12 @@ export function extractAuthTokensFromUrl(url: string): {
   for (const pair of hash.split('&')) {
     const [key, ...rest] = pair.split('=');
     if (key) {
-      params.set(decodeURIComponent(key), decodeURIComponent(rest.join('=')));
+      try {
+        params.set(decodeURIComponent(key), decodeURIComponent(rest.join('=')));
+      } catch {
+        // Skip malformed percent-encoded pairs
+        continue;
+      }
     }
   }
 

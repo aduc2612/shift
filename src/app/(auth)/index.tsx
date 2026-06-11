@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useEffect, useMemo } from 'react';
 import {
   ActivityIndicator,
   Pressable,
@@ -71,7 +71,7 @@ function createStyles(theme: Theme, insets: { top: number; bottom: number }) {
 export default function AuthScreen() {
   const theme = useTheme();
   const insets = useSafeAreaInsets();
-  const styles = createStyles(theme, insets);
+  const styles = useMemo(() => createStyles(theme, insets), [theme, insets]);
   const { signIn, loading, error } = useGoogleSignIn();
 
   useEffect(() => {
