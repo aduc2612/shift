@@ -2,16 +2,16 @@
 
 ## Overview
 
-This roadmap breaks the Shift project into 9 logical phases. Each phase builds on the previous one and results in a working, testable application state. Phases are ordered to minimize rework and allow early validation of core features.
+Roadmap breaks Shift into 9 phases. Each builds on previous, results in working, testable app state. Ordered to minimize rework, allow early validation of core features.
 
 ## Phase Breakdown
 
 ### Phase 1: Project Setup & Infrastructure
-**Goal:** Establish the foundation - Expo project, folder structure, Supabase client, basic navigation.
+**Goal:** Establish foundation — Expo project, folder structure, Supabase client, basic navigation.
 
 **Deliverables:**
 - Expo project initialized with TypeScript
-- Folder structure created per AGENTS.md
+- Folder structure per AGENTS.md
 - Supabase client configured in `lib/supabase.ts`
 - Expo Router basic setup with tab navigation
 - Theme system in `constants/theme.ts`
@@ -23,7 +23,7 @@ This roadmap breaks the Shift project into 9 logical phases. Each phase builds o
 ---
 
 ### Phase 2: Authentication
-**Goal:** Implement Supabase Auth with proper route protection.
+**Goal:** Implement Supabase Auth with route protection.
 
 **Deliverables:**
 - Login/signup screens
@@ -32,7 +32,7 @@ This roadmap breaks the Shift project into 9 logical phases. Each phase builds o
 - Route guards in `app/(auth)/` layout
 - Redirect logic (auth -> tabs, no auth -> login)
 
-**Validation:** Users can sign up, log in, log out. Protected routes redirect correctly.
+**Validation:** Users sign up, log in, log out. Protected routes redirect correctly.
 
 **Supabase Setup Required:**
 - Enable Email auth provider
@@ -41,7 +41,7 @@ This roadmap breaks the Shift project into 9 logical phases. Each phase builds o
 ---
 
 ### Phase 3: Onboarding Flow
-**Goal:** Collect user preferences through a 3-screen onboarding flow.
+**Goal:** Collect user preferences through 3-screen onboarding.
 
 **Deliverables:**
 - Screen 1: Productivity peak selection (morning/afternoon/evening/varies)
@@ -54,20 +54,20 @@ This roadmap breaks the Shift project into 9 logical phases. Each phase builds o
 **Validation:** New users complete onboarding, preferences saved to Supabase, returning users skip onboarding.
 
 **Supabase Setup Required:**
-- Create `user_preferences` table with columns: user_id, productivity_peak, wake_up_time, scheduling_context
+- Create `user_preferences` table: user_id, productivity_peak, wake_up_time, scheduling_context
 
 ---
 
 ### Phase 4: Core Schedule UI
-**Goal:** Display the daily schedule with tasks ordered by time.
+**Goal:** Display daily schedule with tasks ordered by time.
 
 **Deliverables:**
 - Schedule view screen in `app/(tabs)/`
 - TaskCard component
-- FlatList implementation for task list
+- FlatList for task list
 - Fetch tasks from Supabase in hook
 - Display task name, time range, duration, completion status
-- Empty state when no tasks exist
+- Empty state when no tasks
 - Date display (today's date)
 
 **Validation:** Schedule screen displays tasks fetched from Supabase, ordered by start time.
@@ -79,7 +79,7 @@ This roadmap breaks the Shift project into 9 logical phases. Each phase builds o
 ---
 
 ### Phase 5: Task Management
-**Goal:** Enable users to add, edit, and complete tasks.
+**Goal:** Enable users to add, edit, complete tasks.
 
 **Deliverables:**
 - FAB (Floating Action Button) on schedule screen
@@ -88,15 +88,15 @@ This roadmap breaks the Shift project into 9 logical phases. Each phase builds o
 - TaskDetailSheet for viewing/editing tasks
 - Edit functionality: name, duration, deadline, AI context
 - Completion checkbox on TaskCard
-- Supabase CRUD operations via hooks
+- Supabase CRUD via hooks
 - Optimistic updates for completion
 
-**Validation:** Users can add tasks, view/edit task details, mark tasks complete. All changes persist to Supabase.
+**Validation:** Users add tasks, view/edit task details, mark complete. All changes persist to Supabase.
 
 ---
 
 ### Phase 6: AI Reschedule
-**Goal:** Implement AI-powered rescheduling with undo functionality.
+**Goal:** Implement AI-powered rescheduling with undo.
 
 **Deliverables:**
 - Supabase Edge Function for AI reschedule
@@ -105,10 +105,10 @@ This roadmap breaks the Shift project into 9 logical phases. Each phase builds o
 - Reschedule button on schedule screen
 - Model fallback chain (primary, fallback 1, fallback 2)
 - Response validation before DB write
-- Undo functionality with Zustand store (snapshot before reschedule)
+- Undo with Zustand store (snapshot before reschedule)
 - Undo toast with 5-second timeout
 - AI justification display in TaskDetailSheet
-- AI context field (hidden from user, used by AI)
+- AI context field (hidden, used by AI)
 
 **Validation:** User taps reschedule, optionally describes changes, AI rearranges tasks, user can undo within 5 seconds.
 
@@ -138,7 +138,7 @@ This roadmap breaks the Shift project into 9 logical phases. Each phase builds o
 - Notification content and data payload
 - Handle notification tap (navigate to task)
 
-**Validation:** Notifications fire at correct times. Nudge cancels when task is marked complete. All notifications resync after reschedule.
+**Validation:** Notifications fire at correct times. Nudge cancels when task marked complete. All notifications resync after reschedule.
 
 **Manual Setup Required:**
 - Configure push notification credentials in Expo/EAS
@@ -147,7 +147,7 @@ This roadmap breaks the Shift project into 9 logical phases. Each phase builds o
 ---
 
 ### Phase 8: Payments
-**Goal:** Implement RevenueCat subscription management and gate AI features.
+**Goal:** Implement RevenueCat subscription management, gate AI features.
 
 **Deliverables:**
 - RevenueCat client in `lib/revenuecat.ts`
@@ -158,7 +158,7 @@ This roadmap breaks the Shift project into 9 logical phases. Each phase builds o
 - Show paywall when free user hits limit
 - Track reschedule count per day (reset at midnight)
 
-**Validation:** Free users can reschedule up to daily limit, then see paywall. Paid users have unlimited reschedules.
+**Validation:** Free users reschedule up to daily limit, then see paywall. Paid users unlimited.
 
 **Manual Setup Required:**
 - Create RevenueCat project
@@ -181,7 +181,7 @@ This roadmap breaks the Shift project into 9 logical phases. Each phase builds o
 - Final UI polish (spacing, typography, animations)
 - Test on both iOS and Android
 
-**Validation:** Users can update preferences in settings. App looks good in light and dark mode. No crashes or major bugs.
+**Validation:** Users update preferences in settings. App looks good in light/dark mode. No crashes or major bugs.
 
 ---
 
@@ -211,14 +211,14 @@ Phase 9 (Settings & Polish)
 
 After each phase:
 1. Test on iOS simulator (if on Mac) or Android emulator
-2. Verify Supabase data is correct
-3. Check for TypeScript errors
+2. Verify Supabase data correct
+3. Check TypeScript errors
 4. Validate UI matches design specs (if available)
 5. Test edge cases (empty states, error states, loading states)
 
 ## Manual Steps Checklist
 
-Track these here as you complete them:
+Track here as completed:
 
 - [ ] Create Supabase project
 - [ ] Enable Email auth in Supabase
@@ -235,7 +235,7 @@ Track these here as you complete them:
 
 ## Next Steps
 
-After this roadmap is created:
+After roadmap created:
 1. Review and confirm phase breakdown
 2. Use `/skill:start-work-plan` to create detailed execution plan for Phase 1
 3. Use `/skill:start-work-run` to execute Phase 1 plan

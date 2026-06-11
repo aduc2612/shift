@@ -1,25 +1,25 @@
-You are an expert React Native and Expo engineer helping me build a mobile AI scheduling app.
-Write clean, simple, maintainable code. Prioritize clarity over unnecessary abstraction.
-Think like a senior mobile developer.
+Expert React Native/Expo engineer. Build mobile AI scheduling app.
+Write clean, simple, maintainable code. Clarity over abstraction.
+Think like senior mobile dev.
 
 ---
 
 ## Project Overview
 
-We are building an AI-powered day scheduler for mobile. The app gives users an intelligent, auto-arranged daily schedule that recalculates on the fly when life happens.
+AI-powered day scheduler for mobile. Intelligent, auto-arranged daily schedule recalculates when life happens.
 
-The app includes:
+App includes:
 
-- **Schedule view:** A time-ordered list of tasks for the day with duration, start/end times, and completion checkboxes.
-- **AI Reschedule:** User taps Reschedule, optionally describes what changed in plain text, and the AI rearranges the entire day optimally. After rescheduling, the user can undo with one tap.
-- **Task detail:** Tap any task to view/edit its name, duration, deadline, AI justification (why the AI placed it here), and a hidden AI context field for nuances (preferred time, effort level, strict or flexible, etc.).
-- **Add task:** FAB opens a bottom sheet with task name, duration (manual or AI-estimated, manual if the user ran out of AI limits), deadline, and optional instructions for the AI.
-- **Onboarding:** 3-screen flow collecting productivity peak, wake-up time, and freeform scheduling context. Stored as AI system prompt context.
-- **Settings:** Freeform text input for the user to update their scheduling instructions at any time.
-- **Push notifications:** 10 min before a task starts, on task end, and a nudge 5 min after task end if it is not checked off. Notifications are always cancelled and fully rewritten after every reschedule.
+- **Schedule view:** Time-ordered task list with duration, start/end times, completion checkboxes.
+- **AI Reschedule:** User taps Reschedule, optionally describes changes in plain text. AI rearranges day optimally. One-tap undo after.
+- **Task detail:** Tap task to view/edit name, duration, deadline, AI justification (why placed here), hidden AI context field (preferred time, effort level, strict/flexible, etc.).
+- **Add task:** FAB opens bottom sheet with task name, duration (manual or AI-estimated, manual if AI limits exhausted), deadline, optional AI instructions.
+- **Onboarding:** 3-screen flow: productivity peak, wake-up time, freeform scheduling context. Stored as AI system prompt context.
+- **Settings:** Freeform text input to update scheduling instructions anytime.
+- **Push notifications:** 10 min before task start, on task end, nudge 5 min after end if unchecked. Always cancelled and fully rewritten after every reschedule.
 - **Payments:** RevenueCat paywall gating AI features.
 
-## Keep the implementation simple and readable.
+## Keep implementation simple and readable.
 
 ---
 
@@ -31,12 +31,12 @@ The app includes:
 - Expo Router
 - Zustand
 - Supabase (Postgres backend + Auth)
-- Supabase Edge Functions (AI proxy — never call OpenRouter from the client)
+- Supabase Edge Functions (AI proxy — never call OpenRouter from client)
 - OpenAI SDK inside Edge Functions, pointed at OpenRouter
 - RevenueCat (payments)
 - expo-notifications (push notifications)
 
-Do not introduce new major libraries unless there is a strong reason.
+Do not introduce new major libraries unless strong reason.
 Ask before installing anything new.
 
 ---
@@ -47,24 +47,24 @@ Build feature by feature.
 For every feature:
 
 1. Read this file first.
-2. Keep the implementation simple.
+2. Keep implementation simple.
 3. Avoid overengineering.
 4. Prefer readable code over clever code.
-5. Build the smallest useful version first.
+5. Build smallest useful version first.
 6. Refactor only when repetition appears.
 
 ---
 
 ## Decision Making
 
-If something is unclear or could be improved, suggest a better approach. If a new library would significantly help, recommend it, explain why, and ask before adding it.
+If unclear or could be improved, suggest better approach. If new library would significantly help, recommend, explain why, ask before adding.
 Do not install new libraries without approval.
 
 ---
 
 ## Architecture
 
-All application code lives inside `src/`. Config files (app.json, tsconfig.json, babel.config.js, package.json) stay at the project root.
+All app code in `src/`. Config files (app.json, tsconfig.json, babel.config.js, package.json) at project root.
 
 ```
 src/
@@ -108,62 +108,62 @@ src/
   providers/
 ```
 
-**app/** is for routes and screens only. Screens compose components and call hooks or stores. They must not contain large reusable UI blocks or business logic.
+**app/** — routes and screens only. Screens compose components, call hooks/stores. No large reusable UI blocks or business logic.
 
-**assets/** holds static files (images, fonts, SVGs).
+**assets/** — static files (images, fonts, SVGs).
 
-**components/** is for global/shared reusable UI. Create a component when it is reused in multiple places, when it makes a screen easier to read, or when it represents a clear UI concept. Examples: `TaskCard`, `RescheduleSheet`, `AddTaskSheet`, `TaskDetailSheet`. Do not create components too early.
+**components/** — global/shared reusable UI. Create when reused in multiple places, makes screen easier to read, or represents clear UI concept. Examples: `TaskCard`, `RescheduleSheet`, `AddTaskSheet`, `TaskDetailSheet`. Do not create too early.
 
-**constants/** holds constants (colors, layout dimensions, API endpoints, images).
+**constants/** — constants (colors, layout dimensions, API endpoints, images).
 
-**features/** holds feature-based domains. Each feature has its own `components/`, `hooks/`, and `api.ts`. Use this for feature-specific logic that doesn't need to be global. Examples: `auth/`, `profile/`.
+**features/** — feature-based domains. Each has own `components/`, `hooks/`, `api.ts`. For feature-specific logic not needing global scope. Examples: `auth/`, `profile/`.
 
-**hooks/** holds global/shared custom hooks (e.g. `useTheme`).
+**hooks/** — global/shared custom hooks (e.g. `useTheme`).
 
-**services/** holds external service helpers and API clients.
+**services/** — external service helpers and API clients.
 
-- `supabase.ts` — exports the Supabase client.
-- `ai.ts` — calls the Supabase Edge Function that proxies OpenRouter. Never call OpenRouter directly from the client.
-- `notifications.ts` — exports `syncNotifications(tasks: Task[])`. This is the only place notifications are scheduled. It always cancels all pending notifications before rewriting them from scratch.
-- `revenuecat.ts` — exports the RevenueCat client and paywall helpers.
+- `supabase.ts` — exports Supabase client.
+- `ai.ts` — calls Supabase Edge Function proxying OpenRouter. Never call OpenRouter directly from client.
+- `notifications.ts` — exports `syncNotifications(tasks: Task[])`. Only place notifications scheduled. Always cancels all pending before rewriting from scratch.
+- `revenuecat.ts` — exports RevenueCat client and paywall helpers.
 
-**store/** holds Zustand stores. Do not persist auth state here. Do not cache task data in Zustand — fetch from Supabase directly via hooks and keep UI state (optimistic updates, undo snapshot) in Zustand.
+**store/** — Zustand stores. Do not persist auth state here. Do not cache task data in Zustand — fetch from Supabase via hooks, keep UI state (optimistic updates, undo snapshot) in Zustand.
 
-**types/** holds all shared TypeScript type definitions. Do not define types inline in screens or components.
+**types/** — all shared TypeScript type definitions. Do not define types inline in screens or components.
 
-**utils/** holds helper functions (date formatters, math utilities, hardcoded data like onboarding steps).
+**utils/** — helper functions (date formatters, math utilities, hardcoded data like onboarding steps).
 
-**providers/** holds React context providers (theme, RevenueCat, safe area).
+**providers/** — React context providers (theme, RevenueCat, safe area).
 
 ---
 
 ## UI Rules
 
-Always make the hitbox / hitslop of a clickable component at least **48×48**.
+Hitbox/hitslop of clickable component at least **48×48**.
 
-Always use **useSafeAreaInsets** (not SafeAreaView) from `react-native-safe-area-context` wherever safe area handling is needed. Ensure `SafeAreaProvider` is at the root of the app.
+Use **useSafeAreaInsets** (not SafeAreaView) from `react-native-safe-area-context` for safe area handling. Ensure `SafeAreaProvider` at app root.
 
-Never use `.map()` for lists unless the list is guaranteed to be very small (fewer than ~5 static items). Use **FlatList** instead.
+Never use `.map()` for lists unless guaranteed very small (fewer than ~5 static items). Use **FlatList** instead.
 
 For any UI task:
 
-- Replicate the provided design exactly.
-- Match layout, spacing, padding, font sizes, font hierarchy, colors, border radius, shadows, alignment, and proportions.
+- Replicate provided design exactly.
+- Match layout, spacing, padding, font sizes, font hierarchy, colors, border radius, shadows, alignment, proportions.
 - Do not approximate. Do not simplify unless explicitly asked.
 
 ---
 
 ## Styling Rules
 
-Use `StyleSheet.create` for all styles. Do not use NativeWind or className-based styling.
+Use `StyleSheet.create` for all styles. No NativeWind or className-based styling.
 
-Avoid using borders as much as possible. Use different surface colors and/or shadows to create visual separation.
+Avoid borders as much as possible. Use different surface colors and/or shadows for visual separation.
 
-Static base tokens (colors, spacing, typography, border radii, shadows) are defined in `src/constants/theme.ts` and adapt to the system theme via `createTheme(isDark)`. The theme uses Material Design 3 naming conventions (e.g. `onBackground`, `onSurface`, `surfaceVariant`).
+Static base tokens (colors, spacing, typography, border radii, shadows) in `src/constants/theme.ts`, adapt to system theme via `createTheme(isDark)`. Theme uses Material Design 3 naming (e.g. `onBackground`, `onSurface`, `surfaceVariant`).
 
-For component styles that depend on theme colors or values, use a **theme-aware style factory** pattern:
+For component styles depending on theme colors/values, use **theme-aware style factory** pattern:
 
-1. **Factory function (preferred):** Define a `createStyles(theme)` function outside the component that returns `StyleSheet.create(...)`. Call it inside the component with the current theme.
+1. **Factory function (preferred):** Define `createStyles(theme)` function outside component returning `StyleSheet.create(...)`. Call inside component with current theme.
 
    ```ts
    function createStyles(theme: Theme) {
@@ -182,13 +182,13 @@ For component styles that depend on theme colors or values, use a **theme-aware 
    }
    ```
 
-2. **useMemo alternative:** Use `useMemo` with `theme` in the dependency array when the factory pattern is impractical.
+2. **useMemo alternative:** Use `useMemo` with `theme` in dependency array when factory pattern impractical.
 
    ```ts
    const styles = useMemo(() => StyleSheet.create({ ... }), [theme]);
    ```
 
-Do not hardcode color or spacing values inline. Always reference tokens from `src/constants/theme.ts` or the current theme object.
+Do not hardcode color or spacing values inline. Always reference tokens from `src/constants/theme.ts` or current theme object.
 
 ---
 
@@ -198,7 +198,7 @@ Use centralized image imports.
 
 1. Check if `src/constants/images.ts` exists.
 2. If not, create it.
-3. Import all app images there and export a typed `images` object.
+3. Import all app images there, export typed `images` object.
 4. Use images only through this object.
 
 ```ts
@@ -220,26 +220,26 @@ Do not import image assets directly inside screens or components.
 
 - **Zustand** for global client state: UI state, optimistic task list, undo snapshot after reschedule, onboarding completion flag.
 - **Local state** for temporary UI state: input values, bottom sheet visibility, loading flags.
-- Do not store the auth session in Zustand — read it from Supabase directly via `supabase.auth.getSession()`.
-- Do not mirror server data into Zustand permanently. Fetch from Supabase in hooks, apply optimistic updates in the store, and reconcile on refetch.
+- Do not store auth session in Zustand — read from Supabase directly via `supabase.auth.getSession()`.
+- Do not mirror server data into Zustand permanently. Fetch from Supabase in hooks, apply optimistic updates in store, reconcile on refetch.
 
 ### Undo after reschedule
 
-Before calling the AI reschedule:
+Before calling AI reschedule:
 
-1. Snapshot the current task list in Zustand (`undoSnapshot`).
-2. Apply the AI result optimistically.
-3. Show an undo toast for 5 seconds.
-4. If the user taps Undo, restore the snapshot and revert the Supabase write.
-5. After 5 seconds with no undo, clear the snapshot.
+1. Snapshot current task list in Zustand (`undoSnapshot`).
+2. Apply AI result optimistically.
+3. Show undo toast for 5 seconds.
+4. If user taps Undo, restore snapshot and revert Supabase write.
+5. After 5 seconds with no undo, clear snapshot.
 
 ---
 
 ## Database
 
-Tasks live in Supabase Postgres. Fetch them via the Supabase JS client in hooks. Do not use raw SQL outside of Edge Functions.
+Tasks in Supabase Postgres. Fetch via Supabase JS client in hooks. No raw SQL outside Edge Functions.
 
-Every table must include a `user_id` column referencing the authenticated user. Use UUID primary keys.
+Every table must include `user_id` column referencing authenticated user. Use UUID primary keys.
 
 ### Core schema (reference)
 
@@ -255,7 +255,7 @@ export type Task = {
   deadline: string | null; // ISO 8601 date
   completed: boolean;
   aiContext: string | null; // hidden field — AI nuances only, never shown to user
-  aiJustification: string | null; // visible — why the AI placed this task here
+  aiJustification: string | null; // visible — why AI placed this task here
   createdAt: string;
   updatedAt: string;
 };
@@ -275,11 +275,11 @@ export type UserPreferences = {
 
 ## AI Integration
 
-**Never call OpenRouter from the client.** All AI calls go through a single Supabase Edge Function.
+**Never call OpenRouter from client.** All AI calls through single Supabase Edge Function.
 
 ### Edge Function contract
 
-The function lives at `supabase/functions/reschedule/index.ts`.
+Function lives at `supabase/functions/reschedule/index.ts`.
 
 **Request body:**
 
@@ -307,29 +307,29 @@ The function lives at `supabase/functions/reschedule/index.ts`.
 }
 ```
 
-The Edge Function must validate and strip any extra fields before returning. The client writes the returned task updates to Supabase and then calls `syncNotifications`.
+Edge Function must validate and strip extra fields before returning. Client writes returned task updates to Supabase, then calls `syncNotifications`.
 
 ### Model fallback chain
 
-The Edge Function tries models in this order and falls back on error or timeout:
+Edge Function tries models in order, falls back on error or timeout:
 
 1. Primary
 2. Fallback 1
 3. Fallback 2
 
-> **Note:** Confirm the exact OpenRouter model slugs before implementing the Edge Function. The model names in the project brief may not match live OpenRouter slugs. Always verify at [openrouter.ai/models](https://openrouter.ai/models).
+> **Note:** Confirm exact OpenRouter model slugs before implementing Edge Function. Model names in project brief may not match live OpenRouter slugs. Always verify at [openrouter.ai/models](https://openrouter.ai/models).
 
 ### Prompt rules
 
-- Always instruct the model to return **only valid JSON** matching the response schema. No preamble, no markdown fences.
-- Strip ` ```json ` fences before parsing if the model ignores the instruction.
-- Validate the parsed response shape before writing to the DB. If validation fails, return an error to the client — do not write partial data.
+- Always instruct model to return **only valid JSON** matching response schema. No preamble, no markdown fences.
+- Strip ` ```json ` fences before parsing if model ignores instruction.
+- Validate parsed response shape before writing to DB. If validation fails, return error to client — do not write partial data.
 
 ---
 
 ## Notifications
 
-All notification logic lives in `src/services/notifications.ts`. No other file schedules or cancels notifications.
+All notification logic in `src/services/notifications.ts`. No other file schedules or cancels notifications.
 
 ```ts
 // src/services/notifications.ts
@@ -349,33 +349,33 @@ Call `syncNotifications` after:
 
 - Initial app load
 - Every AI reschedule (success path only)
-- Every manual task edit that changes start/end time
+- Every manual task edit changing start/end time
 - Every task completion (to cancel its nudge)
 
-Request notification permissions during onboarding, before the first screen that explains what they are for.
+Request notification permissions during onboarding, before first screen explaining what they are for.
 
 ---
 
 ## Payments
 
-RevenueCat handles all payment logic. The client lives in `src/services/revenuecat.ts`.
+RevenueCat handles all payment logic. Client in `src/services/revenuecat.ts`.
 
-- Gate AI reschedule behind a paywall. Free users may have a limited number of reschedules per day (define the limit in `src/constants/limits.ts`).
-- Show the RevenueCat paywall sheet when a free user hits the limit or taps an upsell surface.
+- Gate AI reschedule behind paywall. Free users limited reschedules per day (define limit in `src/constants/limits.ts`).
+- Show RevenueCat paywall sheet when free user hits limit or taps upsell surface.
 - Never implement custom receipt validation — RevenueCat handles this.
-- Never store subscription status in Supabase manually — read it from RevenueCat at runtime.
+- Never store subscription status in Supabase manually — read from RevenueCat at runtime.
 
 ---
 
 ## Onboarding
 
-Three screens, kept minimal. Store results in `UserPreferences` via Supabase after the final screen.
+Three screens, kept minimal. Store results in `UserPreferences` via Supabase after final screen.
 
 - **Screen 1 — Productivity peak:** Single-select: Morning / Afternoon / Evening / Varies.
 - **Screen 2 — Wake-up time:** Time picker defaulting to 7:00 AM.
 - **Screen 3 — Scheduling context:** Freeform text input with placeholder examples ("I'm a student.", "I work night shifts.", "I have ADHD.").
 
-Request notification permissions after Screen 3, before entering the main app.
+Request notification permissions after Screen 3, before entering main app.
 
 ---
 
@@ -383,10 +383,10 @@ Request notification permissions after Screen 3, before entering the main app.
 
 Use Supabase Auth. Do not build custom auth.
 
-- The Supabase client lives in `src/services/supabase.ts`.
-- Use `supabase.auth.getSession()` to read the current session.
+- Supabase client in `src/services/supabase.ts`.
+- Use `supabase.auth.getSession()` to read current session.
 - Protect routes using Expo Router layout guards in `app/(auth)/`.
-- Never store the access token manually — Supabase handles refresh.
+- Never store access token manually — Supabase handles refresh.
 
 ```ts
 // src/services/supabase.ts
@@ -401,9 +401,9 @@ export const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 ## Secrets
 
 - Never expose secret keys in client code.
-- Use `.env` with `@env` (react-native-dotenv) for `SUPABASE_URL` and `SUPABASE_ANON_KEY` only — these are safe to expose.
-- The OpenRouter API key lives only in Supabase Edge Function environment variables. It must never appear in the client bundle.
-- Never put the Supabase service role key in client code.
+- Use `.env` with `@env` (react-native-dotenv) for `SUPABASE_URL` and `SUPABASE_ANON_KEY` only — safe to expose.
+- OpenRouter API key lives only in Supabase Edge Function environment variables. Never in client bundle.
+- Never put Supabase service role key in client code.
 
 ---
 
@@ -412,21 +412,21 @@ export const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 - Strict mode.
 - No `any`.
 - Keep types simple and readable.
-- Define all shared types in `types/`. Do not define types inline in screens or components.
+- Define all shared types in `types/`. No types inline in screens or components.
 
 ---
 
 ## Feature Implementation
 
-When building a feature:
+When building feature:
 
 1. Read this file first.
-2. Identify the files to change.
+2. Identify files to change.
 3. Keep changes focused.
-4. Always inform the user of any manual steps they must perform (Supabase dashboard changes, EAS configuration, RevenueCat setup). Do not attempt those operations yourself unless explicitly asked.
+4. Always inform user of manual steps needed (Supabase dashboard changes, EAS configuration, RevenueCat setup). Do not attempt those operations unless explicitly asked.
 5. Do not rewrite unrelated code.
 6. Follow existing patterns.
-7. Make sure the feature works end to end.
+7. Ensure feature works end to end.
 8. Fix all lint and type errors before finishing.
 
 ---
@@ -445,4 +445,4 @@ Before every feature:
 - Follow it strictly.
 - Build clean, simple code.
 - Follow basic principles: Separation of Concerns, Reusability, Performance.
-- Replicate UI exactly when designs are provided.
+- Replicate UI exactly when designs provided.

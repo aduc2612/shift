@@ -2,28 +2,28 @@
 
 ## Objective
 
-Build a mobile AI scheduling app that gives users an intelligent, auto-arranged daily schedule that recalculates on the fly when life happens.
+Build mobile AI scheduling app. Intelligent, auto-arranged daily schedule recalculates when life happens.
 
 ## Problem Statement
 
-Users struggle to maintain productive daily schedules when unexpected events occur. Manual rescheduling is tedious and often leads to suboptimal time allocation. Users need an intelligent assistant that can quickly rearrange their day based on changing circumstances while respecting their preferences and constraints.
+Users struggle maintaining productive schedules when unexpected events occur. Manual rescheduling tedious, leads to suboptimal time allocation. Need intelligent assistant to quickly rearrange day based on changing circumstances while respecting preferences/constraints.
 
 ## Scope
 
 ### In Scope
 - **Authentication:** Supabase Auth for user management
 - **Onboarding:** 3-screen flow to collect productivity preferences and scheduling context
-- **Schedule View:** Time-ordered list of tasks with completion tracking
+- **Schedule View:** Time-ordered task list with completion tracking
 - **Task Management:** Add, edit, view details, mark complete
-- **AI Reschedule:** Intelligent rearrangement of tasks based on user input
+- **AI Reschedule:** Intelligent task rearrangement based on user input
 - **Undo Functionality:** One-tap undo after AI reschedule
-- **Push Notifications:** Task reminders, completion alerts, and nudges
-- **Payments:** RevenueCat integration for subscription management
+- **Push Notifications:** Task reminders, completion alerts, nudges
+- **Payments:** RevenueCat for subscription management
 - **Settings:** User preferences management
 
 ### Out of Scope
-- Calendar integration (future consideration)
-- Multi-day scheduling (current focus is single-day)
+- Calendar integration (future)
+- Multi-day scheduling (current focus: single-day)
 - Team/shared scheduling
 - Web platform (mobile-only for now)
 
@@ -56,7 +56,7 @@ providers/    # Context providers
 
 ### Key Principles
 - Fetch from Supabase directly in hooks; don't cache task data in Zustand
-- AI calls go through Supabase Edge Functions only (never call OpenRouter from client)
+- AI calls through Supabase Edge Functions only (never call OpenRouter from client)
 - All notifications managed centrally in `lib/notifications.ts`
 - Use FlatList for task lists (not .map())
 - Theme-aware styling with `createStyles(theme)` pattern
@@ -65,23 +65,23 @@ providers/    # Context providers
 ## Success Criteria
 
 ### Functional
-- [ ] Users can authenticate via Supabase Auth
-- [ ] Users complete onboarding and preferences are stored
-- [ ] Users can view their daily schedule with tasks ordered by time
-- [ ] Users can add, edit, and complete tasks
-- [ ] AI can reschedule tasks based on user input
-- [ ] Users can undo AI reschedule within 5 seconds
+- [ ] Users authenticate via Supabase Auth
+- [ ] Users complete onboarding, preferences stored
+- [ ] Users view daily schedule with tasks ordered by time
+- [ ] Users add, edit, complete tasks
+- [ ] AI reschedules tasks based on user input
+- [ ] Users undo AI reschedule within 5 seconds
 - [ ] Notifications fire at correct times (10 min before, on end, 5 min nudge)
-- [ ] Paid users have unlimited reschedules; free users have daily limit
-- [ ] Users can update scheduling preferences in settings
+- [ ] Paid users unlimited reschedules; free users daily limit
+- [ ] Users update scheduling preferences in settings
 
 ### Technical
 - [ ] No TypeScript errors in strict mode
 - [ ] No `any` types in production code
 - [ ] All screens use proper safe area handling
 - [ ] Proper separation of concerns (screens vs components vs hooks vs lib)
-- [ ] Notifications are always synced after schedule changes
-- [ ] AI responses are validated before writing to DB
+- [ ] Notifications always synced after schedule changes
+- [ ] AI responses validated before writing to DB
 
 ### UX
 - [ ] Clean, intuitive interface matching design specs
@@ -91,7 +91,7 @@ providers/    # Context providers
 
 ## Manual Setup Steps (User Action Required)
 
-These steps must be completed by the user before development:
+User must complete before development:
 
 1. **Supabase:**
    - Create Supabase project
@@ -100,7 +100,7 @@ These steps must be completed by the user before development:
    - Configure environment variables
 
 2. **OpenRouter:**
-   - Create account and get API key
+   - Create account, get API key
    - Verify model slugs at openrouter.ai/models
    - Add API key to Supabase Edge Function secrets
 
@@ -111,9 +111,9 @@ These steps must be completed by the user before development:
 
 4. **Expo/EAS:**
    - Configure app.json/app.config.js
-   - Set up EAS Build if deploying to devices
+   - Set up EAS Build for device deployment
    - Configure push notification credentials
 
 ## Notes
 
-This project follows a phased approach to build incrementally and validate each feature before moving to the next. Each phase should result in a working, testable application state.
+Phased approach — build incrementally, validate each feature before moving to next. Each phase results in working, testable app state.
