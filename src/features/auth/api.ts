@@ -1,6 +1,9 @@
-/**
- * Auth API calls
- * Placeholder for authentication-related API logic
- */
+import { supabase } from '@/services/supabase';
 
-// TODO: Implement auth API calls (login, register, etc.)
+/**
+ * Sign out the current user.
+ */
+export async function signOut() {
+  const { error } = await supabase.auth.signOut();
+  if (error) throw error;
+}
