@@ -26,6 +26,14 @@
       "favicon": "./src/assets/images/favicon.png"
     },
     "plugins": [
+      [
+        "@sentry/react-native/expo",
+        {
+          "url": "https://sentry.io/",
+          "project": "shift-mobile",
+          "organization": "duc-nguyen-oc"
+        }
+      ],
       "expo-router",
       "expo-notifications",
       [
@@ -36,7 +44,8 @@
           "backgroundColor": "#ffffff"
         }
       ],
-      "expo-secure-store"
+      "expo-secure-store",
+      "@sentry/react-native"
     ],
     "experiments": {
       "typedRoutes": true

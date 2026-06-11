@@ -1,5 +1,4 @@
 import { createClient, type SupportedStorage } from '@supabase/supabase-js';
-import { SUPABASE_URL, SUPABASE_ANON_KEY } from '@env';
 import * as SecureStore from 'expo-secure-store';
 
 const CHUNK_PREFIX = '__sc_chunk_';
@@ -66,7 +65,10 @@ const secureStorageAdapter: SupportedStorage = {
   },
 };
 
-export const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
+export const supabase = createClient(
+  process.env.EXPO_PUBLIC_SUPABASE_URL!,
+  process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY!,
+  {
   auth: {
     storage: secureStorageAdapter,
     autoRefreshToken: true,
