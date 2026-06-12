@@ -65,10 +65,21 @@ const secureStorageAdapter: SupportedStorage = {
   },
 };
 
-export const supabase = createClient(
-  process.env.EXPO_PUBLIC_SUPABASE_URL!,
-  process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY!,
-  {
+const supabaseUrl = process.env.EXPO_PUBLIC_SUPABASE_URL;
+const supabaseAnonKey = process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY;
+
+if (!supabaseUrl || !supabaseAnonKey) {
+  throw new Error(
+    `Missing Supabase env vars: ${[
+      !supabaseUrl && 'EXPO_PUBLIC_SUPABASE_URL',
+      !supabaseAnonKey && 'EXPO_PUBLIC_SUPABASE_ANON_KEY',
+    ]
+      .filter(Boolean)
+      .join(', ')}`
+  );
+}
+
+export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
   auth: {
     storage: secureStorageAdapter,
     autoRefreshToken: true,
