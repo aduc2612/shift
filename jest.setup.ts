@@ -58,7 +58,7 @@ jest.mock('react-native-safe-area-context', () => {
 // Helper: wrap a component with ThemeProvider
 import { ThemeProvider } from '@/providers/theme-provider';
 
-export async function renderWithTheme(ui: React.ReactElement) {
+export function renderWithTheme(ui: React.ReactElement) {
   return render(React.createElement(ThemeProvider, null, ui));
 }
 

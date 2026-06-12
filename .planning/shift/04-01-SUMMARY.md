@@ -71,4 +71,4 @@
 - Reschedule sheet CTA is no-op — wiring to AI service in Phase 6
 - FAB onPress is no-op — opens AddTaskSheet in Phase 5
 - Checkbox toggle is no-op — wired to Supabase in Phase 5
-- Unit tests not yet written for Phase 4 — Jest + jest-expo + @testing-library/react-native setup needed
+- Unit tests written and passing — Jest + jest-expo + @testing-library/react-native setup complete (84 tests, 16 files)

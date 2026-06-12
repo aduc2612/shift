@@ -49,14 +49,12 @@ describe('BottomSheet', () => {
 
   it('calls onClose when backdrop is pressed', async () => {
     const onClose = jest.fn();
-    const { container } = await render(
+    const { getByTestId } = await render(
       <BottomSheet visible={true} onClose={onClose}>
         <Text>Content</Text>
       </BottomSheet>,
     );
-    const modal = container.children[0] as any;
-    const backdrop = modal.children[0] as any;
-    fireEvent.press(backdrop);
+    fireEvent.press(getByTestId('bottom-sheet-backdrop'));
     expect(onClose).toHaveBeenCalledTimes(1);
   });
 });

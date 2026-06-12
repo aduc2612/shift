@@ -37,8 +37,9 @@ export default function Checkbox({
 
   return (
     <Pressable
+      testID="checkbox-pressable"
       onPress={onToggle}
-      hitSlop={12}
+      hitSlop={Math.max(Math.ceil((48 - size) / 2), 0)}
       style={({ pressed }) => ({
         opacity: pressed ? 0.7 : 1,
       })}

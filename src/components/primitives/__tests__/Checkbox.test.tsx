@@ -33,8 +33,8 @@ describe('Checkbox', () => {
 
   it('calls onToggle when pressed', async () => {
     const onToggle = jest.fn();
-    const { root } = await render(<Checkbox checked={false} onToggle={onToggle} />);
-    fireEvent.press(root!);
+    const { getByTestId } = await render(<Checkbox checked={false} onToggle={onToggle} />);
+    fireEvent.press(getByTestId('checkbox-pressable'));
     expect(onToggle).toHaveBeenCalledTimes(1);
   });
 

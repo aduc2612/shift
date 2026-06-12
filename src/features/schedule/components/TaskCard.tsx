@@ -4,7 +4,7 @@ import type { Theme } from '@/constants/theme';
 import type { Task } from '@/types/task';
 import Checkbox from '@/components/primitives/Checkbox';
 import Badge from '@/components/primitives/Badge';
-import { formatDuration, formatTimeRange } from '@/utils/date';
+import { formatDuration, formatTimeRange, isSameDay } from '@/utils/date';
 import { withOpacity } from '@/utils/color';
 
 type TaskCardProps = {
@@ -119,7 +119,7 @@ export default function TaskCard({
             {formatTimeRange(task.startTime, task.endTime)}
           </Text>
         ) : null}
-        {task.deadline && !task.completed && (
+        {task.deadline && !task.completed && isSameDay(new Date(task.deadline), new Date()) && (
           <Badge label="Due today" variant="accent" />
         )}
       </View>

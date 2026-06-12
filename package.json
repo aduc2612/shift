@@ -7,7 +7,6 @@
     "@expo/vector-icons": "^15.0.2",
     "@sentry/react-native": "~7.11.0",
     "@supabase/supabase-js": "^2.49.4",
-    "@types/jest": "29.5.14",
     "expo": "~56.0.11",
     "expo-auth-session": "~56.0.14",
     "expo-constants": "~56.0.18",
@@ -20,7 +19,6 @@
     "expo-status-bar": "~56.0.4",
     "expo-symbols": "~56.0.6",
     "expo-web-browser": "~56.0.5",
-    "jest-expo": "~56.0.5",
     "react": "19.2.3",
     "react-dom": "19.2.3",
     "react-native": "0.85.3",
@@ -33,9 +31,11 @@
   },
   "devDependencies": {
     "@testing-library/react-native": "^14.0.0",
+    "@types/jest": "29.5.14",
     "@types/react": "~19.2.2",
     "eslint": "^9.0.0",
     "eslint-config-expo": "~56.0.4",
+    "jest-expo": "~56.0.5",
     "typescript": "~6.0.3"
   },
   "scripts": {

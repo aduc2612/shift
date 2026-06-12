@@ -26,6 +26,14 @@ async function renderWithTheme(ui: React.ReactElement) {
 }
 
 describe('TaskCard', () => {
+  beforeEach(() => {
+    jest.useFakeTimers();
+    jest.setSystemTime(new Date('2026-06-12T10:00:00'));
+  });
+
+  afterEach(() => {
+    jest.useRealTimers();
+  });
   it('renders task name', async () => {
     const task = makeTask({ name: 'Morning standup' });
     const { getByText } = await renderWithTheme(

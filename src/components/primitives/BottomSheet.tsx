@@ -23,17 +23,17 @@ function createStyles(theme: Theme) {
       backgroundColor: theme.colors.surface,
       borderTopLeftRadius: theme.borderRadius.xxl,
       borderTopRightRadius: theme.borderRadius.xxl,
-      paddingHorizontal: 20,
-      paddingTop: 12,
-      paddingBottom: 24,
+      paddingHorizontal: theme.spacing.xl,
+      paddingTop: theme.spacing.md,
+      paddingBottom: theme.spacing.xl,
     },
     handle: {
-      width: 40,
+      width: theme.spacing.xxxl,
       height: 5,
       backgroundColor: theme.colors.outlineVariant,
       borderRadius: theme.borderRadius.sm,
       alignSelf: "center",
-      marginBottom: 15,
+      marginBottom: theme.spacing.lg,
     },
   });
 }
@@ -54,7 +54,7 @@ export default function BottomSheet({
       animationType="fade"
       onRequestClose={onClose}
     >
-      <Pressable style={styles.backdrop} onPress={onClose} />
+      <Pressable testID="bottom-sheet-backdrop" style={styles.backdrop} onPress={onClose} />
       <View style={[styles.sheetContainer, { paddingBottom: insets.bottom }]}>
         <View style={styles.sheetContent}>
           <View style={styles.handle} />

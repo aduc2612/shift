@@ -1,4 +1,4 @@
-import { StyleSheet, View } from 'react-native';
+import { StyleSheet, type DimensionValue, View } from 'react-native';
 import { useTheme } from '@/providers/theme-provider';
 import type { Theme } from '@/constants/theme';
 
@@ -31,7 +31,7 @@ export default function ProgressBar({ value }: ProgressBarProps) {
 
   return (
     <View style={styles.outer}>
-      <View style={[styles.fill, { width: width as any }]} />
+      <View style={[styles.fill, { width: width as DimensionValue }]} />
     </View>
   );
 }
