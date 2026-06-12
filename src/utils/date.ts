@@ -63,3 +63,15 @@ export function isSameDay(a: Date, b: Date): boolean {
 export function isToday(date: Date): boolean {
   return isSameDay(date, new Date());
 }
+
+/**
+ * Format a date to readable string like "Jun 12, 2026"
+ */
+export function formatDate(date: Date | string): string {
+  const d = typeof date === 'string' ? new Date(date) : date;
+  return d.toLocaleDateString('en-US', {
+    month: 'short',
+    day: 'numeric',
+    year: 'numeric',
+  });
+}

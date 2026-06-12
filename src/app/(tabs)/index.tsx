@@ -9,6 +9,7 @@ import { DateTimePicker } from "@expo/ui/community/datetime-picker";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useTheme } from "@/providers/theme-provider";
 import type { Theme } from "@/constants/theme";
+import type { Task } from "@/types/task";
 import { mockTasks } from "@/features/schedule/mockTasks";
 import {
   buildScheduleData,
@@ -21,6 +22,7 @@ import TimelineRow from "@/features/schedule/components/TimelineRow";
 import TaskCard from "@/features/schedule/components/TaskCard";
 import NowIndicator from "@/features/schedule/components/NowIndicator";
 import RescheduleSheet from "@/features/schedule/components/RescheduleSheet";
+import TaskFormSheet from "@/features/schedule/components/TaskFormSheet";
 import FAB from "@/components/primitives/FAB";
 import { formatTime, isSameDay } from "@/utils/date";
 import { useCurrentTime } from "@/hooks/useCurrentTime";
@@ -65,6 +67,9 @@ export default function ScheduleScreen() {
   const [selectedDate, setSelectedDate] = useState(new Date());
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [showRescheduleSheet, setShowRescheduleSheet] = useState(false);
+  const [taskSheetMode, setTaskSheetMode] = useState<"view" | "edit" | "add">("view");
+  const [selectedTask, setSelectedTask] = useState<Task | null>(null);
+  const [showTaskSheet, setShowTaskSheet] = useState(false);
 
   // For now, use mock data. In Phase 5+, this will fetch from Supabase.
   const allTasks = useMemo(() => mockTasks, []);
@@ -94,8 +99,41 @@ export default function ScheduleScreen() {
     // Placeholder — will be wired to Supabase in Phase 5
   }, []);
 
-  const handleTaskPress = useCallback((_taskId: string) => {
-    // Placeholder — will open TaskDetailSheet in Phase 5
+  const handleTaskPress = useCallback((taskId: string) => {
+    const task = tasks.find((t) => t.id === taskId);
+    if (task) {
+      setSelectedTask(task);
+      setTaskSheetMode("view");
+      setShowTaskSheet(true);
+    }
+  }, [tasks]);
+
+  const handleFabPress = useCallback(() => {
+    setSelectedTask(null);
+    setTaskSheetMode("add");
+    setShowTaskSheet(true);
+  }, []);
+
+  const handleTaskSheetClose = useCallback(() => {
+    setShowTaskSheet(false);
+    setSelectedTask(null);
+  }, []);
+
+  const handleEdit = useCallback(() => {
+    setTaskSheetMode("edit");
+  }, []);
+
+  const handleCancel = useCallback(() => {
+    if (taskSheetMode === "add") {
+      setShowTaskSheet(false);
+      setSelectedTask(null);
+    } else {
+      setTaskSheetMode("view");
+    }
+  }, [taskSheetMode]);
+
+  const handleTaskSave = useCallback((_task: Partial<Task>) => {
+    // Placeholder — will be wired to Supabase in Phase 5
   }, []);
 
   const handleDateChange = useCallback((_event: unknown, date?: Date) => {
@@ -173,12 +211,22 @@ export default function ScheduleScreen() {
       />
 
       <View style={styles.fabWrapper}>
-        <FAB onPress={() => {}} />
+        <FAB onPress={handleFabPress} />
       </View>
 
       <RescheduleSheet
         visible={showRescheduleSheet}
         onClose={() => setShowRescheduleSheet(false)}
+      />
+
+      <TaskFormSheet
+        visible={showTaskSheet}
+        onClose={handleTaskSheetClose}
+        task={selectedTask}
+        mode={taskSheetMode}
+        onEdit={handleEdit}
+        onCancel={handleCancel}
+        onSave={handleTaskSave}
       />
     </View>
   );

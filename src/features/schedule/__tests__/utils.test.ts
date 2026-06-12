@@ -12,6 +12,7 @@ function makeTask(overrides: Partial<Task> = {}): Task {
     deadline: null,
     completed: false,
     aiContext: null,
+    aiDecidesTime: false,
     aiJustification: null,
     createdAt: "2026-06-12T00:00:00",
     updatedAt: "2026-06-12T00:00:00",
