@@ -215,6 +215,23 @@ describe('TaskFormSheet', () => {
     expect(onSave).not.toHaveBeenCalled();
   });
 
+  it('blocks save when end time is before start time', async () => {
+    const onSave = jest.fn();
+    const task = makeTask({
+      aiDecidesTime: false,
+      startTime: '2026-06-12T09:00:00',
+      endTime: '2026-06-12T08:00:00',
+    });
+    const { getByTestId, getByText } = await renderWithTheme(
+      <TaskFormSheet visible onClose={jest.fn()} mode="edit" task={task} onSave={onSave} />,
+    );
+    await act(async () => {
+      fireEvent.press(getByTestId('done-btn'));
+    });
+    expect(getByText('End time must be after start time')).toBeTruthy();
+    expect(onSave).not.toHaveBeenCalled();
+  });
+
   // ─── Render state tests ────────────────────────────────────────────
 
   it('Switch renders with correct initial value', async () => {

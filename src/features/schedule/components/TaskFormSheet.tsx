@@ -290,6 +290,8 @@ export default function TaskFormSheet({
     if (!aiDecidesTime) {
       if (!startHour || !endHour) {
         newErrors.time = "Start and end times are required";
+      } else if (new Date(endHour) <= new Date(startHour)) {
+        newErrors.time = "End time must be after start time";
       }
     }
 

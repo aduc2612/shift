@@ -137,7 +137,10 @@ export default function ScheduleScreen() {
   }, []);
 
   const handleDateChange = useCallback((_event: unknown, date?: Date) => {
-    if (date) setSelectedDate(date);
+    if (date) {
+      setSelectedDate(date);
+      setShowDatePicker(false);
+    }
   }, []);
 
   const renderItem = useCallback(
@@ -191,8 +194,8 @@ export default function ScheduleScreen() {
           <DateTimePicker
             value={selectedDate}
             mode="date"
-            presentation="inline"
             onValueChange={handleDateChange}
+            onDismiss={() => setShowDatePicker(false)}
           />
         </View>
       )}
