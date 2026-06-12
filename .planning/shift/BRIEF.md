@@ -82,6 +82,7 @@ providers/    # Context providers
 - [ ] Proper separation of concerns (screens vs components vs hooks vs lib)
 - [ ] Notifications always synced after schedule changes
 - [ ] AI responses validated before writing to DB
+- [ ] Unit tests written for each phase (Jest + jest-expo + @testing-library/react-native)
 
 ### UX
 - [ ] Clean, intuitive interface matching design specs

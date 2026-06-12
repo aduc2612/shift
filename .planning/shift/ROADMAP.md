@@ -248,6 +248,24 @@ After each phase:
 4. Validate UI matches design specs (if available)
 5. Test edge cases (empty states, error states, loading states)
 
+### Unit Testing
+
+Every phase must include unit tests before moving to the next. Use **Jest** with **jest-expo** preset and **@testing-library/react-native**.
+
+**What to test per phase:**
+- **Utility functions & data munging** — pure functions, formatters, parsers, builders
+- **Form & input fields** — validation, submission, edge cases
+- **Custom hooks** — renderHook from @testing-library/react-native, mock external deps
+- **Complex component & event behaviors** — user interactions, conditional rendering, state changes
+- **Navigation decisions** — route guards, redirect logic, Expo Router screen rendering
+
+**Test file conventions:**
+- Co-locate tests: `src/utils/__tests__/date.test.ts` for `src/utils/date.ts`
+- Or: `src/utils/date.test.ts` (same directory)
+- Name: `<module>.test.ts` or `<module>.test.tsx`
+
+**Script:** `npm test` runs all tests. `npm run test:watch` for active development.
+
 ## Manual Steps Checklist
 
 Track here as completed:
