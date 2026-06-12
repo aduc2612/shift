@@ -70,25 +70,7 @@ Roadmap breaks Shift into 10 phases. Each builds on previous, results in working
 
 ---
 
-### Phase 4: Onboarding Flow
-**Goal:** Collect user preferences through 3-screen onboarding.
-
-**Deliverables:**
-- Screen 1: Productivity peak selection (morning/afternoon/evening/varies)
-- Screen 2: Wake-up time picker (default 7:00 AM)
-- Screen 3: Freeform scheduling context input
-- Store preferences in Supabase `user_preferences` table
-- Onboarding completion flag in Zustand
-- Notification permission request after Screen 3
-
-**Validation:** New users complete onboarding, preferences saved to Supabase, returning users skip onboarding.
-
-**Supabase Setup Required:**
-- Create `user_preferences` table: user_id, productivity_peak, wake_up_time, scheduling_context
-
----
-
-### Phase 5: Core Schedule UI
+### Phase 4: Core Schedule UI
 **Goal:** Display daily schedule with tasks ordered by time.
 
 **Deliverables:**
@@ -108,7 +90,7 @@ Roadmap breaks Shift into 10 phases. Each builds on previous, results in working
 
 ---
 
-### Phase 6: Task Management
+### Phase 5: Task Management
 **Goal:** Enable users to add, edit, complete tasks.
 
 **Deliverables:**
@@ -125,7 +107,7 @@ Roadmap breaks Shift into 10 phases. Each builds on previous, results in working
 
 ---
 
-### Phase 7: AI Reschedule
+### Phase 6: AI Reschedule
 **Goal:** Implement AI-powered rescheduling with undo.
 
 **Deliverables:**
@@ -149,7 +131,7 @@ Roadmap breaks Shift into 10 phases. Each builds on previous, results in working
 
 ---
 
-### Phase 8: Notifications
+### Phase 7: Notifications
 **Goal:** Implement push notifications for task reminders and nudges.
 
 **Deliverables:**
@@ -173,6 +155,24 @@ Roadmap breaks Shift into 10 phases. Each builds on previous, results in working
 **Manual Setup Required:**
 - Configure push notification credentials in Expo/EAS
 - Test on physical device (notifications don't work in Expo Go)
+
+---
+
+### Phase 8: Onboarding Flow
+**Goal:** Collect user preferences through 3-screen onboarding.
+
+**Deliverables:**
+- Screen 1: Productivity peak selection (morning/afternoon/evening/varies)
+- Screen 2: Wake-up time picker (default 7:00 AM)
+- Screen 3: Freeform scheduling context input
+- Store preferences in Supabase `user_preferences` table
+- Onboarding completion flag in Zustand
+- Notification permission request after Screen 3
+
+**Validation:** New users complete onboarding, preferences saved to Supabase, returning users skip onboarding.
+
+**Supabase Setup Required:**
+- Create `user_preferences` table: user_id, productivity_peak, wake_up_time, scheduling_context
 
 ---
 
@@ -224,15 +224,15 @@ Phase 2 (Auth)
     ↓
 Phase 3 (Sentry Setup) ← Run early for dev visibility
     ↓
-Phase 4 (Onboarding)
+Phase 4 (Core Schedule UI)
     ↓
-Phase 5 (Schedule UI)
+Phase 5 (Task Management)
     ↓
-Phase 6 (Task Management)
+Phase 6 (AI Reschedule) ← Requires Supabase Edge Function
     ↓
-Phase 7 (AI Reschedule) ← Requires Supabase Edge Function
+Phase 7 (Notifications) ← Integrates with Phase 5 & 6
     ↓
-Phase 8 (Notifications) ← Integrates with Phase 6 & 7
+Phase 8 (Onboarding)
     ↓
 Phase 9 (Payments) ← Can potentially run in parallel with 8
     ↓
@@ -254,8 +254,8 @@ Track here as completed:
 
 - [ ] Create Supabase project
 - [ ] Enable Email auth in Supabase
-- [ ] Create `user_preferences` table
 - [ ] Create `tasks` table
+- [ ] Create `user_preferences` table
 - [ ] Set up RLS policies for both tables
 - [ ] Create Sentry project at sentry.io
 - [ ] Get Sentry DSN and add to `.env`
