@@ -64,13 +64,6 @@ function createStyles(theme: Theme) {
       ...theme.typography.labelSmall,
       color: theme.colors.outline,
     },
-    justification: {
-      ...theme.typography.bodySmall,
-      color: theme.colors.onSurfaceVariant,
-      fontStyle: 'italic',
-      marginTop: 6,
-      lineHeight: 16,
-    },
   });
 }
 
@@ -123,9 +116,6 @@ export default function TaskCard({
           <Badge label="Due today" variant="accent" />
         )}
       </View>
-      {task.aiJustification ? (
-        <Text style={styles.justification}>{task.aiJustification}</Text>
-      ) : null}
     </Pressable>
   );
 }
