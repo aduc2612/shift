@@ -271,6 +271,15 @@ export type UserPreferences = {
 };
 ```
 
+### SQL Migrations
+
+SQL migration scripts live in `supabase/migrations/`. When the schema changes:
+1. Create a new numbered migration file (e.g., `003_add_feature.sql`)
+2. Run it in the Supabase SQL Editor
+3. Document the change in the relevant planning files
+
+Never modify existing migration files — always create a new one.
+
 ---
 
 ## AI Integration

@@ -4,7 +4,7 @@ import type { Theme } from '@/constants/theme';
 import type { Task } from '@/types/task';
 import Checkbox from '@/components/primitives/Checkbox';
 import Badge from '@/components/primitives/Badge';
-import { formatDuration, formatTimeRange, isSameDay } from '@/utils/date';
+import { formatDuration, formatTimeRange, isSameDay, parseLocalDate } from '@/utils/date';
 import { withOpacity } from '@/utils/color';
 
 type TaskCardProps = {
@@ -64,13 +64,6 @@ function createStyles(theme: Theme) {
       ...theme.typography.labelSmall,
       color: theme.colors.outline,
     },
-    justification: {
-      ...theme.typography.bodySmall,
-      color: theme.colors.onSurfaceVariant,
-      fontStyle: 'italic',
-      marginTop: 6,
-      lineHeight: 16,
-    },
   });
 }
 
@@ -119,13 +112,10 @@ export default function TaskCard({
             {formatTimeRange(task.startTime, task.endTime)}
           </Text>
         ) : null}
-        {task.deadline && !task.completed && isSameDay(new Date(task.deadline), new Date()) && (
+        {task.deadline && !task.completed && isSameDay(parseLocalDate(task.deadline), new Date()) && (
           <Badge label="Due today" variant="accent" />
         )}
       </View>
-      {task.aiJustification ? (
-        <Text style={styles.justification}>{task.aiJustification}</Text>
-      ) : null}
     </Pressable>
   );
 }

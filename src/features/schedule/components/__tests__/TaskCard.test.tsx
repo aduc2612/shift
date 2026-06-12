@@ -14,6 +14,7 @@ function makeTask(overrides: Partial<Task> = {}): Task {
     deadline: null,
     completed: false,
     aiContext: null,
+    aiDecidesTime: false,
     aiJustification: 'Best time for team sync',
     createdAt: '2026-06-12T00:00:00',
     updatedAt: '2026-06-12T00:00:00',
@@ -74,32 +75,6 @@ describe('TaskCard', () => {
       />,
     );
     expect(getByText('09:00 – 09:30')).toBeTruthy();
-  });
-
-  it('renders AI justification text when present', async () => {
-    const task = makeTask({ aiJustification: 'Best time for team sync' });
-    const { getByText } = await renderWithTheme(
-      <TaskCard
-        task={task}
-        state="upcoming"
-        onToggleComplete={jest.fn()}
-        onPress={jest.fn()}
-      />,
-    );
-    expect(getByText('Best time for team sync')).toBeTruthy();
-  });
-
-  it('does not render AI justification when absent', async () => {
-    const task = makeTask({ aiJustification: null });
-    const { queryByText } = await renderWithTheme(
-      <TaskCard
-        task={task}
-        state="upcoming"
-        onToggleComplete={jest.fn()}
-        onPress={jest.fn()}
-      />,
-    );
-    expect(queryByText(/justification/i)).toBeNull();
   });
 
   it('shows "Due today" badge when deadline is present and not completed', async () => {

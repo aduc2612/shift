@@ -83,6 +83,7 @@ providers/    # Context providers
 - [ ] Notifications always synced after schedule changes
 - [ ] AI responses validated before writing to DB
 - [ ] Unit tests written for each phase (Jest + jest-expo + @testing-library/react-native)
+- [ ] SQL migrations in `supabase/migrations/` run in Supabase SQL Editor after pulling schema changes
 
 ### UX
 - [ ] Clean, intuitive interface matching design specs

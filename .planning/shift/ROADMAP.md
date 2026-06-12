@@ -4,6 +4,10 @@
 
 Roadmap breaks Shift into 10 phases. Each builds on previous, results in working, testable app state. Ordered to minimize rework, allow early validation of core features.
 
+## SQL Migrations
+
+SQL migration scripts live in `supabase/migrations/`. Run each new migration in the Supabase SQL Editor after pulling schema changes. Always run migrations in numeric order.
+
 ## Phase Breakdown
 
 ### Phase 1: Project Setup & Infrastructure
@@ -102,6 +106,10 @@ Roadmap breaks Shift into 10 phases. Each builds on previous, results in working
 - Completion checkbox on TaskCard
 - Supabase CRUD via hooks
 - Optimistic updates for completion
+- TaskFormSheet component (view/edit/add modes)
+- "Let AI decide" toggle for start/end times
+- AI context field visible and editable in add/edit (non-view) mode
+- SQL migration for `ai_decides_time` column
 
 **Validation:** Users add tasks, view/edit task details, mark complete. All changes persist to Supabase.
 
@@ -286,6 +294,7 @@ Track here as completed:
 - [ ] Create RevenueCat project
 - [ ] Configure RevenueCat products and offerings
 - [ ] Add RevenueCat API keys to app
+- [ ] Run `supabase/migrations/` scripts in Supabase SQL Editor after each schema change
 
 ## Next Steps
 
