@@ -1,14 +1,30 @@
+import { useMemo } from 'react';
+import { StyleSheet } from 'react-native';
 import { Stack } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
+import * as Sentry from '@sentry/react-native';
 import { ThemeProvider, useTheme } from '@/providers/theme-provider';
 import { useAuth } from '@/features/auth/hooks/useAuth';
+import { initSentry } from '@/services/sentry';
+
+initSentry();
 
 function RootNavigator() {
   const theme = useTheme();
   const { isAuthenticated, loading } = useAuth();
 
   if (loading) return null;
+
+  const styles = useMemo(
+    () =>
+      StyleSheet.create({
+        contentBackground: {
+          backgroundColor: theme.colors.background,
+        },
+      }),
+    [theme.colors.background]
+  );
 
   return (
     <>
@@ -18,7 +34,7 @@ function RootNavigator() {
           animation: 'fade',
           animationDuration: 200,
           headerShown: false,
-          contentStyle: { backgroundColor: theme.colors.background },
+          contentStyle: styles.contentBackground,
         }}
       >
         <Stack.Protected guard={isAuthenticated}>
@@ -32,7 +48,7 @@ function RootNavigator() {
   );
 }
 
-export default function RootLayout() {
+function RootLayout() {
   return (
     <SafeAreaProvider>
       <ThemeProvider>
@@ -41,3 +57,5 @@ export default function RootLayout() {
     </SafeAreaProvider>
   );
 }
+
+export default Sentry.wrap(RootLayout);

@@ -2,7 +2,7 @@
 
 ## Overview
 
-Roadmap breaks Shift into 9 phases. Each builds on previous, results in working, testable app state. Ordered to minimize rework, allow early validation of core features.
+Roadmap breaks Shift into 10 phases. Each builds on previous, results in working, testable app state. Ordered to minimize rework, allow early validation of core features.
 
 ## Phase Breakdown
 
@@ -40,7 +40,37 @@ Roadmap breaks Shift into 9 phases. Each builds on previous, results in working,
 
 ---
 
-### Phase 3: Onboarding Flow
+### Phase 3: Sentry Setup
+**Goal:** Add error monitoring, tracing, session replay, and profiling for early visibility into issues during development.
+
+**Deliverables:**
+- Install `@sentry/react-native`
+- Configure `metro.config.js` with `getSentryExpoConfig` for source maps
+- Add `@sentry/react-native/expo` plugin to `app.json`
+- Create `Sentry.init()` in `src/app/_layout.tsx` with:
+  - Error monitoring (JS + native crashes)
+  - Tracing (navigation, app start, network)
+  - Session Replay (on error + sampled sessions)
+  - Profiling (CPU profiling)
+  - Logging (`Sentry.logger.*`)
+- Wrap `RootLayout` with `Sentry.wrap()`
+- Create `android/sentry.properties`
+- Create `ios/sentry.properties`
+- Add `EXPO_PUBLIC_SENTRY_DSN` to `.env`
+- Set up source map uploads for production builds
+
+**Validation:** App runs with Sentry initialized. Errors captured in Sentry dashboard. Source maps upload correctly on build.
+
+**Manual Setup Required:**
+- Create Sentry project at sentry.io
+- Get DSN from Sentry project settings
+- Generate Sentry Auth Token for source map uploads
+- Add `SENTRY_AUTH_TOKEN` to `.env.local` (gitignored)
+- Add `SENTRY_AUTH_TOKEN` to EAS secrets for CI builds
+
+---
+
+### Phase 4: Onboarding Flow
 **Goal:** Collect user preferences through 3-screen onboarding.
 
 **Deliverables:**
@@ -58,7 +88,7 @@ Roadmap breaks Shift into 9 phases. Each builds on previous, results in working,
 
 ---
 
-### Phase 4: Core Schedule UI
+### Phase 5: Core Schedule UI
 **Goal:** Display daily schedule with tasks ordered by time.
 
 **Deliverables:**
@@ -78,7 +108,7 @@ Roadmap breaks Shift into 9 phases. Each builds on previous, results in working,
 
 ---
 
-### Phase 5: Task Management
+### Phase 6: Task Management
 **Goal:** Enable users to add, edit, complete tasks.
 
 **Deliverables:**
@@ -95,7 +125,7 @@ Roadmap breaks Shift into 9 phases. Each builds on previous, results in working,
 
 ---
 
-### Phase 6: AI Reschedule
+### Phase 7: AI Reschedule
 **Goal:** Implement AI-powered rescheduling with undo.
 
 **Deliverables:**
@@ -119,7 +149,7 @@ Roadmap breaks Shift into 9 phases. Each builds on previous, results in working,
 
 ---
 
-### Phase 7: Notifications
+### Phase 8: Notifications
 **Goal:** Implement push notifications for task reminders and nudges.
 
 **Deliverables:**
@@ -146,7 +176,7 @@ Roadmap breaks Shift into 9 phases. Each builds on previous, results in working,
 
 ---
 
-### Phase 8: Payments
+### Phase 9: Payments
 **Goal:** Implement RevenueCat subscription management, gate AI features.
 
 **Deliverables:**
@@ -168,7 +198,7 @@ Roadmap breaks Shift into 9 phases. Each builds on previous, results in working,
 
 ---
 
-### Phase 9: Settings & Polish
+### Phase 10: Settings & Polish
 **Goal:** Add settings screen and final polish.
 
 **Deliverables:**
@@ -192,19 +222,21 @@ Phase 1 (Setup)
     ↓
 Phase 2 (Auth)
     ↓
-Phase 3 (Onboarding)
+Phase 3 (Sentry Setup) ← Run early for dev visibility
     ↓
-Phase 4 (Schedule UI)
+Phase 4 (Onboarding)
     ↓
-Phase 5 (Task Management)
+Phase 5 (Schedule UI)
     ↓
-Phase 6 (AI Reschedule) ← Requires Supabase Edge Function
+Phase 6 (Task Management)
     ↓
-Phase 7 (Notifications) ← Integrates with Phase 5 & 6
+Phase 7 (AI Reschedule) ← Requires Supabase Edge Function
     ↓
-Phase 8 (Payments) ← Can potentially run in parallel with 7
+Phase 8 (Notifications) ← Integrates with Phase 6 & 7
     ↓
-Phase 9 (Settings & Polish)
+Phase 9 (Payments) ← Can potentially run in parallel with 8
+    ↓
+Phase 10 (Settings & Polish)
 ```
 
 ## Testing Strategy
@@ -225,6 +257,10 @@ Track here as completed:
 - [ ] Create `user_preferences` table
 - [ ] Create `tasks` table
 - [ ] Set up RLS policies for both tables
+- [ ] Create Sentry project at sentry.io
+- [ ] Get Sentry DSN and add to `.env`
+- [ ] Generate Sentry Auth Token for source map uploads
+- [ ] Add `SENTRY_AUTH_TOKEN` to EAS secrets
 - [ ] Create Edge Function `reschedule`
 - [ ] Add OpenRouter API key to Edge Function
 - [ ] Verify OpenRouter model slugs
