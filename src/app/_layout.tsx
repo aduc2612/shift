@@ -14,8 +14,6 @@ function RootNavigator() {
   const theme = useTheme();
   const { isAuthenticated, loading } = useAuth();
 
-  if (loading) return null;
-
   const styles = useMemo(
     () =>
       StyleSheet.create({
@@ -25,6 +23,8 @@ function RootNavigator() {
       }),
     [theme.colors.background]
   );
+
+  if (loading) return null;
 
   return (
     <>
