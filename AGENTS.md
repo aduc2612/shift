@@ -437,6 +437,31 @@ Be concise. Explain what changed and how to test it.
 
 ---
 
+## Testing
+
+Every phase must include unit tests before moving to the next phase.
+
+**Stack:** Jest + jest-expo preset + @testing-library/react-native.
+
+**What to test:**
+- **Utility functions & data munging** — pure functions, formatters, parsers, builders
+- **Form & input fields** — validation, submission, edge cases, required fields
+- **Custom hooks** — use `renderHook` from @testing-library/react-native, mock external deps
+- **Complex component & event behaviors** — user interactions, conditional rendering, state changes, error states
+- **Navigation decisions** — route guards, redirect logic, Expo Router screen rendering
+
+**Conventions:**
+- Co-locate tests next to source: `date.test.ts` next to `date.ts`, or in `__tests__/` subfolder
+- Name: `<module>.test.ts` or `<module>.test.tsx`
+- Mock external services (Supabase, RevenueCat, Notifications) — never call real APIs in tests
+- Test edge cases: empty arrays, null values, missing fields, network errors
+- Keep tests fast and deterministic — no real timers, no real network
+
+**Scripts:**
+- `npm test` — run all tests once
+- `npm run test:watch` — watch mode for active development
+- `npm run test:coverage` — generate coverage report
+
 ## Final Reminder
 
 Before every feature:

@@ -3,6 +3,7 @@
   "main": "expo-router/entry",
   "version": "1.0.0",
   "dependencies": {
+    "@expo/ui": "~56.0.17",
     "@expo/vector-icons": "^15.0.2",
     "@sentry/react-native": "~7.11.0",
     "@supabase/supabase-js": "^2.49.4",
@@ -29,9 +30,12 @@
     "zustand": "^5.0.3"
   },
   "devDependencies": {
+    "@testing-library/react-native": "^14.0.0",
+    "@types/jest": "29.5.14",
     "@types/react": "~19.2.2",
     "eslint": "^9.0.0",
     "eslint-config-expo": "~56.0.4",
+    "jest-expo": "~56.0.5",
     "typescript": "~6.0.3"
   },
   "scripts": {
@@ -39,7 +43,10 @@
     "android": "expo run:android",
     "ios": "expo run:ios",
     "web": "expo start --web",
-    "lint": "expo lint"
+    "lint": "expo lint",
+    "test": "jest",
+    "test:watch": "jest --watch",
+    "test:coverage": "jest --coverage"
   },
   "private": true
 }

@@ -38,7 +38,7 @@ export const colors = {
     outline: "#D0D0D0",
     outlineVariant: "#E0E0E0",
 
-    scrim: "#000000",
+    scrim: "#00000066",
     shadow: "#000000",
   },
 
@@ -80,7 +80,7 @@ export const colors = {
     outline: "#808080",
     outlineVariant: "#535353",
 
-    scrim: "#000000",
+    scrim: "#00000066",
     shadow: "#000000",
   },
 };
