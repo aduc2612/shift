@@ -6,6 +6,8 @@ import {
   formatFullDate,
   isSameDay,
   isToday,
+  formatDate,
+  parseLocalDate,
 } from "@/utils/date";
 
 describe("formatTime", () => {
@@ -116,5 +118,31 @@ describe("isToday", () => {
 
   it("returns false for a past date", () => {
     expect(isToday(new Date("2026-06-11"))).toBe(false);
+  });
+});
+
+describe("parseLocalDate", () => {
+  it("parses YYYY-MM-DD as local date (not UTC)", () => {
+    const result = parseLocalDate("2026-06-12");
+    expect(result.getFullYear()).toBe(2026);
+    expect(result.getMonth()).toBe(5); // June = 5
+    expect(result.getDate()).toBe(12);
+  });
+
+  it("returns same date for non-YYYY-MM-DD strings", () => {
+    const result = parseLocalDate("2026-06-12T08:00:00");
+    expect(result.getFullYear()).toBe(2026);
+  });
+});
+
+describe("formatDate", () => {
+  it("formats a Date object", () => {
+    const result = formatDate(new Date(2026, 5, 12)); // June 12
+    expect(result).toBe("Jun 12, 2026");
+  });
+
+  it("formats a YYYY-MM-DD string as local date", () => {
+    const result = formatDate("2026-06-12");
+    expect(result).toBe("Jun 12, 2026");
   });
 });

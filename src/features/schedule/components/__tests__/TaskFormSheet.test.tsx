@@ -1,5 +1,5 @@
 import React from 'react';
-import { fireEvent, render } from '@testing-library/react-native';
+import { act, fireEvent, render } from '@testing-library/react-native';
 import { ThemeProvider } from '@/providers/theme-provider';
 import TaskFormSheet from '../TaskFormSheet';
 import type { Task } from '@/types/task';
@@ -121,11 +121,11 @@ describe('TaskFormSheet', () => {
 
   it('shows Cancel and Done buttons in edit mode', async () => {
     const task = makeTask();
-    const { getByText } = await renderWithTheme(
+    const { getByText, getByTestId } = await renderWithTheme(
       <TaskFormSheet visible onClose={jest.fn()} task={task} mode="edit" />,
     );
     expect(getByText('Cancel')).toBeTruthy();
-    expect(getByText('Done')).toBeTruthy();
+    expect(getByTestId('done-btn')).toBeTruthy();
   });
 
   it('shows "Let AI decide" toggle in edit mode', async () => {
@@ -139,15 +139,10 @@ describe('TaskFormSheet', () => {
   // ─── Add mode tests ────────────────────────────────────────────────
 
   it('"Let AI decide" toggle defaults to ON in add mode', async () => {
-    const { getByText, toJSON } = await renderWithTheme(
+    const { getByTestId } = await renderWithTheme(
       <TaskFormSheet visible onClose={jest.fn()} mode="add" />,
     );
-    expect(getByText('Let AI decide')).toBeTruthy();
-    // Verify the Switch is present and ON by checking the rendered tree
-    const tree = toJSON();
-    const jsonStr = JSON.stringify(tree);
-    // The Switch renders with value=true when aiDecidesTime defaults to true
-    expect(jsonStr).toContain('"value":true');
+    expect(getByTestId('ai-decides-switch').props.value).toBe(true);
   });
 
   it('shows empty task name input in add mode', async () => {
@@ -161,7 +156,7 @@ describe('TaskFormSheet', () => {
 
   // ─── Interaction tests ─────────────────────────────────────────────
 
-  it('calls onCancel when Cancel is pressed in edit mode', async () => {
+  it('calls onCancel when Cancel is pressed', async () => {
     const onCancel = jest.fn();
     const task = makeTask();
     const { getByText } = await renderWithTheme(
@@ -171,14 +166,77 @@ describe('TaskFormSheet', () => {
     expect(onCancel).toHaveBeenCalledTimes(1);
   });
 
-  it('calls onClose when Done is pressed', async () => {
-    const onClose = jest.fn();
+  it('calls onSave with correct payload', async () => {
     const onSave = jest.fn();
-    const task = makeTask();
-    const { getByText } = await renderWithTheme(
+    const onClose = jest.fn();
+    const task = makeTask({ aiDecidesTime: false });
+    const { getByTestId } = await renderWithTheme(
       <TaskFormSheet visible onClose={onClose} task={task} mode="edit" onSave={onSave} />,
     );
-    fireEvent.press(getByText('Done'));
+    fireEvent.press(getByTestId('done-btn'));
+    expect(onSave).toHaveBeenCalledTimes(1);
+    expect(onSave).toHaveBeenCalledWith(
+      expect.objectContaining({
+        name: 'Morning standup',
+        startTime: '2026-06-12T09:00:00',
+        endTime: '2026-06-12T09:30:00',
+        durationMinutes: 30,
+        aiDecidesTime: false,
+      }),
+    );
     expect(onClose).toHaveBeenCalledTimes(1);
+  });
+
+  // ─── Validation tests ──────────────────────────────────────────────
+
+  it('blocks save and shows error when name is empty', async () => {
+    const onSave = jest.fn();
+    const { getByPlaceholderText, getByTestId, getByText } = await renderWithTheme(
+      <TaskFormSheet visible onClose={jest.fn()} mode="add" onSave={onSave} />,
+    );
+    await act(async () => {
+      fireEvent.changeText(getByPlaceholderText('Task name'), '');
+      fireEvent.press(getByTestId('done-btn'));
+    });
+    expect(getByText('Task name is required')).toBeTruthy();
+    expect(onSave).not.toHaveBeenCalled();
+  });
+
+  it('blocks save when AI decide is off and times are missing', async () => {
+    const onSave = jest.fn();
+    const task = makeTask({ aiDecidesTime: false, startTime: '', endTime: '' });
+    const { getByTestId, getByText } = await renderWithTheme(
+      <TaskFormSheet visible onClose={jest.fn()} mode="edit" task={task} onSave={onSave} />,
+    );
+    await act(async () => {
+      fireEvent.press(getByTestId('done-btn'));
+    });
+    expect(getByText('Start and end times are required')).toBeTruthy();
+    expect(onSave).not.toHaveBeenCalled();
+  });
+
+  // ─── Render state tests ────────────────────────────────────────────
+
+  it('Switch renders with correct initial value', async () => {
+    const task = makeTask({ aiDecidesTime: false });
+    const { getByTestId } = await renderWithTheme(
+      <TaskFormSheet visible onClose={jest.fn()} task={task} mode="edit" />,
+    );
+    expect(getByTestId('ai-decides-switch').props.value).toBe(false);
+  });
+
+  it('input has error border after validation failure', async () => {
+    const { getByPlaceholderText, getByTestId } = await renderWithTheme(
+      <TaskFormSheet visible onClose={jest.fn()} mode="add" />,
+    );
+    await act(async () => {
+      fireEvent.press(getByTestId('done-btn'));
+    });
+    const input = getByPlaceholderText('Task name');
+    const styles = Array.isArray(input.props.style) ? input.props.style : [input.props.style];
+    const borderStyle = styles.find(
+      (s: Record<string, unknown>) => s && typeof s === 'object' && 'borderColor' in s,
+    );
+    expect(borderStyle?.borderColor).toBeDefined();
   });
 });

@@ -65,10 +65,23 @@ export function isToday(date: Date): boolean {
 }
 
 /**
+ * Parse a YYYY-MM-DD string as a local date (not UTC).
+ * ISO date strings without time are parsed as UTC by `new Date()`,
+ * causing off-by-one-day errors in negative UTC offsets.
+ */
+export function parseLocalDate(dateStr: string): Date {
+  if (/^\d{4}-\d{2}-\d{2}$/.test(dateStr)) {
+    const [y, m, d] = dateStr.split('-').map(Number);
+    return new Date(y, m - 1, d);
+  }
+  return new Date(dateStr);
+}
+
+/**
  * Format a date to readable string like "Jun 12, 2026"
  */
 export function formatDate(date: Date | string): string {
-  const d = typeof date === 'string' ? new Date(date) : date;
+  const d = typeof date === 'string' ? parseLocalDate(date) : date;
   return d.toLocaleDateString('en-US', {
     month: 'short',
     day: 'numeric',

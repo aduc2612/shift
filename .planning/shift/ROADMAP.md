@@ -108,7 +108,7 @@ SQL migration scripts live in `supabase/migrations/`. Run each new migration in 
 - Optimistic updates for completion
 - TaskFormSheet component (view/edit/add modes)
 - "Let AI decide" toggle for start/end times
-- AI context field visible and editable in edit mode
+- AI context field visible and editable in add/edit (non-view) mode
 - SQL migration for `ai_decides_time` column
 
 **Validation:** Users add tasks, view/edit task details, mark complete. All changes persist to Supabase.

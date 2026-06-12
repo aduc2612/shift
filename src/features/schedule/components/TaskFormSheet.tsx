@@ -18,6 +18,11 @@ import { useKeyboardHeight } from "@/hooks/useKeyboardHeight";
 import { formatDuration, formatTime, formatDate } from "@/utils/date";
 import { withOpacity } from "@/utils/color";
 
+type FieldErrors = {
+  name?: string;
+  time?: string;
+};
+
 type TaskFormSheetProps = {
   visible: boolean;
   onClose: () => void;
@@ -25,7 +30,7 @@ type TaskFormSheetProps = {
   mode: "view" | "edit" | "add";
   onEdit?: () => void;
   onCancel?: () => void;
-  onSave?: (task: Partial<Task>) => void;
+  onSave?: (task: Partial<Task>) => Promise<void> | void;
 };
 
 function createStyles(theme: Theme) {
@@ -78,6 +83,14 @@ function createStyles(theme: Theme) {
       padding: theme.spacing.md,
       ...theme.typography.titleMedium,
       color: theme.colors.onSurface,
+    },
+    inputError: {
+      borderColor: theme.colors.error,
+    },
+    errorText: {
+      ...theme.typography.labelSmall,
+      color: theme.colors.error,
+      marginTop: theme.spacing.xs,
     },
     timeRow: {
       flexDirection: "row",
@@ -235,6 +248,8 @@ export default function TaskFormSheet({
   const [showEndPicker, setShowEndPicker] = useState(false);
   const [showDeadlinePicker, setShowDeadlinePicker] = useState(false);
 
+  const [errors, setErrors] = useState<FieldErrors>({});
+
   // Sync state when task or mode changes
   useEffect(() => {
     if (visible) {
@@ -247,6 +262,7 @@ export default function TaskFormSheet({
       setShowStartPicker(false);
       setShowEndPicker(false);
       setShowDeadlinePicker(false);
+      setErrors({});
     }
   }, [visible, task]);
 
@@ -265,8 +281,26 @@ export default function TaskFormSheet({
   }, [onCancel]);
 
   const handleDone = useCallback(() => {
+    const newErrors: FieldErrors = {};
+
+    if (!name.trim()) {
+      newErrors.name = "Task name is required";
+    }
+
+    if (!aiDecidesTime) {
+      if (!startHour || !endHour) {
+        newErrors.time = "Start and end times are required";
+      }
+    }
+
+    if (Object.keys(newErrors).length > 0) {
+      setErrors(newErrors);
+      return;
+    }
+
+    setErrors({});
     onSave?.({
-      name,
+      name: name.trim(),
       startTime: startHour,
       endTime: endHour,
       durationMinutes,
@@ -328,13 +362,19 @@ export default function TaskFormSheet({
           {mode === "view" ? (
             <Text style={styles.taskNameDisplay}>{task?.name}</Text>
           ) : (
-            <TextInput
-              style={styles.taskNameInput}
-              value={name}
-              onChangeText={setName}
-              placeholder="Task name"
-              placeholderTextColor={theme.colors.outline}
-            />
+            <>
+              <TextInput
+                style={[styles.taskNameInput, errors.name && styles.inputError]}
+                value={name}
+                onChangeText={(text) => {
+                  setName(text);
+                  if (errors.name) setErrors((e) => ({ ...e, name: undefined }));
+                }}
+                placeholder="Task name"
+                placeholderTextColor={theme.colors.outline}
+              />
+              {errors.name && <Text style={styles.errorText}>{errors.name}</Text>}
+            </>
           )}
         </View>
 
@@ -366,6 +406,7 @@ export default function TaskFormSheet({
                     if (date && !aiDecidesTime)
                       setStartHour(date.toISOString());
                     setShowStartPicker(false);
+                    if (errors.time) setErrors((e) => ({ ...e, time: undefined }));
                   }}
                   onDismiss={() => setShowStartPicker(false)}
                   disabled={aiDecidesTime}
@@ -405,6 +446,7 @@ export default function TaskFormSheet({
                   onValueChange={(_event: unknown, date?: Date) => {
                     if (date && !aiDecidesTime) setEndHour(date.toISOString());
                     setShowEndPicker(false);
+                    if (errors.time) setErrors((e) => ({ ...e, time: undefined }));
                   }}
                   onDismiss={() => setShowEndPicker(false)}
                   disabled={aiDecidesTime}
@@ -433,12 +475,14 @@ export default function TaskFormSheet({
               </View>
             )}
           </View>
+          {errors.time && <Text style={styles.errorText}>{errors.time}</Text>}
 
           {/* Let AI decide toggle — edit/add only */}
           {mode !== "view" && (
             <View style={styles.toggleRow}>
               <Text style={styles.toggleLabel}>Let AI decide</Text>
               <Switch
+                testID="ai-decides-switch"
                 value={aiDecidesTime}
                 onValueChange={setAiDecidesTime}
                 trackColor={{
@@ -536,6 +580,7 @@ export default function TaskFormSheet({
               <Text style={styles.cancelBtnText}>Cancel</Text>
             </Pressable>
             <Pressable
+              testID="done-btn"
               style={({ pressed }) => [
                 styles.doneBtn,
                 pressed && { opacity: theme.interaction.pressedOpacity },
