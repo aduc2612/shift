@@ -138,11 +138,12 @@ describe('TaskFormSheet', () => {
 
   // ─── Add mode tests ────────────────────────────────────────────────
 
-  it('"Let AI decide" toggle defaults to ON in add mode', async () => {
+  it('"Let AI decide" toggle is OFF and disabled until Phase 6', async () => {
     const { getByTestId } = await renderWithTheme(
       <TaskFormSheet visible onClose={jest.fn()} mode="add" />,
     );
-    expect(getByTestId('ai-decides-switch').props.value).toBe(true);
+    expect(getByTestId('ai-decides-switch').props.value).toBe(false);
+    expect(getByTestId('ai-decides-switch').props.disabled).toBe(true);
   });
 
   it('shows empty task name input in add mode', async () => {
