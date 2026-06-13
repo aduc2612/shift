@@ -65,10 +65,10 @@ providers/    # Context providers
 ## Success Criteria
 
 ### Functional
-- [ ] Users authenticate via Supabase Auth
+- [x] Users authenticate via Supabase Auth
 - [ ] Users complete onboarding, preferences stored
-- [ ] Users view daily schedule with tasks ordered by time
-- [ ] Users add, edit, complete tasks
+- [x] Users view daily schedule with tasks ordered by time
+- [x] Users add, edit, complete tasks
 - [ ] AI reschedules tasks based on user input
 - [ ] Users undo AI reschedule within 5 seconds
 - [ ] Notifications fire at correct times (10 min before, on end, 5 min nudge)
@@ -76,14 +76,14 @@ providers/    # Context providers
 - [ ] Users update scheduling preferences in settings
 
 ### Technical
-- [ ] No TypeScript errors in strict mode
-- [ ] No `any` types in production code
-- [ ] All screens use proper safe area handling
-- [ ] Proper separation of concerns (screens vs components vs hooks vs lib)
+- [x] No TypeScript errors in strict mode
+- [x] No `any` types in production code
+- [x] All screens use proper safe area handling
+- [x] Proper separation of concerns (screens vs components vs hooks vs lib)
 - [ ] Notifications always synced after schedule changes
 - [ ] AI responses validated before writing to DB
-- [ ] Unit tests written for each phase (Jest + jest-expo + @testing-library/react-native)
-- [ ] SQL migrations in `supabase/migrations/` run in Supabase SQL Editor after pulling schema changes
+- [x] Unit tests written for each phase (Jest + jest-expo + @testing-library/react-native)
+- [x] SQL migrations in `supabase/migrations/` run in Supabase SQL Editor after pulling schema changes
 
 ### UX
 - [ ] Clean, intuitive interface matching design specs
