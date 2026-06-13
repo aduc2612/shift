@@ -350,15 +350,14 @@ describe('TaskFormSheet', () => {
   it('does not call onDelete when delete cancelled', async () => {
     const task = makeTask();
     const onDelete = jest.fn();
-    const { getByText, getAllByText } = await renderWithTheme(
+    const { getByText, getByTestId } = await renderWithTheme(
       <TaskFormSheet visible onClose={jest.fn()} task={task} mode="edit" onDelete={onDelete} />,
     );
     await act(async () => {
       fireEvent.press(getByText('Delete Task'));
     });
-    // The Alert's Cancel button is the second Cancel in the tree
     await act(async () => {
-      fireEvent.press(getAllByText('Cancel')[1]);
+      fireEvent.press(getByTestId('alert-cancel-btn'));
     });
     expect(onDelete).not.toHaveBeenCalled();
   });
