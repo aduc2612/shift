@@ -81,7 +81,7 @@ function createStyles(theme: Theme) {
       paddingVertical: theme.spacing.md,
     },
     taskNameInput: {
-      backgroundColor: theme.colors.background,
+      backgroundColor: theme.colors.surfaceVariant,
       borderWidth: 1,
       borderColor: theme.colors.outlineVariant,
       borderRadius: theme.borderRadius.lg,
@@ -135,7 +135,7 @@ function createStyles(theme: Theme) {
       opacity: 0.4,
     },
     timeDisplayBtn: {
-      backgroundColor: theme.colors.background,
+      backgroundColor: theme.colors.surfaceVariant,
       borderWidth: 1,
       borderColor: theme.colors.outlineVariant,
       borderRadius: theme.borderRadius.lg,
@@ -182,7 +182,7 @@ function createStyles(theme: Theme) {
       lineHeight: 18,
     },
     contextInput: {
-      backgroundColor: theme.colors.background,
+      backgroundColor: theme.colors.surfaceVariant,
       borderWidth: 1,
       borderColor: theme.colors.outlineVariant,
       borderRadius: theme.borderRadius.lg,
@@ -194,7 +194,7 @@ function createStyles(theme: Theme) {
     },
     contextHint: {
       ...theme.typography.labelSmall,
-      color: theme.colors.outline,
+      color: theme.colors.onSurfaceVariant,
       marginTop: theme.spacing.sm,
       lineHeight: 16,
     },
@@ -207,7 +207,7 @@ function createStyles(theme: Theme) {
       flex: 1,
       paddingVertical: theme.spacing.md,
       borderRadius: theme.borderRadius.xl,
-      backgroundColor: theme.colors.surfaceVariant,
+      backgroundColor: theme.colors.surface,
       alignItems: "center",
       justifyContent: "center",
     },
@@ -371,7 +371,7 @@ export default function TaskFormSheet({
               <Ionicons
                 name="pencil"
                 size={16}
-                color={theme.colors.onSurface}
+                color={theme.colors.onBackground}
               />
             </Pressable>
           ) : (

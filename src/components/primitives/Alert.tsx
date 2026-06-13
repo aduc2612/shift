@@ -24,7 +24,7 @@ function createStyles(theme: Theme) {
       padding: theme.spacing.xl,
     },
     card: {
-      backgroundColor: theme.colors.surface,
+      backgroundColor: theme.colors.background,
       borderRadius: theme.borderRadius.xxl,
       padding: theme.spacing.xl,
       width: "100%",
@@ -34,7 +34,7 @@ function createStyles(theme: Theme) {
     },
     title: {
       ...theme.typography.titleMedium,
-      color: theme.colors.onSurface,
+      color: theme.colors.onBackground,
       marginBottom: theme.spacing.sm,
     },
     message: {
@@ -51,7 +51,7 @@ function createStyles(theme: Theme) {
       flex: 1,
       paddingVertical: theme.spacing.md,
       borderRadius: theme.borderRadius.xl,
-      backgroundColor: theme.colors.surfaceVariant,
+      backgroundColor: theme.colors.surface,
       alignItems: "center",
       justifyContent: "center",
     },
@@ -91,7 +91,12 @@ export default function Alert({
   const styles = useMemo(() => createStyles(theme), [theme]);
 
   return (
-    <Modal visible={visible} transparent animationType="fade" onRequestClose={onCancel}>
+    <Modal
+      visible={visible}
+      transparent
+      animationType="fade"
+      onRequestClose={onCancel}
+    >
       <Pressable
         style={styles.backdrop}
         onPress={onCancel}
