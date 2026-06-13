@@ -20,7 +20,7 @@ function createStyles(theme: Theme) {
       justifyContent: "flex-end",
     },
     sheetContent: {
-      backgroundColor: theme.colors.surface,
+      backgroundColor: theme.colors.background,
       borderTopLeftRadius: theme.borderRadius.xxl,
       borderTopRightRadius: theme.borderRadius.xxl,
       paddingHorizontal: theme.spacing.xl,

@@ -28,11 +28,11 @@ function createStyles(theme: Theme) {
   return StyleSheet.create({
     title: {
       ...theme.typography.titleMedium,
-      color: theme.colors.onSurface,
+      color: theme.colors.onBackground,
       marginBottom: 14,
     },
     input: {
-      backgroundColor: theme.colors.background,
+      backgroundColor: theme.colors.surfaceVariant,
       borderWidth: 1,
       borderColor: theme.colors.outlineVariant,
       borderRadius: theme.borderRadius.lg,

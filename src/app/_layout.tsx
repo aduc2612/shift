@@ -5,6 +5,7 @@ import { StatusBar } from 'expo-status-bar';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import * as Sentry from '@sentry/react-native';
 import { ThemeProvider, useTheme } from '@/providers/theme-provider';
+import { QueryProvider } from '@/providers/query-provider';
 import { useAuth } from '@/features/auth/hooks/useAuth';
 import { initSentry } from '@/services/sentry';
 
@@ -51,9 +52,11 @@ function RootNavigator() {
 function RootLayout() {
   return (
     <SafeAreaProvider>
-      <ThemeProvider>
-        <RootNavigator />
-      </ThemeProvider>
+      <QueryProvider>
+        <ThemeProvider>
+          <RootNavigator />
+        </ThemeProvider>
+      </QueryProvider>
     </SafeAreaProvider>
   );
 }

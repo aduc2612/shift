@@ -1,5 +1,6 @@
 import { useCallback, useMemo, useState } from "react";
 import {
+  ActivityIndicator,
   FlatList,
   StyleSheet,
   Text,
@@ -10,12 +11,18 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useTheme } from "@/providers/theme-provider";
 import type { Theme } from "@/constants/theme";
 import type { Task } from "@/types/task";
-import { mockTasks } from "@/features/schedule/mockTasks";
 import {
   buildScheduleData,
   getTaskState,
   type ListItem,
 } from "@/features/schedule/utils";
+import {
+  useTasks,
+  useCreateTask,
+  useUpdateTask,
+  useDeleteTask,
+  useToggleComplete,
+} from "@/features/schedule/hooks/useTasks";
 import ScheduleHeader from "@/features/schedule/components/ScheduleHeader";
 import ScheduleProgress from "@/features/schedule/components/ScheduleProgress";
 import TimelineRow from "@/features/schedule/components/TimelineRow";
@@ -24,7 +31,8 @@ import NowIndicator from "@/features/schedule/components/NowIndicator";
 import RescheduleSheet from "@/features/schedule/components/RescheduleSheet";
 import TaskFormSheet from "@/features/schedule/components/TaskFormSheet";
 import FAB from "@/components/primitives/FAB";
-import { formatTime, isSameDay } from "@/utils/date";
+import { formatTime } from "@/utils/date";
+import { useAuth } from "@/features/auth/hooks/useAuth";
 import { useCurrentTime } from "@/hooks/useCurrentTime";
 
 function createStyles(theme: Theme) {
@@ -55,6 +63,22 @@ function createStyles(theme: Theme) {
       marginHorizontal: 20,
       marginBottom: 16,
     },
+    loadingContainer: {
+      flex: 1,
+      justifyContent: "center",
+      alignItems: "center",
+    },
+    errorContainer: {
+      flex: 1,
+      justifyContent: "center",
+      alignItems: "center",
+      padding: 40,
+    },
+    errorText: {
+      ...theme.typography.bodyMedium,
+      color: theme.colors.error,
+      textAlign: "center",
+    },
   });
 }
 
@@ -71,19 +95,19 @@ export default function ScheduleScreen() {
   const [selectedTask, setSelectedTask] = useState<Task | null>(null);
   const [showTaskSheet, setShowTaskSheet] = useState(false);
 
-  // For now, use mock data. In Phase 5+, this will fetch from Supabase.
-  const allTasks = useMemo(() => mockTasks, []);
+  const { loading: authLoading } = useAuth();
 
-  const tasks = useMemo(
-    () =>
-      allTasks
-        .filter((t) => isSameDay(new Date(t.startTime), selectedDate))
-        .sort(
-          (a, b) =>
-            new Date(a.startTime).getTime() - new Date(b.startTime).getTime(),
-        ),
-    [allTasks, selectedDate],
-  );
+  const {
+    data: tasks = [],
+    isLoading,
+    isError,
+    error,
+  } = useTasks(selectedDate, authLoading);
+
+  const createTask = useCreateTask();
+  const updateTask = useUpdateTask();
+  const deleteTask = useDeleteTask();
+  const toggleComplete = useToggleComplete();
 
   const { items: listData, activeTaskId } = useMemo(
     () => buildScheduleData(tasks, now),
@@ -95,18 +119,26 @@ export default function ScheduleScreen() {
     [tasks],
   );
 
-  const handleToggleComplete = useCallback((_taskId: string) => {
-    // Placeholder — will be wired to Supabase in Phase 5
-  }, []);
+  const handleToggleComplete = useCallback(
+    (taskId: string) => {
+      const task = tasks.find((t) => t.id === taskId);
+      if (!task) return;
+      toggleComplete.mutate({ id: taskId, completed: !task.completed });
+    },
+    [tasks, toggleComplete],
+  );
 
-  const handleTaskPress = useCallback((taskId: string) => {
-    const task = tasks.find((t) => t.id === taskId);
-    if (task) {
-      setSelectedTask(task);
-      setTaskSheetMode("view");
-      setShowTaskSheet(true);
-    }
-  }, [tasks]);
+  const handleTaskPress = useCallback(
+    (taskId: string) => {
+      const task = tasks.find((t) => t.id === taskId);
+      if (task) {
+        setSelectedTask(task);
+        setTaskSheetMode("view");
+        setShowTaskSheet(true);
+      }
+    },
+    [tasks],
+  );
 
   const handleFabPress = useCallback(() => {
     setSelectedTask(null);
@@ -132,9 +164,28 @@ export default function ScheduleScreen() {
     }
   }, [taskSheetMode]);
 
-  const handleTaskSave = useCallback((_task: Partial<Task>) => {
-    // Placeholder — will be wired to Supabase in Phase 5
-  }, []);
+  const handleTaskSave = useCallback(
+    (taskData: Partial<Task>) => {
+      if (taskSheetMode === "add") {
+        createTask.mutate(taskData);
+      } else if (taskSheetMode === "edit" && selectedTask?.id) {
+        updateTask.mutate({ id: selectedTask.id, updates: taskData });
+      }
+    },
+    [taskSheetMode, selectedTask, createTask, updateTask],
+  );
+
+  const handleDelete = useCallback(
+    (taskId: string) => {
+      deleteTask.mutate(taskId, {
+        onSuccess: () => {
+          setShowTaskSheet(false);
+          setSelectedTask(null);
+        },
+      });
+    },
+    [deleteTask],
+  );
 
   const handleDateChange = useCallback((_event: unknown, date?: Date) => {
     if (date) {
@@ -179,6 +230,24 @@ export default function ScheduleScreen() {
     return `task-${item.task.id}`;
   }, []);
 
+  if (isLoading) {
+    return (
+      <View style={[styles.container, styles.loadingContainer, { paddingTop: insets.top }]}>
+        <ActivityIndicator size="large" color={theme.colors.primary} />
+      </View>
+    );
+  }
+
+  if (isError) {
+    return (
+      <View style={[styles.container, styles.errorContainer, { paddingTop: insets.top }]}>
+        <Text style={styles.errorText}>
+          {error?.message ?? "Failed to load tasks"}
+        </Text>
+      </View>
+    );
+  }
+
   return (
     <View style={[styles.container, { paddingTop: insets.top }]}>
       <ScheduleHeader
@@ -209,7 +278,9 @@ export default function ScheduleScreen() {
         showsVerticalScrollIndicator={false}
         initialNumToRender={10}
         ListEmptyComponent={
-          <Text style={styles.emptyText}>No tasks for this day</Text>
+          tasks.length === 0 && !isLoading ? (
+            <Text style={styles.emptyText}>No tasks for this day</Text>
+          ) : null
         }
       />
 
@@ -222,15 +293,21 @@ export default function ScheduleScreen() {
         onClose={() => setShowRescheduleSheet(false)}
       />
 
-      <TaskFormSheet
-        visible={showTaskSheet}
-        onClose={handleTaskSheetClose}
-        task={selectedTask}
-        mode={taskSheetMode}
-        onEdit={handleEdit}
-        onCancel={handleCancel}
-        onSave={handleTaskSave}
-      />
+      {showTaskSheet && (
+        <TaskFormSheet
+          key={selectedTask?.id ?? "add"}
+          visible={showTaskSheet}
+          onClose={handleTaskSheetClose}
+          task={selectedTask}
+          mode={taskSheetMode}
+          onEdit={handleEdit}
+          onCancel={handleCancel}
+          onSave={handleTaskSave}
+          onDelete={handleDelete}
+          isSaving={createTask.isPending || updateTask.isPending}
+          isDeleting={deleteTask.isPending}
+        />
+      )}
     </View>
   );
 }

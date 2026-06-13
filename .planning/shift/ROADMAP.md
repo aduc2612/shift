@@ -94,24 +94,25 @@ SQL migration scripts live in `supabase/migrations/`. Run each new migration in 
 
 ---
 
-### Phase 5: Task Management
+### Phase 5: Task Management ✅
 **Goal:** Enable users to add, edit, complete tasks.
 
-**Deliverables:**
-- FAB (Floating Action Button) on schedule screen
-- AddTaskSheet bottom sheet component
-- Task input form: name, duration, deadline, AI instructions
-- TaskDetailSheet for viewing/editing tasks
-- Edit functionality: name, duration, deadline, AI context
-- Completion checkbox on TaskCard
-- Supabase CRUD via hooks
-- Optimistic updates for completion
-- TaskFormSheet component (view/edit/add modes)
-- "Let AI decide" toggle for start/end times
-- AI context field visible and editable in add/edit (non-view) mode
-- SQL migration for `ai_decides_time` column
+**Status:** Complete — see `.planning/shift/05-01-SUMMARY.md`
 
-**Validation:** Users add tasks, view/edit task details, mark complete. All changes persist to Supabase.
+**Key Deliverables:**
+- TanStack Query for server state (fetch, create, update, delete)
+- Supabase CRUD via hooks with optimistic updates
+- TaskFormSheet wired to Supabase (view/edit/add modes)
+- Delete button in edit mode with custom Alert confirmation
+- Completion checkbox with optimistic toggle
+- Custom Alert primitive (no React Native Alert)
+- RLS handles user filtering (no explicit user_id in queries)
+- Migration grants CRUD permissions to authenticated role
+- 129 tests passing
+
+**Deferred to Phase 6:**
+- "Let AI decide" toggle (disabled — no AI to assign times)
+- Tasks without startTime/endTime (AI will assign)
 
 ---
 

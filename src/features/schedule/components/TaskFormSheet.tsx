@@ -1,5 +1,6 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 import {
+  ActivityIndicator,
   Pressable,
   ScrollView,
   StyleSheet,
@@ -14,6 +15,7 @@ import { useTheme } from "@/providers/theme-provider";
 import type { Theme } from "@/constants/theme";
 import type { Task } from "@/types/task";
 import BottomSheet from "@/components/primitives/BottomSheet";
+import Alert from "@/components/primitives/Alert";
 import { useKeyboardHeight } from "@/hooks/useKeyboardHeight";
 import { formatDuration, formatTime, formatDate } from "@/utils/date";
 import { withOpacity } from "@/utils/color";
@@ -31,6 +33,9 @@ type TaskFormSheetProps = {
   onEdit?: () => void;
   onCancel?: () => void;
   onSave?: (task: Partial<Task>) => Promise<void> | void;
+  onDelete?: (id: string) => Promise<void> | void;
+  isSaving?: boolean;
+  isDeleting?: boolean;
 };
 
 function createStyles(theme: Theme) {
@@ -76,7 +81,7 @@ function createStyles(theme: Theme) {
       paddingVertical: theme.spacing.md,
     },
     taskNameInput: {
-      backgroundColor: theme.colors.background,
+      backgroundColor: theme.colors.surfaceVariant,
       borderWidth: 1,
       borderColor: theme.colors.outlineVariant,
       borderRadius: theme.borderRadius.lg,
@@ -130,7 +135,7 @@ function createStyles(theme: Theme) {
       opacity: 0.4,
     },
     timeDisplayBtn: {
-      backgroundColor: theme.colors.background,
+      backgroundColor: theme.colors.surfaceVariant,
       borderWidth: 1,
       borderColor: theme.colors.outlineVariant,
       borderRadius: theme.borderRadius.lg,
@@ -149,6 +154,9 @@ function createStyles(theme: Theme) {
     toggleLabel: {
       ...theme.typography.bodyMedium,
       color: theme.colors.onSurface,
+    },
+    toggleDisabled: {
+      opacity: 0.4,
     },
     aiCard: {
       backgroundColor: withOpacity(theme.colors.primary, 0.05),
@@ -174,7 +182,7 @@ function createStyles(theme: Theme) {
       lineHeight: 18,
     },
     contextInput: {
-      backgroundColor: theme.colors.background,
+      backgroundColor: theme.colors.surfaceVariant,
       borderWidth: 1,
       borderColor: theme.colors.outlineVariant,
       borderRadius: theme.borderRadius.lg,
@@ -186,7 +194,7 @@ function createStyles(theme: Theme) {
     },
     contextHint: {
       ...theme.typography.labelSmall,
-      color: theme.colors.outline,
+      color: theme.colors.onSurfaceVariant,
       marginTop: theme.spacing.sm,
       lineHeight: 16,
     },
@@ -199,7 +207,7 @@ function createStyles(theme: Theme) {
       flex: 1,
       paddingVertical: theme.spacing.md,
       borderRadius: theme.borderRadius.xl,
-      backgroundColor: theme.colors.surfaceVariant,
+      backgroundColor: theme.colors.surface,
       alignItems: "center",
       justifyContent: "center",
     },
@@ -219,6 +227,27 @@ function createStyles(theme: Theme) {
       ...theme.typography.titleSmall,
       color: theme.colors.onPrimary,
     },
+    deleteSection: {
+      marginTop: theme.spacing.xl,
+      borderRadius: theme.borderRadius.lg,
+    },
+    deleteBtn: {
+      minHeight: 48,
+      paddingVertical: theme.spacing.md,
+      borderRadius: theme.borderRadius.xl,
+      backgroundColor: withOpacity(theme.colors.error, 0.1),
+      alignItems: "center",
+      justifyContent: "center",
+      flexDirection: "row",
+      gap: theme.spacing.sm,
+    },
+    deleteBtnText: {
+      ...theme.typography.titleSmall,
+      color: theme.colors.error,
+    },
+    spinner: {
+      marginLeft: theme.spacing.sm,
+    },
   });
 }
 
@@ -230,6 +259,9 @@ export default function TaskFormSheet({
   onEdit,
   onCancel,
   onSave,
+  onDelete,
+  isSaving = false,
+  isDeleting = false,
 }: TaskFormSheetProps) {
   const theme = useTheme();
   const styles = useMemo(() => createStyles(theme), [theme]);
@@ -239,32 +271,15 @@ export default function TaskFormSheet({
   const [startHour, setStartHour] = useState(task?.startTime ?? "");
   const [endHour, setEndHour] = useState(task?.endTime ?? "");
   const [deadline, setDeadline] = useState(task?.deadline ?? "");
-  const [aiDecidesTime, setAiDecidesTime] = useState(
-    task?.aiDecidesTime ?? true,
-  );
   const [aiContext, setAiContext] = useState(task?.aiContext ?? "");
 
   const [showStartPicker, setShowStartPicker] = useState(false);
   const [showEndPicker, setShowEndPicker] = useState(false);
   const [showDeadlinePicker, setShowDeadlinePicker] = useState(false);
 
-  const [errors, setErrors] = useState<FieldErrors>({});
+  const [showDeleteAlert, setShowDeleteAlert] = useState(false);
 
-  // Sync state when task or mode changes
-  useEffect(() => {
-    if (visible) {
-      setName(task?.name ?? "");
-      setStartHour(task?.startTime ?? "");
-      setEndHour(task?.endTime ?? "");
-      setDeadline(task?.deadline ?? "");
-      setAiDecidesTime(task?.aiDecidesTime ?? true);
-      setAiContext(task?.aiContext ?? "");
-      setShowStartPicker(false);
-      setShowEndPicker(false);
-      setShowDeadlinePicker(false);
-      setErrors({});
-    }
-  }, [visible, task]);
+  const [errors, setErrors] = useState<FieldErrors>({});
 
   const durationMinutes = useMemo(() => {
     if (!startHour || !endHour) return 0;
@@ -287,12 +302,11 @@ export default function TaskFormSheet({
       newErrors.name = "Task name is required";
     }
 
-    if (!aiDecidesTime) {
-      if (!startHour || !endHour) {
-        newErrors.time = "Start and end times are required";
-      } else if (new Date(endHour) <= new Date(startHour)) {
-        newErrors.time = "End time must be after start time";
-      }
+    // "Let AI decide" is disabled until Phase 6, so times are always required
+    if (!startHour || !endHour) {
+      newErrors.time = "Start and end times are required";
+    } else if (new Date(endHour) <= new Date(startHour)) {
+      newErrors.time = "End time must be after start time";
     }
 
     if (Object.keys(newErrors).length > 0) {
@@ -307,7 +321,7 @@ export default function TaskFormSheet({
       endTime: endHour,
       durationMinutes,
       deadline: deadline || null,
-      aiDecidesTime,
+      aiDecidesTime: false,
       aiContext: aiContext || null,
     });
     onClose();
@@ -317,11 +331,17 @@ export default function TaskFormSheet({
     endHour,
     durationMinutes,
     deadline,
-    aiDecidesTime,
     aiContext,
     onSave,
     onClose,
   ]);
+
+  const handleDeleteConfirm = useCallback(() => {
+    if (task?.id && onDelete) {
+      onDelete(task.id);
+    }
+    setShowDeleteAlert(false);
+  }, [task, onDelete]);
 
   return (
     <BottomSheet visible={visible} onClose={onClose}>
@@ -351,7 +371,7 @@ export default function TaskFormSheet({
               <Ionicons
                 name="pencil"
                 size={16}
-                color={theme.colors.onSurface}
+                color={theme.colors.onBackground}
               />
             </Pressable>
           ) : (
@@ -370,12 +390,16 @@ export default function TaskFormSheet({
                 value={name}
                 onChangeText={(text) => {
                   setName(text);
-                  if (errors.name) setErrors((e) => ({ ...e, name: undefined }));
+                  if (errors.name)
+                    setErrors((e) => ({ ...e, name: undefined }));
                 }}
                 placeholder="Task name"
                 placeholderTextColor={theme.colors.outline}
+                editable={!isSaving && !isDeleting}
               />
-              {errors.name && <Text style={styles.errorText}>{errors.name}</Text>}
+              {errors.name && (
+                <Text style={styles.errorText}>{errors.name}</Text>
+              )}
             </>
           )}
         </View>
@@ -383,12 +407,7 @@ export default function TaskFormSheet({
         {/* Time section */}
         <View style={styles.section}>
           <Text style={styles.sectionLabel}>Time</Text>
-          <View
-            style={[
-              styles.timeRow,
-              aiDecidesTime && mode !== "view" && styles.disabledTimeCol,
-            ]}
-          >
+          <View style={styles.timeRow}>
             <View style={styles.timeCol}>
               <Text style={styles.timeLabel}>Start</Text>
               {mode === "view" ? (
@@ -405,23 +424,17 @@ export default function TaskFormSheet({
                   value={startHour ? new Date(startHour) : new Date()}
                   mode="time"
                   onValueChange={(_event: unknown, date?: Date) => {
-                    if (date && !aiDecidesTime)
-                      setStartHour(date.toISOString());
+                    if (date) setStartHour(date.toISOString());
                     setShowStartPicker(false);
-                    if (errors.time) setErrors((e) => ({ ...e, time: undefined }));
+                    if (errors.time)
+                      setErrors((e) => ({ ...e, time: undefined }));
                   }}
                   onDismiss={() => setShowStartPicker(false)}
-                  disabled={aiDecidesTime}
                 />
               ) : (
                 <Pressable
-                  style={[
-                    styles.timeDisplayBtn,
-                    aiDecidesTime && { opacity: 0.4 },
-                  ]}
-                  onPress={() => {
-                    if (!aiDecidesTime) setShowStartPicker(true);
-                  }}
+                  style={styles.timeDisplayBtn}
+                  onPress={() => setShowStartPicker(true)}
                 >
                   <Text style={styles.timeDisplayText}>
                     {startHour ? formatTime(startHour) : "Set time"}
@@ -446,22 +459,17 @@ export default function TaskFormSheet({
                   value={endHour ? new Date(endHour) : new Date()}
                   mode="time"
                   onValueChange={(_event: unknown, date?: Date) => {
-                    if (date && !aiDecidesTime) setEndHour(date.toISOString());
+                    if (date) setEndHour(date.toISOString());
                     setShowEndPicker(false);
-                    if (errors.time) setErrors((e) => ({ ...e, time: undefined }));
+                    if (errors.time)
+                      setErrors((e) => ({ ...e, time: undefined }));
                   }}
                   onDismiss={() => setShowEndPicker(false)}
-                  disabled={aiDecidesTime}
                 />
               ) : (
                 <Pressable
-                  style={[
-                    styles.timeDisplayBtn,
-                    aiDecidesTime && { opacity: 0.4 },
-                  ]}
-                  onPress={() => {
-                    if (!aiDecidesTime) setShowEndPicker(true);
-                  }}
+                  style={styles.timeDisplayBtn}
+                  onPress={() => setShowEndPicker(true)}
                 >
                   <Text style={styles.timeDisplayText}>
                     {endHour ? formatTime(endHour) : "Set time"}
@@ -479,14 +487,14 @@ export default function TaskFormSheet({
           </View>
           {errors.time && <Text style={styles.errorText}>{errors.time}</Text>}
 
-          {/* Let AI decide toggle — edit/add only */}
+          {/* Let AI decide toggle — edit/add only, disabled until Phase 6 */}
           {mode !== "view" && (
-            <View style={styles.toggleRow}>
+            <View style={[styles.toggleRow, styles.toggleDisabled]}>
               <Text style={styles.toggleLabel}>Let AI decide</Text>
               <Switch
                 testID="ai-decides-switch"
-                value={aiDecidesTime}
-                onValueChange={setAiDecidesTime}
+                value={false}
+                disabled
                 trackColor={{
                   true: theme.colors.primary,
                   false: theme.colors.outlineVariant,
@@ -562,10 +570,43 @@ export default function TaskFormSheet({
               placeholderTextColor={theme.colors.outline}
               multiline
               numberOfLines={3}
+              editable={!isSaving && !isDeleting}
             />
             <Text style={styles.contextHint}>
               Help the AI schedule this task better.
             </Text>
+          </View>
+        )}
+
+        {/* Delete button — edit mode only */}
+        {mode === "edit" && (
+          <View style={styles.deleteSection}>
+            <Pressable
+              style={({ pressed }) => [
+                styles.deleteBtn,
+                pressed && { opacity: theme.interaction.pressedOpacity },
+              ]}
+              onPress={() => setShowDeleteAlert(true)}
+              disabled={isDeleting}
+              hitSlop={8}
+            >
+              {isDeleting ? (
+                <ActivityIndicator
+                  size="small"
+                  color={theme.colors.error}
+                  style={styles.spinner}
+                />
+              ) : (
+                <Ionicons
+                  name="trash-outline"
+                  size={16}
+                  color={theme.colors.error}
+                />
+              )}
+              <Text style={styles.deleteBtnText}>
+                {isDeleting ? "Deleting..." : "Delete Task"}
+              </Text>
+            </Pressable>
           </View>
         )}
 
@@ -578,6 +619,7 @@ export default function TaskFormSheet({
                 pressed && { opacity: theme.interaction.pressedOpacity },
               ]}
               onPress={handleCancel}
+              disabled={isSaving || isDeleting}
             >
               <Text style={styles.cancelBtnText}>Cancel</Text>
             </Pressable>
@@ -588,14 +630,34 @@ export default function TaskFormSheet({
                 pressed && { opacity: theme.interaction.pressedOpacity },
               ]}
               onPress={handleDone}
+              disabled={isSaving || isDeleting}
             >
-              <Text style={styles.doneBtnText}>
-                {mode === "add" ? "Add" : "Done"}
-              </Text>
+              {isSaving ? (
+                <ActivityIndicator
+                  size="small"
+                  color={theme.colors.onPrimary}
+                />
+              ) : (
+                <Text style={styles.doneBtnText}>
+                  {mode === "add" ? "Add" : "Done"}
+                </Text>
+              )}
             </Pressable>
           </View>
         )}
       </ScrollView>
+
+      {/* Delete confirmation alert */}
+      <Alert
+        visible={showDeleteAlert}
+        title="Delete Task"
+        message="Are you sure you want to delete this task? This cannot be undone."
+        confirmLabel="Delete"
+        cancelLabel="Cancel"
+        destructive
+        onConfirm={handleDeleteConfirm}
+        onCancel={() => setShowDeleteAlert(false)}
+      />
     </BottomSheet>
   );
 }
