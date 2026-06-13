@@ -18,6 +18,43 @@ jest.mock('@expo/ui/community/datetime-picker', () => {
   };
 });
 
+// Mock Alert to render inline (Modal doesn't render children in test env)
+jest.mock('@/components/primitives/Alert', () => {
+  const mockReact = require('react');
+  const RN = require('react-native');
+  return {
+    __esModule: true,
+    default: ({
+      visible,
+      title,
+      message,
+      confirmLabel,
+      cancelLabel,
+      destructive,
+      onConfirm,
+      onCancel,
+    }: Record<string, unknown>) => {
+      if (!visible) return null;
+      return mockReact.createElement(RN.View, {
+        testID: 'mock-alert',
+      }, [
+        mockReact.createElement(RN.Text, { key: 'title' }, title as string),
+        message ? mockReact.createElement(RN.Text, { key: 'message' }, message as string) : null,
+        mockReact.createElement(RN.Pressable, {
+          key: 'confirm',
+          testID: 'alert-confirm-btn',
+          onPress: onConfirm as () => void,
+        }, mockReact.createElement(RN.Text, null, confirmLabel as string ?? 'Confirm')),
+        mockReact.createElement(RN.Pressable, {
+          key: 'cancel',
+          testID: 'alert-cancel-btn',
+          onPress: onCancel as () => void,
+        }, mockReact.createElement(RN.Text, null, cancelLabel as string ?? 'Cancel')),
+      ]);
+    },
+  };
+});
+
 // Mock useKeyboardHeight
 jest.mock('@/hooks/useKeyboardHeight', () => ({
   useKeyboardHeight: () => 0,
@@ -256,5 +293,81 @@ describe('TaskFormSheet', () => {
       (s: Record<string, unknown>) => s && typeof s === 'object' && 'borderColor' in s,
     );
     expect(borderStyle?.borderColor).toBeDefined();
+  });
+
+  // ─── Delete mode tests ──────────────────────────────────────────────
+
+  it('shows delete button in edit mode', async () => {
+    const task = makeTask();
+    const { getByText } = await renderWithTheme(
+      <TaskFormSheet visible onClose={jest.fn()} task={task} mode="edit" onDelete={jest.fn()} />,
+    );
+    expect(getByText('Delete Task')).toBeTruthy();
+  });
+
+  it('hides delete button in view mode', async () => {
+    const task = makeTask();
+    const { queryByText } = await renderWithTheme(
+      <TaskFormSheet visible onClose={jest.fn()} task={task} mode="view" />,
+    );
+    expect(queryByText('Delete Task')).toBeNull();
+  });
+
+  it('hides delete button in add mode', async () => {
+    const { queryByText } = await renderWithTheme(
+      <TaskFormSheet visible onClose={jest.fn()} mode="add" />,
+    );
+    expect(queryByText('Delete Task')).toBeNull();
+  });
+
+  it('shows delete confirmation alert when delete pressed', async () => {
+    const task = makeTask();
+    const { getByText, getByTestId } = await renderWithTheme(
+      <TaskFormSheet visible onClose={jest.fn()} task={task} mode="edit" onDelete={jest.fn()} />,
+    );
+    await act(async () => {
+      fireEvent.press(getByText('Delete Task'));
+    });
+    expect(getByTestId('mock-alert')).toBeTruthy();
+    expect(getByText('Are you sure you want to delete this task? This cannot be undone.')).toBeTruthy();
+  });
+
+  it('calls onDelete with task id when delete confirmed', async () => {
+    const task = makeTask({ id: 'task-123' });
+    const onDelete = jest.fn();
+    const { getByText } = await renderWithTheme(
+      <TaskFormSheet visible onClose={jest.fn()} task={task} mode="edit" onDelete={onDelete} />,
+    );
+    await act(async () => {
+      fireEvent.press(getByText('Delete Task'));
+    });
+    await act(async () => {
+      fireEvent.press(getByText('Delete'));
+    });
+    expect(onDelete).toHaveBeenCalledWith('task-123');
+  });
+
+  it('does not call onDelete when delete cancelled', async () => {
+    const task = makeTask();
+    const onDelete = jest.fn();
+    const { getByText, getAllByText } = await renderWithTheme(
+      <TaskFormSheet visible onClose={jest.fn()} task={task} mode="edit" onDelete={onDelete} />,
+    );
+    await act(async () => {
+      fireEvent.press(getByText('Delete Task'));
+    });
+    // The Alert's Cancel button is the second Cancel in the tree
+    await act(async () => {
+      fireEvent.press(getAllByText('Cancel')[1]);
+    });
+    expect(onDelete).not.toHaveBeenCalled();
+  });
+
+  it('shows Deleting... text while isDeleting', async () => {
+    const task = makeTask();
+    const { getByText } = await renderWithTheme(
+      <TaskFormSheet visible onClose={jest.fn()} task={task} mode="edit" onDelete={jest.fn()} isDeleting={true} />,
+    );
+    expect(getByText('Deleting...')).toBeTruthy();
   });
 });

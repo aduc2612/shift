@@ -229,11 +229,10 @@ function createStyles(theme: Theme) {
     },
     deleteSection: {
       marginTop: theme.spacing.xl,
-      paddingTop: theme.spacing.lg,
-      borderTopWidth: 1,
-      borderTopColor: theme.colors.outlineVariant,
+      borderRadius: theme.borderRadius.lg,
     },
     deleteBtn: {
+      minHeight: 48,
       paddingVertical: theme.spacing.md,
       borderRadius: theme.borderRadius.xl,
       backgroundColor: withOpacity(theme.colors.error, 0.1),
@@ -391,13 +390,16 @@ export default function TaskFormSheet({
                 value={name}
                 onChangeText={(text) => {
                   setName(text);
-                  if (errors.name) setErrors((e) => ({ ...e, name: undefined }));
+                  if (errors.name)
+                    setErrors((e) => ({ ...e, name: undefined }));
                 }}
                 placeholder="Task name"
                 placeholderTextColor={theme.colors.outline}
                 editable={!isSaving && !isDeleting}
               />
-              {errors.name && <Text style={styles.errorText}>{errors.name}</Text>}
+              {errors.name && (
+                <Text style={styles.errorText}>{errors.name}</Text>
+              )}
             </>
           )}
         </View>
@@ -424,7 +426,8 @@ export default function TaskFormSheet({
                   onValueChange={(_event: unknown, date?: Date) => {
                     if (date) setStartHour(date.toISOString());
                     setShowStartPicker(false);
-                    if (errors.time) setErrors((e) => ({ ...e, time: undefined }));
+                    if (errors.time)
+                      setErrors((e) => ({ ...e, time: undefined }));
                   }}
                   onDismiss={() => setShowStartPicker(false)}
                 />
@@ -458,7 +461,8 @@ export default function TaskFormSheet({
                   onValueChange={(_event: unknown, date?: Date) => {
                     if (date) setEndHour(date.toISOString());
                     setShowEndPicker(false);
-                    if (errors.time) setErrors((e) => ({ ...e, time: undefined }));
+                    if (errors.time)
+                      setErrors((e) => ({ ...e, time: undefined }));
                   }}
                   onDismiss={() => setShowEndPicker(false)}
                 />
@@ -584,6 +588,7 @@ export default function TaskFormSheet({
               ]}
               onPress={() => setShowDeleteAlert(true)}
               disabled={isDeleting}
+              hitSlop={8}
             >
               {isDeleting ? (
                 <ActivityIndicator

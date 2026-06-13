@@ -177,9 +177,12 @@ export default function ScheduleScreen() {
 
   const handleDelete = useCallback(
     (taskId: string) => {
-      deleteTask.mutate(taskId);
-      setShowTaskSheet(false);
-      setSelectedTask(null);
+      deleteTask.mutate(taskId, {
+        onSuccess: () => {
+          setShowTaskSheet(false);
+          setSelectedTask(null);
+        },
+      });
     },
     [deleteTask],
   );

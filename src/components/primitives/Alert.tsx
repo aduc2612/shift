@@ -29,11 +29,8 @@ function createStyles(theme: Theme) {
       padding: theme.spacing.xl,
       width: "100%",
       maxWidth: 320,
-      shadowColor: "#000",
-      shadowOffset: { width: 0, height: 4 },
-      shadowOpacity: 0.15,
-      shadowRadius: 12,
-      elevation: 8,
+      ...theme.shadows.lg,
+      shadowColor: theme.colors.shadow,
     },
     title: {
       ...theme.typography.titleMedium,
@@ -94,7 +91,7 @@ export default function Alert({
   const styles = useMemo(() => createStyles(theme), [theme]);
 
   return (
-    <Modal visible={visible} transparent animationType="fade">
+    <Modal visible={visible} transparent animationType="fade" onRequestClose={onCancel}>
       <Pressable
         style={styles.backdrop}
         onPress={onCancel}
