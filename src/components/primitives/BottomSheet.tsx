@@ -54,7 +54,11 @@ export default function BottomSheet({
       animationType="fade"
       onRequestClose={onClose}
     >
-      <Pressable testID="bottom-sheet-backdrop" style={styles.backdrop} onPress={onClose} />
+      <Pressable
+        testID="bottom-sheet-backdrop"
+        style={styles.backdrop}
+        onPress={onClose}
+      />
       <View style={[styles.sheetContainer, { paddingBottom: insets.bottom }]}>
         <View style={styles.sheetContent}>
           <View style={styles.handle} />
