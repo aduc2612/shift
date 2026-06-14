@@ -22,7 +22,9 @@ function RootNavigator() {
   useNotificationTapListener();
 
   useEffect(() => {
-    setupNotificationChannel();
+    setupNotificationChannel().catch((err) => {
+      console.error('Failed to setup notification channel:', err);
+    });
   }, []);
 
   const styles = useMemo(

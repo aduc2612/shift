@@ -6,42 +6,50 @@ import type { Task } from '@/types/task';
 /**
  * Observes the TanStack Query cache for task data changes
  * and calls syncNotifications whenever tasks are refetched.
- * Also checks existing cache data on mount for tasks already loaded.
+ * Aggregates ALL cached task entries (multiple dates) into
+ * one sync call. Serializes syncs to prevent race conditions.
  */
 export function useSyncNotifications() {
   const queryClient = useQueryClient();
-  const hasSyncedInitial = useRef(false);
+  const currentSync = useRef<Promise<void>>(Promise.resolve());
 
   useEffect(() => {
-    // Check existing cache data on mount (catches tasks loaded before this hook)
-    if (!hasSyncedInitial.current) {
+    // Aggregate all cached task data across all date keys
+    function getAllCachedTasks(): Task[] {
       const allQueries = queryClient.getQueryCache().getAll();
+      const tasks: Task[] = [];
       for (const query of allQueries) {
         if (query.queryKey[0] === 'tasks') {
           const data = query.state.data as Task[] | undefined;
-          if (data && data.length > 0) {
-            hasSyncedInitial.current = true;
-            syncNotifications(data).catch((err) => {
-              console.error('Failed to sync notifications:', err);
-            });
-            break;
+          if (Array.isArray(data)) {
+            tasks.push(...data);
           }
         }
       }
+      return tasks;
+    }
+
+    // Chain sync after the previous one to prevent concurrency
+    function chainSync(tasks: Task[]) {
+      currentSync.current = currentSync.current
+        .catch(() => {})
+        .then(() => syncNotifications(tasks))
+        .catch((err: unknown) => {
+          console.error('Failed to sync notifications:', err);
+        });
+    }
+
+    // Sync from existing cache on mount
+    const existing = getAllCachedTasks();
+    if (existing.length > 0) {
+      chainSync(existing);
     }
 
     // Subscribe to future cache changes
-    const unsubscribe = queryClient.getQueryCache().subscribe((event) => {
-      if (
-        (event.type === 'added' || event.type === 'updated') &&
-        event.query.queryKey[0] === 'tasks'
-      ) {
-        const data = event.query.state.data as Task[] | undefined;
-        if (data) {
-          syncNotifications(data).catch((err) => {
-            console.error('Failed to sync notifications:', err);
-          });
-        }
+    const unsubscribe = queryClient.getQueryCache().subscribe(() => {
+      const tasks = getAllCachedTasks();
+      if (tasks.length > 0) {
+        chainSync(tasks);
       }
     });
 

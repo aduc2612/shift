@@ -26,6 +26,24 @@ const mockTasks: Task[] = [
   },
 ];
 
+const mockTasksDay2: Task[] = [
+  {
+    id: '2',
+    userId: 'u1',
+    name: 'Lunch',
+    startTime: '2099-06-11T12:00:00',
+    endTime: '2099-06-11T13:00:00',
+    durationMinutes: 60,
+    deadline: null,
+    completed: false,
+    aiContext: null,
+    aiDecidesTime: false,
+    aiJustification: null,
+    createdAt: '',
+    updatedAt: '',
+  },
+];
+
 function createWrapper(queryClient: QueryClient) {
   function Wrapper({ children }: { children: React.ReactNode }) {
     return (
@@ -45,7 +63,6 @@ describe('useSyncNotifications', () => {
       defaultOptions: { queries: { retry: false } },
     });
 
-    // Pre-populate cache BEFORE hook mounts
     queryClient.setQueryData(['tasks', '2099-06-10'], mockTasks);
 
     renderHook(() => useSyncNotifications(), {
@@ -66,7 +83,6 @@ describe('useSyncNotifications', () => {
       wrapper: createWrapper(queryClient),
     });
 
-    // Set data AFTER hook mounts
     queryClient.setQueryData(['tasks', '2099-06-10'], mockTasks);
 
     await waitFor(() => {
@@ -83,7 +99,27 @@ describe('useSyncNotifications', () => {
       wrapper: createWrapper(queryClient),
     });
 
-    await new Promise((r) => setTimeout(r, 100));
+    // Cache is empty — sync should not be called
+    expect(notifications.syncNotifications).not.toHaveBeenCalled();
+
+    // Wait a tick to confirm no delayed call
+    await waitFor(() => {
+      expect(notifications.syncNotifications).not.toHaveBeenCalled();
+    });
+  });
+
+  it('calls syncNotifications with empty array when cache is empty array', async () => {
+    const queryClient = new QueryClient({
+      defaultOptions: { queries: { retry: false } },
+    });
+
+    queryClient.setQueryData(['tasks', '2099-06-10'], []);
+
+    renderHook(() => useSyncNotifications(), {
+      wrapper: createWrapper(queryClient),
+    });
+
+    // Empty array has length 0 — hook skips initial sync
     expect(notifications.syncNotifications).not.toHaveBeenCalled();
   });
 
@@ -103,6 +139,28 @@ describe('useSyncNotifications', () => {
     });
   });
 
+  it('aggregates tasks from multiple cache entries', async () => {
+    const queryClient = new QueryClient({
+      defaultOptions: { queries: { retry: false } },
+    });
+
+    queryClient.setQueryData(['tasks', '2099-06-10'], mockTasks);
+    queryClient.setQueryData(['tasks', '2099-06-11'], mockTasksDay2);
+
+    renderHook(() => useSyncNotifications(), {
+      wrapper: createWrapper(queryClient),
+    });
+
+    await waitFor(() => {
+      expect(notifications.syncNotifications).toHaveBeenCalledWith(
+        expect.arrayContaining([
+          expect.objectContaining({ id: '1' }),
+          expect.objectContaining({ id: '2' }),
+        ]),
+      );
+    });
+  });
+
   it('unsubscribes from cache on unmount', async () => {
     const queryClient = new QueryClient({
       defaultOptions: { queries: { retry: false } },
@@ -115,9 +173,10 @@ describe('useSyncNotifications', () => {
     await unmount();
     jest.clearAllMocks();
 
-    // After unmount, new cache updates should not trigger sync
     queryClient.setQueryData(['tasks', '2099-06-10'], mockTasks);
-    await new Promise((r) => setTimeout(r, 100));
+
+    // After unmount, new cache updates should not trigger sync
+    await new Promise((r) => setTimeout(r, 50));
     expect(notifications.syncNotifications).not.toHaveBeenCalled();
   });
 
