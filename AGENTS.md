@@ -16,7 +16,7 @@ App includes:
 - **Add task:** FAB opens bottom sheet with task name, duration (manual or AI-estimated, manual if AI limits exhausted), deadline, optional AI instructions.
 - **Onboarding:** 3-screen flow: productivity peak, wake-up time, freeform scheduling context. Stored as AI system prompt context.
 - **Settings:** Freeform text input to update scheduling instructions anytime.
-- **Push notifications:** 10 min before task start, on task end, nudge 5 min after end if unchecked. Always cancelled and fully rewritten after every reschedule.
+- **Push notifications:** 10 min before task start, on task start, on task end, nudge 5 min after end if unchecked. Always cancelled and fully rewritten after every reschedule.
 - **Payments:** RevenueCat paywall gating AI features.
 
 ## Keep implementation simple and readable.
@@ -350,6 +350,7 @@ export async function syncNotifications(tasks: Task[]): Promise<void> {
   for (const task of tasks) {
     if (task.completed) continue;
     // 10 min before start
+    // On task start
     // On task end
     // Nudge 5 min after end (cancelled if task is checked off)
     // Schedule all three using expo-notifications

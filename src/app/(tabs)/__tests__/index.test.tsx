@@ -59,6 +59,10 @@ jest.mock("@/hooks/useCurrentTime", () => ({ useCurrentTime: () => new Date() })
 jest.mock("@/features/schedule/hooks/useReschedule", () => ({
   useReschedule: () => ({ mutateAsync: jest.fn(), isPending: false }),
 }));
+jest.mock("@/features/schedule/hooks/useSyncNotifications", () => ({
+  useSyncNotifications: () => {},
+}));
+
 jest.mock("@/providers/toast-provider", () => ({
   useToast: () => ({ show: jest.fn(), hide: jest.fn() }),
 }));

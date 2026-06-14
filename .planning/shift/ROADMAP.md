@@ -147,8 +147,9 @@ SQL migration scripts live in `supabase/migrations/`. Run each new migration in 
 - Notification service in `lib/notifications.ts`
 - `syncNotifications(tasks)` function
 - Cancel all notifications before rewriting
-- Schedule 3 notifications per task:
+- Schedule 4 notifications per task:
   - 10 minutes before start
+  - On task start
   - On task end
   - Nudge 5 minutes after end (cancelled if task completed)
 - Call `syncNotifications` after:
