@@ -24,8 +24,13 @@ const { supabase } = jest.requireMock('@/services/supabase') as {
 const mockGetSession = supabase.auth.getSession;
 
 // Mock global fetch
+const originalFetch = globalThis.fetch;
 const mockFetch = jest.fn();
 globalThis.fetch = mockFetch as unknown as typeof fetch;
+
+afterAll(() => {
+  globalThis.fetch = originalFetch;
+});
 
 // Sample task for tests
 const sampleTask: Task = {

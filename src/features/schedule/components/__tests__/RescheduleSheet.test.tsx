@@ -132,9 +132,9 @@ describe('RescheduleSheet', () => {
       });
     });
 
-    it('does not close on error', async () => {
+    it('does not close on error and displays error message', async () => {
       const onClose = jest.fn();
-      const onReschedule = jest.fn().mockRejectedValue(new Error('fail'));
+      const onReschedule = jest.fn().mockRejectedValue(new Error('Reschedule failed'));
       const { getByText } = await renderWithTheme(
         <RescheduleSheet
           visible={true}
@@ -150,6 +150,7 @@ describe('RescheduleSheet', () => {
 
       await waitFor(() => {
         expect(onClose).not.toHaveBeenCalled();
+        expect(getByText('Reschedule failed')).toBeTruthy();
       });
     });
 

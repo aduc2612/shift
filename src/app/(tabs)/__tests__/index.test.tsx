@@ -1,7 +1,7 @@
 jest.mock("@expo/ui/community/datetime-picker", () => {
   const R = require("react");
   const RN = require("react-native");
-  return { DateTimePicker: (p: any) => R.createElement(RN.View) };
+  return { DateTimePicker: (p: unknown) => R.createElement(RN.View) };
 });
 
 jest.mock("@/providers/theme-provider", () => {
@@ -75,7 +75,7 @@ jest.mock("@/features/schedule/components/RescheduleSheet", () => {
   const R = require("react"); const RN = require("react-native");
   return {
     __esModule: true,
-    default: (props: any) =>
+    default: (props: Record<string, unknown>) =>
       R.createElement(RN.View, {
         testID: "reschedule-sheet",
         "data-visible": props.visible,

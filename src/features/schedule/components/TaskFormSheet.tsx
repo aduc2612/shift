@@ -348,7 +348,12 @@ export default function TaskFormSheet({
     }
 
     // Save task first
-    await onSave?.(taskPayload);
+    try {
+      await onSave?.(taskPayload);
+    } catch {
+      // Save failed — stay open
+      return;
+    }
 
     // Determine if reschedule is needed
     // Reschedule when:
@@ -383,7 +388,7 @@ export default function TaskFormSheet({
       try {
         await reschedule.mutateAsync({ whatChanged });
       } catch {
-        // Stay open — error handled by useReschedule toast
+        // Stay open — error displayed inline in RescheduleSheet
         return;
       }
     }

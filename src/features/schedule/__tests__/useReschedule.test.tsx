@@ -220,16 +220,16 @@ describe('useReschedule', () => {
         startTime: mockTasks[0].startTime,
         endTime: mockTasks[0].endTime,
         durationMinutes: mockTasks[0].durationMinutes,
-        aiJustification: mockTasks[0].aiJustification ?? '',
-        aiContext: mockTasks[0].aiContext ?? '',
+        aiJustification: mockTasks[0].aiJustification,
+        aiContext: mockTasks[0].aiContext,
       });
       expect(calledWith[1]).toEqual({
         id: 'task-2',
         startTime: mockTasks[1].startTime,
         endTime: mockTasks[1].endTime,
         durationMinutes: mockTasks[1].durationMinutes,
-        aiJustification: mockTasks[1].aiJustification ?? '',
-        aiContext: mockTasks[1].aiContext ?? '',
+        aiJustification: mockTasks[1].aiJustification,
+        aiContext: mockTasks[1].aiContext,
       });
     });
 

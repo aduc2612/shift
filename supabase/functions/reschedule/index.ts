@@ -45,6 +45,17 @@ Deno.serve(async (req) => {
     }
 
     const tz = timezone || "UTC";
+
+    // Validate timezone
+    try {
+      Intl.DateTimeFormat(undefined, { timeZone: tz });
+    } catch {
+      return new Response(
+        JSON.stringify({ error: `Invalid timezone: ${tz}` }),
+        { status: 400, headers: { "Content-Type": "application/json" } },
+      );
+    }
+
     const now = new Date();
     const nowUTC = now.toLocaleString("en-US", { timeZone: "UTC" }) + " UTC";
     const nowLocal = now.toLocaleString("en-US", { timeZone: tz });
@@ -92,16 +103,24 @@ Deno.serve(async (req) => {
           reasoning_effort: "minimal",
         });
 
-        const content = completion.choices[0]?.message?.content;
+        let content = completion.choices[0]?.message?.content;
         if (!content) {
           throw new Error("Model returned empty response");
         }
 
+        // Strip markdown fences if model wraps JSON
+        content = content.replace(/^```(?:json)?\n?/, "").replace(/\n?```$/, "").trim();
+
         // Zod validates the response matches the schema exactly
         const parsed = RescheduleSchema.parse(JSON.parse(content));
 
-        // Validate all input IDs present in output
+        // Validate exact task ID parity — no extras, no duplicates
         const outputIds = new Set(parsed.tasks.map((t) => t.id));
+        if (outputIds.size !== inputIds.size) {
+          throw new Error(
+            `Task count mismatch: expected ${inputIds.size}, got ${outputIds.size}`,
+          );
+        }
         for (const id of inputIds) {
           if (!outputIds.has(id)) {
             throw new Error(`Missing task id in output: ${id}`);

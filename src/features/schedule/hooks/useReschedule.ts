@@ -20,8 +20,8 @@ export function useReschedule() {
         startTime: t.startTime,
         endTime: t.endTime,
         durationMinutes: t.durationMinutes,
-        aiJustification: t.aiJustification ?? '',
-        aiContext: t.aiContext ?? '',
+        aiJustification: t.aiJustification,
+        aiContext: t.aiContext,
       })),
     );
     await queryClient.invalidateQueries({ queryKey: ['tasks'] });

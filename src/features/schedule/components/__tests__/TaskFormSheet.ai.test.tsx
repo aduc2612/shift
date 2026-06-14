@@ -251,7 +251,7 @@ describe("TaskFormSheet — AI fields", () => {
 
       const task = makeTask({ aiDecidesTime: false });
 
-      const { getByTestId } = await renderWithTheme(
+      const { getByTestId, queryByText } = await renderWithTheme(
         <TaskFormSheet
           visible
           onClose={jest.fn()}
@@ -262,9 +262,10 @@ describe("TaskFormSheet — AI fields", () => {
         />,
       );
 
-      // Done button should show ActivityIndicator
+      // Done button should show spinner instead of text
       const doneBtn = getByTestId("done-btn");
-      expect(doneBtn.props.children).toBeTruthy();
+      expect(doneBtn.props.accessibilityState?.disabled).toBe(true);
+      expect(queryByText("Done")).toBeNull();
     });
   });
 

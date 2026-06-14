@@ -154,6 +154,7 @@ Best quality for models supporting structured output, graceful fallback for othe
 Prevents race condition where reschedule runs before task is persisted to DB.
 
 ### 6. Reschedule Triggers — Selective
+
 | Scenario | Reschedule? |
 |----------|------------|
 | New task with `aiDecidesTime: true` | ✅ |
@@ -249,7 +250,7 @@ Prevents race condition where reschedule runs before task is persisted to DB.
 ## Prompt Design
 
 ### System Prompt (Current)
-```
+```text
 You are an AI scheduling assistant. You rearrange a user's task schedule optimally.
 
 Context:
@@ -281,7 +282,7 @@ Rules:
 ```
 
 ### Token Budget (Dynamic)
-```
+```text
 tokenBudget = min(tasks.length * 150 + 300, 4096)
 ```
 - 5 tasks → 1050 tokens (was 4096)
@@ -291,7 +292,7 @@ tokenBudget = min(tasks.length * 150 + 300, 4096)
 
 ## Undo Flow
 
-```
+```text
 1. User taps "Reschedule"
 2. Fetch all incomplete tasks from Supabase
 3. Snapshot tasks in Zustand (undo-store)
@@ -456,7 +457,7 @@ RESCHEDULE_CONSTANTS = {
 - 4x faster
 
 ### How Dynamic Token Budget Works
-```
+```text
 tokenBudget = min(tasks.length × 150 + 300, 4096)
 
 5 tasks  → 1050 tokens → ~2s
@@ -507,18 +508,18 @@ tokenBudget = min(tasks.length × 150 + 300, 4096)
 ## Critical Context
 
 ### Project Root
-```
+```text
 C:\Shift
 ```
 
 ### Config Files
-```
+```text
 supabase/functions/reschedule/config.ts  → Edge Function (models, prompts, timeouts)
 src/constants/reschedule.ts              → Client (toast, undo, whatChanged templates)
 ```
 
 ### Key Data Flow
-```
+```text
 User taps Reschedule
   → fetchIncompleteTasks() from Supabase
   → Snapshot tasks in undo-store
@@ -533,7 +534,7 @@ User taps Reschedule
 ```
 
 ### File Paths
-```
+```text
 src/store/undo-store.ts                          — Zustand undo store
 src/components/primitives/Toast.tsx              — Toast component
 src/providers/toast-provider.tsx                 — Toast context + hook

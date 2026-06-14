@@ -64,7 +64,7 @@
 **Status:** ✅ Complete
 **Files changed:**
 - `src/app/_layout.tsx` — Added ToastProvider to provider tree
-- `src/app/(tabs)/index.tsx` — Wired useReschedule to RescheduleSheet, toast on error
+- `src/app/(tabs)/index.tsx` — Wired useReschedule to RescheduleSheet, inline error handling
 - `src/app/(tabs)/__tests__/index.test.tsx` — 4 tests (renders, visible prop, onReschedule function, isRescheduling)
 
 ## Task 12: Manual integration testing

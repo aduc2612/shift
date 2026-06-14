@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import {
   ActivityIndicator,
   Platform,
@@ -95,6 +95,13 @@ export default function RescheduleSheet({
   const keyboardHeight = useKeyboardHeight();
   const [text, setText] = useState("");
   const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (visible) {
+      setText("");
+      setError(null);
+    }
+  }, [visible]);
 
   const handleReschedule = async () => {
     if (!onReschedule || isRescheduling) return;

@@ -113,8 +113,8 @@ export type TaskUpdate = {
   startTime: string;
   endTime: string;
   durationMinutes: number;
-  aiJustification: string;
-  aiContext: string;
+  aiJustification: string | null;
+  aiContext: string | null;
 };
 
 export async function fetchIncompleteTasks(): Promise<Task[]> {

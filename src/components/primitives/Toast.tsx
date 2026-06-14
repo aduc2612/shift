@@ -54,7 +54,6 @@ export default function Toast({
   const theme = useTheme();
   const insets = useSafeAreaInsets();
   const styles = createStyles(theme);
-  // eslint-disable-next-line react-hooks/refs
   const opacity = useRef(new Animated.Value(0)).current;
   const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const animRef = useRef<Animated.CompositeAnimation | null>(null);
