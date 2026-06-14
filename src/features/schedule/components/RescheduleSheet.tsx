@@ -59,8 +59,27 @@ function createStyles(theme: Theme) {
       ...theme.typography.bodySmall,
       color: theme.colors.onSurfaceVariant,
     },
-    cta: {
+    buttonRow: {
+      flexDirection: "row",
+      gap: 12,
       marginTop: 16,
+    },
+    cancelBtn: {
+      flex: 1,
+      backgroundColor: theme.colors.surface,
+      borderWidth: 1,
+      borderColor: theme.colors.outlineVariant,
+      borderRadius: theme.borderRadius.xl,
+      paddingVertical: 14,
+      alignItems: "center",
+      justifyContent: "center",
+    },
+    cancelText: {
+      ...theme.typography.titleSmall,
+      color: theme.colors.onSurface,
+    },
+    cta: {
+      flex: 1,
       backgroundColor: theme.colors.primary,
       borderRadius: theme.borderRadius.xl,
       paddingVertical: 14,
@@ -80,23 +99,6 @@ function createStyles(theme: Theme) {
       ...theme.typography.bodySmall,
       color: theme.colors.error,
       marginTop: 8,
-    },
-    footer: {
-      flexDirection: "row",
-      gap: theme.spacing.md,
-      marginTop: theme.spacing.xl,
-    },
-    cancelBtn: {
-      flex: 1,
-      paddingVertical: theme.spacing.md,
-      borderRadius: theme.borderRadius.xl,
-      backgroundColor: theme.colors.surface,
-      alignItems: "center",
-      justifyContent: "center",
-    },
-    cancelBtnText: {
-      ...theme.typography.titleSmall,
-      color: theme.colors.onSurface,
     },
   });
 }
@@ -133,10 +135,6 @@ export default function RescheduleSheet({
     }
   };
 
-  const handleCancel = () => {
-    onClose();
-  };
-
   const handleChangeText = (value: string) => {
     setText(value);
     if (error) setError(null);
@@ -167,16 +165,17 @@ export default function RescheduleSheet({
           ))}
         </View>
         {error && <Text style={styles.errorText}>{error}</Text>}
-        <View style={styles.footer}>
+        <View style={styles.buttonRow}>
           <Pressable
+            testID="cancel-btn"
             style={({ pressed }) => [
               styles.cancelBtn,
               pressed && { opacity: theme.interaction.pressedOpacity },
             ]}
-            onPress={handleCancel}
+            onPress={onClose}
             disabled={isRescheduling}
           >
-            <Text style={styles.cancelBtnText}>Cancel</Text>
+            <Text style={styles.cancelText}>Cancel</Text>
           </Pressable>
           <Pressable
             testID="reschedule-cta"
@@ -184,7 +183,9 @@ export default function RescheduleSheet({
               styles.cta,
               isRescheduling && styles.ctaDisabled,
               pressed &&
-                !isRescheduling && { opacity: theme.interaction.pressedOpacity },
+                !isRescheduling && {
+                  opacity: theme.interaction.pressedOpacity,
+                },
             ]}
             onPress={handleReschedule}
             disabled={isRescheduling}
