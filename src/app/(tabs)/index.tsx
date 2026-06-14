@@ -102,7 +102,7 @@ export default function ScheduleScreen() {
 
   const {
     data: tasks = [],
-    isLoading,
+    status,
     isError,
     error,
   } = useTasks(selectedDate, authLoading);
@@ -233,7 +233,7 @@ export default function ScheduleScreen() {
     return `task-${item.task.id}`;
   }, []);
 
-  if (isLoading) {
+  if (status === 'pending') {
     return (
       <View style={[styles.container, styles.loadingContainer, { paddingTop: insets.top }]}>
         <ActivityIndicator size="large" color={theme.colors.primary} />
@@ -281,7 +281,7 @@ export default function ScheduleScreen() {
         showsVerticalScrollIndicator={false}
         initialNumToRender={10}
         ListEmptyComponent={
-          tasks.length === 0 && !isLoading ? (
+          tasks.length === 0 ? (
             <Text style={styles.emptyText}>No tasks for this day</Text>
           ) : null
         }
