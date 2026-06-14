@@ -6,12 +6,14 @@ export const MODELS = [
 ];
 
 export const OPENROUTER_BASE_URL = "https://openrouter.ai/api/v1";
-export const TIMEOUT_MS = 30_000;
-export const MAX_TOKENS = 4096;
 
-/** Per-task token budget for dynamic max_tokens calculation */
+/** Per-task token budget */
 export const TOKENS_PER_TASK = 150;
 export const TOKENS_BASE = 300;
+
+/** Per-task timeout in ms */
+export const TIMEOUT_PER_TASK = 1_000;
+export const TIMEOUT_BASE = 5_000;
 
 export const SYSTEM_PROMPT = `Reasoning: low.
 

@@ -5,11 +5,11 @@ import { zodResponseFormat } from "npm:openai/helpers/zod";
 import {
   MODELS,
   OPENROUTER_BASE_URL,
-  MAX_TOKENS,
   SYSTEM_PROMPT,
-  TIMEOUT_MS,
   TOKENS_PER_TASK,
   TOKENS_BASE,
+  TIMEOUT_PER_TASK,
+  TIMEOUT_BASE,
 } from "./config.ts";
 
 // --- Zod schema for structured output ---
@@ -67,15 +67,13 @@ Deno.serve(async (req) => {
 
     const userMessage = `Tasks:\n${JSON.stringify(tasks, null, 2)}\n\nUser context: ${userContext || "None provided"}\n\nWhat changed: ${whatChanged || "Initial scheduling"}`;
     const inputIds = new Set(tasks.map((t: { id: string }) => t.id));
-    const tokenBudget = Math.min(
-      tasks.length * TOKENS_PER_TASK + TOKENS_BASE,
-      MAX_TOKENS,
-    );
+    const maxTokens = tasks.length * TOKENS_PER_TASK + TOKENS_BASE;
+    const timeout = tasks.length * TIMEOUT_PER_TASK + TIMEOUT_BASE;
 
     const openai = new OpenAI({
       baseURL: OPENROUTER_BASE_URL,
       apiKey: Deno.env.get("OPENROUTER_API_KEY"),
-      timeout: TIMEOUT_MS,
+      timeout,
       maxRetries: 0,
     });
 
@@ -90,7 +88,7 @@ Deno.serve(async (req) => {
             { role: "user", content: userMessage },
           ],
           response_format: zodResponseFormat(RescheduleSchema, "reschedule"),
-          max_tokens: tokenBudget,
+          max_tokens: maxTokens,
           reasoning_effort: "minimal",
         });
 
