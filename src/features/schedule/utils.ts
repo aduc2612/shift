@@ -33,6 +33,7 @@ export function getTaskState(
 export function buildScheduleData(
   tasks: Task[],
   now: Date,
+  isToday: boolean = true,
 ): ScheduleData {
   const sorted = [...tasks].sort(
     (a, b) =>
@@ -54,7 +55,8 @@ export function buildScheduleData(
 
   // If no active task, insert standalone now indicator
   // between tasks whose time has passed and upcoming tasks
-  if (activeTaskId === null) {
+  // Only show when viewing today — past/future dates have no "now"
+  if (activeTaskId === null && isToday) {
     let insertIndex = 0;
     for (let i = 0; i < items.length; i++) {
       const item = items[i];

@@ -1,7 +1,9 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import {
+  ActivityIndicator,
   Platform,
   Pressable,
+  ScrollView,
   StyleSheet,
   Text,
   TextInput,
@@ -10,11 +12,12 @@ import {
 import { useTheme } from "@/providers/theme-provider";
 import type { Theme } from "@/constants/theme";
 import BottomSheet from "@/components/primitives/BottomSheet";
-import { useKeyboardHeight } from "@/hooks/useKeyboardHeight";
 
 type RescheduleSheetProps = {
   visible: boolean;
   onClose: () => void;
+  onReschedule?: (whatChanged: string) => Promise<void>;
+  isRescheduling?: boolean;
 };
 
 const EXAMPLES = [
@@ -56,8 +59,27 @@ function createStyles(theme: Theme) {
       ...theme.typography.bodySmall,
       color: theme.colors.onSurfaceVariant,
     },
-    cta: {
+    buttonRow: {
+      flexDirection: "row",
+      gap: 12,
       marginTop: 16,
+    },
+    cancelBtn: {
+      flex: 1,
+      backgroundColor: theme.colors.surface,
+      borderWidth: 1,
+      borderColor: theme.colors.outlineVariant,
+      borderRadius: theme.borderRadius.xl,
+      paddingVertical: 14,
+      alignItems: "center",
+      justifyContent: "center",
+    },
+    cancelText: {
+      ...theme.typography.titleSmall,
+      color: theme.colors.onSurface,
+    },
+    cta: {
+      flex: 1,
       backgroundColor: theme.colors.primary,
       borderRadius: theme.borderRadius.xl,
       paddingVertical: 14,
@@ -66,9 +88,17 @@ function createStyles(theme: Theme) {
       flexDirection: "row",
       gap: 8,
     },
+    ctaDisabled: {
+      opacity: 0.5,
+    },
     ctaText: {
       ...theme.typography.titleSmall,
       color: theme.colors.onPrimary,
+    },
+    errorText: {
+      ...theme.typography.bodySmall,
+      color: theme.colors.error,
+      marginTop: 8,
     },
   });
 }
@@ -76,43 +106,103 @@ function createStyles(theme: Theme) {
 export default function RescheduleSheet({
   visible,
   onClose,
+  onReschedule,
+  isRescheduling = false,
 }: RescheduleSheetProps) {
   const theme = useTheme();
   const styles = createStyles(theme);
-  const keyboardHeight = useKeyboardHeight();
   const [text, setText] = useState("");
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (visible) {
+      setText("");
+      setError(null);
+    }
+  }, [visible]);
+
+  const handleReschedule = async () => {
+    if (!onReschedule || isRescheduling) return;
+    setError(null);
+    try {
+      await onReschedule(text);
+      setText("");
+      onClose();
+    } catch (e) {
+      setError(
+        e instanceof Error ? e.message : "Reschedule failed. Please try again.",
+      );
+    }
+  };
+
+  const handleChangeText = (value: string) => {
+    setText(value);
+    if (error) setError(null);
+  };
 
   return (
     <BottomSheet visible={visible} onClose={onClose}>
-      <Text style={styles.title}>What changed?</Text>
-      <TextInput
-        style={styles.input}
-        placeholder="e.g. Gym took longer than expected…"
-        placeholderTextColor={theme.colors.outline}
-        multiline
-        numberOfLines={4}
-        value={text}
-        onChangeText={setText}
-      />
-      <View style={styles.examples}>
-        {EXAMPLES.map((example) => (
-          <View key={example} style={styles.exampleChip}>
-            <Text style={styles.exampleChipText}>• {example}</Text>
-          </View>
-        ))}
-      </View>
-      <Pressable
-        style={({ pressed }) => [
-          styles.cta,
-          pressed && { opacity: theme.interaction.pressedOpacity },
-        ]}
-        onPress={() => {
-          // Placeholder — will be wired to AI service in Phase 6
-        }}
+      <ScrollView
+        showsVerticalScrollIndicator={false}
+        keyboardShouldPersistTaps="handled"
       >
-        <Text style={styles.ctaText}>Reschedule</Text>
-      </Pressable>
-      {keyboardHeight > 0 && <View style={{ height: keyboardHeight }} />}
+        <Text style={styles.title}>What changed?</Text>
+        <TextInput
+          style={styles.input}
+          placeholder="e.g. I woke up late, gym is closed today, need to leave at 5 PM…"
+          placeholderTextColor={theme.colors.outline}
+          multiline
+          numberOfLines={4}
+          value={text}
+          onChangeText={handleChangeText}
+          editable={!isRescheduling}
+        />
+        <View style={styles.examples}>
+          {EXAMPLES.map((example) => (
+            <View key={example} style={styles.exampleChip}>
+              <Text style={styles.exampleChipText}>• {example}</Text>
+            </View>
+          ))}
+        </View>
+        {error && <Text style={styles.errorText}>{error}</Text>}
+        <View style={styles.buttonRow}>
+          <Pressable
+            testID="cancel-btn"
+            style={({ pressed }) => [
+              styles.cancelBtn,
+              pressed && { opacity: theme.interaction.pressedOpacity },
+            ]}
+            onPress={onClose}
+            disabled={isRescheduling}
+          >
+            <Text style={styles.cancelText}>Cancel</Text>
+          </Pressable>
+          <Pressable
+            testID="reschedule-cta"
+            style={({ pressed }) => [
+              styles.cta,
+              isRescheduling && styles.ctaDisabled,
+              pressed &&
+                !isRescheduling && {
+                  opacity: theme.interaction.pressedOpacity,
+                },
+            ]}
+            onPress={handleReschedule}
+            disabled={isRescheduling}
+            accessibilityState={{ disabled: isRescheduling }}
+          >
+            {isRescheduling ? (
+              <ActivityIndicator
+                testID="reschedule-spinner"
+                size="small"
+                color={theme.colors.onPrimary}
+              />
+            ) : (
+              <Text style={styles.ctaText}>Reschedule</Text>
+            )}
+          </Pressable>
+        </View>
+      </ScrollView>
     </BottomSheet>
   );
 }

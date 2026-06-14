@@ -108,6 +108,50 @@ export async function toggleTaskComplete(
   return mapTask(data);
 }
 
+export type TaskUpdate = {
+  id: string;
+  startTime: string;
+  endTime: string;
+  durationMinutes: number;
+  aiJustification: string | null;
+  aiContext: string | null;
+};
+
+export async function fetchIncompleteTasks(): Promise<Task[]> {
+  const { data, error } = await supabase
+    .from("tasks")
+    .select("*")
+    .eq("completed", false)
+    .order("start_time", { ascending: true });
+
+  if (error) throw new Error(error.message);
+  return mapTasks(data ?? []);
+}
+
+export async function batchUpdateTasks(
+  updates: TaskUpdate[],
+): Promise<Task[]> {
+  const results: Task[] = [];
+  for (const update of updates) {
+    const { data, error } = await supabase
+      .from("tasks")
+      .update({
+        start_time: update.startTime,
+        end_time: update.endTime,
+        duration_minutes: update.durationMinutes,
+        ai_justification: update.aiJustification,
+        ai_context: update.aiContext,
+      })
+      .eq("id", update.id)
+      .select()
+      .single();
+
+    if (error) throw new Error(error.message);
+    results.push(mapTask(data));
+  }
+  return results;
+}
+
 function mapTask(data: Record<string, unknown>): Task {
   return {
     id: data.id as string,

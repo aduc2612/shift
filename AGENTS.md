@@ -35,6 +35,7 @@ App includes:
 - OpenAI SDK inside Edge Functions, pointed at OpenRouter
 - RevenueCat (payments)
 - expo-notifications (push notifications)
+- react-native-keyboard-controller (keyboard-aware scroll views)
 
 Do not introduce new major libraries unless strong reason.
 Ask before installing anything new.
@@ -142,6 +143,8 @@ src/
 Hitbox/hitslop of clickable component at least **48×48**.
 
 Use **useSafeAreaInsets** (not SafeAreaView) from `react-native-safe-area-context` for safe area handling. Ensure `SafeAreaProvider` at app root.
+
+For keyboard handling in sheets with text inputs, use **KeyboardAwareScrollView** from `react-native-keyboard-controller`. Do not use manual `useKeyboardHeight` + `paddingBottom` workarounds.
 
 Never use `.map()` for lists unless guaranteed very small (fewer than ~5 static items). Use **FlatList** instead.
 

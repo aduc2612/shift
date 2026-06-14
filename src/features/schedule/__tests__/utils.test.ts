@@ -172,4 +172,43 @@ describe("buildScheduleData", () => {
     expect(ids).toEqual(["1", "2", "now"]);
     expect(result.activeTaskId).toBeNull();
   });
+
+  describe("isToday parameter", () => {
+    it("does not insert now indicator when isToday is false", () => {
+      const taskPast = makeTask({
+        id: "past",
+        startTime: "2026-06-12T08:00:00",
+        endTime: "2026-06-12T09:00:00",
+      });
+      const taskFuture = makeTask({
+        id: "future",
+        startTime: "2026-06-12T11:00:00",
+        endTime: "2026-06-12T12:00:00",
+      });
+      const result = buildScheduleData(
+        [taskPast, taskFuture],
+        new Date("2026-06-12T10:00:00"),
+        false,
+      );
+      const ids = result.items.map((i) =>
+        i.type === "task" ? i.task.id : "now",
+      );
+      expect(ids).toEqual(["past", "future"]);
+      expect(result.activeTaskId).toBeNull();
+    });
+
+    it("returns empty items when isToday is false and no tasks", () => {
+      const result = buildScheduleData(
+        [],
+        new Date("2026-06-12T10:00:00"),
+        false,
+      );
+      expect(result.items).toEqual([]);
+    });
+
+    it("inserts now indicator when isToday defaults to true", () => {
+      const result = buildScheduleData([], new Date("2026-06-12T10:00:00"));
+      expect(result.items).toEqual([{ type: "now" }]);
+    });
+  });
 });

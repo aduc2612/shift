@@ -34,6 +34,7 @@ import FAB from "@/components/primitives/FAB";
 import { formatTime } from "@/utils/date";
 import { useAuth } from "@/features/auth/hooks/useAuth";
 import { useCurrentTime } from "@/hooks/useCurrentTime";
+import { useReschedule } from "@/features/schedule/hooks/useReschedule";
 
 function createStyles(theme: Theme) {
   return StyleSheet.create({
@@ -97,9 +98,11 @@ export default function ScheduleScreen() {
 
   const { loading: authLoading } = useAuth();
 
+  const reschedule = useReschedule();
+
   const {
     data: tasks = [],
-    isLoading,
+    status,
     isError,
     error,
   } = useTasks(selectedDate, authLoading);
@@ -110,8 +113,8 @@ export default function ScheduleScreen() {
   const toggleComplete = useToggleComplete();
 
   const { items: listData, activeTaskId } = useMemo(
-    () => buildScheduleData(tasks, now),
-    [tasks, now],
+    () => buildScheduleData(tasks, now, selectedDate.toDateString() === now.toDateString()),
+    [tasks, now, selectedDate],
   );
 
   const completedCount = useMemo(
@@ -165,11 +168,11 @@ export default function ScheduleScreen() {
   }, [taskSheetMode]);
 
   const handleTaskSave = useCallback(
-    (taskData: Partial<Task>) => {
+    async (taskData: Partial<Task>) => {
       if (taskSheetMode === "add") {
-        createTask.mutate(taskData);
+        await createTask.mutateAsync(taskData);
       } else if (taskSheetMode === "edit" && selectedTask?.id) {
-        updateTask.mutate({ id: selectedTask.id, updates: taskData });
+        await updateTask.mutateAsync({ id: selectedTask.id, updates: taskData });
       }
     },
     [taskSheetMode, selectedTask, createTask, updateTask],
@@ -230,7 +233,7 @@ export default function ScheduleScreen() {
     return `task-${item.task.id}`;
   }, []);
 
-  if (isLoading) {
+  if (status === 'pending') {
     return (
       <View style={[styles.container, styles.loadingContainer, { paddingTop: insets.top }]}>
         <ActivityIndicator size="large" color={theme.colors.primary} />
@@ -278,7 +281,7 @@ export default function ScheduleScreen() {
         showsVerticalScrollIndicator={false}
         initialNumToRender={10}
         ListEmptyComponent={
-          tasks.length === 0 && !isLoading ? (
+          tasks.length === 0 ? (
             <Text style={styles.emptyText}>No tasks for this day</Text>
           ) : null
         }
@@ -291,6 +294,15 @@ export default function ScheduleScreen() {
       <RescheduleSheet
         visible={showRescheduleSheet}
         onClose={() => setShowRescheduleSheet(false)}
+        onReschedule={async (whatChanged) => {
+          try {
+            await reschedule.mutateAsync({ whatChanged });
+          } catch (e) {
+            // Sheet stays open on error
+            throw e;
+          }
+        }}
+        isRescheduling={reschedule.isPending}
       />
 
       {showTaskSheet && (

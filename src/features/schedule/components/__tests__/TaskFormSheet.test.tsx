@@ -1,5 +1,5 @@
 import React from 'react';
-import { act, fireEvent, render } from '@testing-library/react-native';
+import { act, fireEvent, render, waitFor } from '@testing-library/react-native';
 import { ThemeProvider } from '@/providers/theme-provider';
 import TaskFormSheet from '../TaskFormSheet';
 import type { Task } from '@/types/task';
@@ -55,9 +55,24 @@ jest.mock('@/components/primitives/Alert', () => {
   };
 });
 
-// Mock useKeyboardHeight
-jest.mock('@/hooks/useKeyboardHeight', () => ({
-  useKeyboardHeight: () => 0,
+// Mock useReschedule
+const mockMutateAsync = jest.fn().mockResolvedValue([]);
+jest.mock('@/features/schedule/hooks/useReschedule', () => ({
+  useReschedule: () => ({
+    mutateAsync: mockMutateAsync,
+    isPending: false,
+  }),
+}));
+
+// Mock supabase — needed because useReschedule imports api which imports supabase
+jest.mock('@/services/supabase', () => ({
+  supabase: {
+    auth: {
+      getSession: jest.fn(),
+      getUser: jest.fn().mockResolvedValue({ data: { user: { id: 'u1' } } }),
+    },
+    from: jest.fn(),
+  },
 }));
 
 function makeTask(overrides: Partial<Task> = {}): Task {
@@ -175,12 +190,11 @@ describe('TaskFormSheet', () => {
 
   // ─── Add mode tests ────────────────────────────────────────────────
 
-  it('"Let AI decide" toggle is OFF and disabled until Phase 6', async () => {
+  it('"Let AI decide" toggle is OFF by default in add mode', async () => {
     const { getByTestId } = await renderWithTheme(
       <TaskFormSheet visible onClose={jest.fn()} mode="add" />,
     );
     expect(getByTestId('ai-decides-switch').props.value).toBe(false);
-    expect(getByTestId('ai-decides-switch').props.disabled).toBe(true);
   });
 
   it('shows empty task name input in add mode', async () => {
@@ -222,7 +236,9 @@ describe('TaskFormSheet', () => {
         aiDecidesTime: false,
       }),
     );
-    expect(onClose).toHaveBeenCalledTimes(1);
+    await waitFor(() => {
+      expect(onClose).toHaveBeenCalledTimes(1);
+    });
   });
 
   // ─── Validation tests ──────────────────────────────────────────────
@@ -368,5 +384,21 @@ describe('TaskFormSheet', () => {
       <TaskFormSheet visible onClose={jest.fn()} task={task} mode="edit" onDelete={jest.fn()} isDeleting={true} />,
     );
     expect(getByText('Deleting...')).toBeTruthy();
+  });
+
+  it('shows date field in edit mode', async () => {
+    const task = makeTask();
+    const { getByText } = await renderWithTheme(
+      <TaskFormSheet visible onClose={jest.fn()} task={task} mode="edit" />,
+    );
+    expect(getByText('Date')).toBeTruthy();
+  });
+
+  it('shows date field in view mode', async () => {
+    const task = makeTask();
+    const { getByText } = await renderWithTheme(
+      <TaskFormSheet visible onClose={jest.fn()} task={task} mode="view" />,
+    );
+    expect(getByText('Date')).toBeTruthy();
   });
 });

@@ -16,9 +16,10 @@ import type { Theme } from "@/constants/theme";
 import type { Task } from "@/types/task";
 import BottomSheet from "@/components/primitives/BottomSheet";
 import Alert from "@/components/primitives/Alert";
-import { useKeyboardHeight } from "@/hooks/useKeyboardHeight";
 import { formatDuration, formatTime, formatDate } from "@/utils/date";
 import { withOpacity } from "@/utils/color";
+import { useReschedule } from "@/features/schedule/hooks/useReschedule";
+import { RESCHEDULE_CONSTANTS } from "@/constants/reschedule";
 
 type FieldErrors = {
   name?: string;
@@ -115,6 +116,9 @@ function createStyles(theme: Theme) {
       color: theme.colors.outline,
       marginBottom: theme.spacing.lg,
     },
+    dateRow: {
+      marginTop: theme.spacing.md,
+    },
     durationBadge: {
       backgroundColor: withOpacity(theme.colors.success, 0.1),
       borderWidth: 1,
@@ -145,6 +149,21 @@ function createStyles(theme: Theme) {
       ...theme.typography.bodyMedium,
       color: theme.colors.onSurface,
     },
+    disabledText: {
+      color: theme.colors.outline,
+    },
+    aiPlaceholder: {
+      backgroundColor: theme.colors.surfaceVariant,
+      borderWidth: 1,
+      borderColor: theme.colors.outlineVariant,
+      borderRadius: theme.borderRadius.lg,
+      padding: theme.spacing.md,
+    },
+    aiPlaceholderText: {
+      ...theme.typography.bodySmall,
+      color: theme.colors.onSurfaceVariant,
+      fontStyle: "italic",
+    },
     toggleRow: {
       flexDirection: "row",
       alignItems: "center",
@@ -154,9 +173,6 @@ function createStyles(theme: Theme) {
     toggleLabel: {
       ...theme.typography.bodyMedium,
       color: theme.colors.onSurface,
-    },
-    toggleDisabled: {
-      opacity: 0.4,
     },
     aiCard: {
       backgroundColor: withOpacity(theme.colors.primary, 0.05),
@@ -265,21 +281,55 @@ export default function TaskFormSheet({
 }: TaskFormSheetProps) {
   const theme = useTheme();
   const styles = useMemo(() => createStyles(theme), [theme]);
-  const keyboardHeight = useKeyboardHeight();
+  const reschedule = useReschedule();
 
   const [name, setName] = useState(task?.name ?? "");
   const [startHour, setStartHour] = useState(task?.startTime ?? "");
   const [endHour, setEndHour] = useState(task?.endTime ?? "");
   const [deadline, setDeadline] = useState(task?.deadline ?? "");
   const [aiContext, setAiContext] = useState(task?.aiContext ?? "");
+  const [aiDecidesTime, setAiDecidesTime] = useState(
+    task?.aiDecidesTime ?? false,
+  );
 
   const [showStartPicker, setShowStartPicker] = useState(false);
   const [showEndPicker, setShowEndPicker] = useState(false);
+  const [showDatePicker, setShowDatePicker] = useState(false);
   const [showDeadlinePicker, setShowDeadlinePicker] = useState(false);
 
   const [showDeleteAlert, setShowDeleteAlert] = useState(false);
 
   const [errors, setErrors] = useState<FieldErrors>({});
+
+  // Date derived from startHour, defaults to today for add mode
+  const currentDate = useMemo(() => {
+    return startHour ? new Date(startHour) : new Date();
+  }, [startHour]);
+
+  // Shift both start and end to the new date, preserving times
+  const handleDateChange = useCallback(
+    (newDate: Date) => {
+      if (startHour) {
+        const start = new Date(startHour);
+        start.setFullYear(
+          newDate.getFullYear(),
+          newDate.getMonth(),
+          newDate.getDate(),
+        );
+        setStartHour(start.toISOString());
+      }
+      if (endHour) {
+        const end = new Date(endHour);
+        end.setFullYear(
+          newDate.getFullYear(),
+          newDate.getMonth(),
+          newDate.getDate(),
+        );
+        setEndHour(end.toISOString());
+      }
+    },
+    [startHour, endHour],
+  );
 
   const durationMinutes = useMemo(() => {
     if (!startHour || !endHour) return 0;
@@ -295,18 +345,21 @@ export default function TaskFormSheet({
     onCancel?.();
   }, [onCancel]);
 
-  const handleDone = useCallback(() => {
+  const handleDone = useCallback(async () => {
     const newErrors: FieldErrors = {};
 
     if (!name.trim()) {
       newErrors.name = "Task name is required";
     }
 
-    // "Let AI decide" is disabled until Phase 6, so times are always required
-    if (!startHour || !endHour) {
-      newErrors.time = "Start and end times are required";
-    } else if (new Date(endHour) <= new Date(startHour)) {
-      newErrors.time = "End time must be after start time";
+    // Skip time validation if AI decides times, unless editing a task
+    // that already has times set (to allow clearing AI toggle later)
+    if (!aiDecidesTime) {
+      if (!startHour || !endHour) {
+        newErrors.time = "Start and end times are required";
+      } else if (new Date(endHour) <= new Date(startHour)) {
+        newErrors.time = "End time must be after start time";
+      }
     }
 
     if (Object.keys(newErrors).length > 0) {
@@ -315,15 +368,69 @@ export default function TaskFormSheet({
     }
 
     setErrors({});
-    onSave?.({
+
+    // Build task payload
+    const taskPayload: Partial<Task> = {
       name: name.trim(),
-      startTime: startHour,
-      endTime: endHour,
       durationMinutes,
       deadline: deadline || null,
-      aiDecidesTime: false,
+      aiDecidesTime,
       aiContext: aiContext || null,
-    });
+    };
+
+    // Only include times if user set them manually
+    if (!aiDecidesTime) {
+      taskPayload.startTime = startHour;
+      taskPayload.endTime = endHour;
+    }
+
+    // Save task first
+    try {
+      await onSave?.(taskPayload);
+    } catch {
+      // Save failed — stay open
+      return;
+    }
+
+    // Determine if reschedule is needed
+    // Reschedule when:
+    //   - New task with AI deciding time
+    //   - AI turned ON (user hands control to AI)
+    //   - AI context changed while AI is already on
+    // Do NOT reschedule when user turns AI OFF (manual control)
+    const aiTurnedOn =
+      mode === "edit" &&
+      aiDecidesTime &&
+      aiDecidesTime !== (task?.aiDecidesTime ?? false);
+
+    const aiContextChangedWhileOn =
+      mode === "edit" && aiDecidesTime && aiContext !== (task?.aiContext ?? "");
+
+    const needsReschedule =
+      (mode === "add" && aiDecidesTime) ||
+      aiTurnedOn ||
+      aiContextChangedWhileOn;
+
+    if (needsReschedule) {
+      const taskName = name.trim();
+      let whatChanged: string;
+      if (mode === "add") {
+        whatChanged = RESCHEDULE_CONSTANTS.WHAT_CHANGED.NEW_AI_TASK(taskName);
+      } else if (aiTurnedOn) {
+        whatChanged = RESCHEDULE_CONSTANTS.WHAT_CHANGED.AI_ENABLED(taskName);
+      } else {
+        whatChanged =
+          RESCHEDULE_CONSTANTS.WHAT_CHANGED.AI_CONTEXT_CHANGED(taskName);
+      }
+
+      try {
+        await reschedule.mutateAsync({ whatChanged });
+      } catch {
+        // Stay open — error displayed inline in RescheduleSheet
+        return;
+      }
+    }
+
     onClose();
   }, [
     name,
@@ -331,9 +438,13 @@ export default function TaskFormSheet({
     endHour,
     durationMinutes,
     deadline,
+    aiDecidesTime,
     aiContext,
+    mode,
+    task,
     onSave,
     onClose,
+    reschedule,
   ]);
 
   const handleDeleteConfirm = useCallback(() => {
@@ -343,12 +454,13 @@ export default function TaskFormSheet({
     setShowDeleteAlert(false);
   }, [task, onDelete]);
 
+  const isRescheduling = reschedule.isPending && mode !== "view";
+
   return (
     <BottomSheet visible={visible} onClose={onClose}>
       <ScrollView
         showsVerticalScrollIndicator={false}
         keyboardShouldPersistTaps="handled"
-        contentContainerStyle={{ paddingBottom: keyboardHeight }}
       >
         {/* Header */}
         <View style={styles.header}>
@@ -395,7 +507,7 @@ export default function TaskFormSheet({
                 }}
                 placeholder="Task name"
                 placeholderTextColor={theme.colors.outline}
-                editable={!isSaving && !isDeleting}
+                editable={!isSaving && !isDeleting && !isRescheduling}
               />
               {errors.name && (
                 <Text style={styles.errorText}>{errors.name}</Text>
@@ -407,94 +519,149 @@ export default function TaskFormSheet({
         {/* Time section */}
         <View style={styles.section}>
           <Text style={styles.sectionLabel}>Time</Text>
-          <View style={styles.timeRow}>
-            <View style={styles.timeCol}>
-              <Text style={styles.timeLabel}>Start</Text>
-              {mode === "view" ? (
-                <Text
-                  style={[
-                    styles.timeDisplayText,
-                    { paddingVertical: theme.spacing.sm },
-                  ]}
-                >
-                  {task?.startTime ? formatTime(task.startTime) : "—"}
-                </Text>
-              ) : showStartPicker ? (
-                <DateTimePicker
-                  value={startHour ? new Date(startHour) : new Date()}
-                  mode="time"
-                  onValueChange={(_event: unknown, date?: Date) => {
-                    if (date) setStartHour(date.toISOString());
-                    setShowStartPicker(false);
-                    if (errors.time)
-                      setErrors((e) => ({ ...e, time: undefined }));
-                  }}
-                  onDismiss={() => setShowStartPicker(false)}
-                />
-              ) : (
-                <Pressable
-                  style={styles.timeDisplayBtn}
-                  onPress={() => setShowStartPicker(true)}
-                >
-                  <Text style={styles.timeDisplayText}>
-                    {startHour ? formatTime(startHour) : "Set time"}
-                  </Text>
-                </Pressable>
-              )}
-            </View>
-            <Text style={styles.timeSeparator}>–</Text>
-            <View style={styles.timeCol}>
-              <Text style={styles.timeLabel}>End</Text>
-              {mode === "view" ? (
-                <Text
-                  style={[
-                    styles.timeDisplayText,
-                    { paddingVertical: theme.spacing.sm },
-                  ]}
-                >
-                  {task?.endTime ? formatTime(task.endTime) : "—"}
-                </Text>
-              ) : showEndPicker ? (
-                <DateTimePicker
-                  value={endHour ? new Date(endHour) : new Date()}
-                  mode="time"
-                  onValueChange={(_event: unknown, date?: Date) => {
-                    if (date) setEndHour(date.toISOString());
-                    setShowEndPicker(false);
-                    if (errors.time)
-                      setErrors((e) => ({ ...e, time: undefined }));
-                  }}
-                  onDismiss={() => setShowEndPicker(false)}
-                />
-              ) : (
-                <Pressable
-                  style={styles.timeDisplayBtn}
-                  onPress={() => setShowEndPicker(true)}
-                >
-                  <Text style={styles.timeDisplayText}>
-                    {endHour ? formatTime(endHour) : "Set time"}
-                  </Text>
-                </Pressable>
-              )}
-            </View>
-            {durationMinutes > 0 && (
-              <View style={styles.durationBadge}>
-                <Text style={styles.durationText}>
-                  {formatDuration(durationMinutes)}
-                </Text>
-              </View>
-            )}
-          </View>
-          {errors.time && <Text style={styles.errorText}>{errors.time}</Text>}
 
-          {/* Let AI decide toggle — edit/add only, disabled until Phase 6 */}
+          {aiDecidesTime && mode !== "view" ? (
+            // Show placeholder when AI decides
+            <View style={styles.aiPlaceholder}>
+              <Text style={styles.aiPlaceholderText}>
+                AI will set times automatically
+              </Text>
+            </View>
+          ) : (
+            <>
+              <View style={styles.timeRow}>
+                <View style={styles.timeCol}>
+                  <Text style={styles.timeLabel}>Start</Text>
+                  {mode === "view" ? (
+                    <Text
+                      style={[
+                        styles.timeDisplayText,
+                        { paddingVertical: theme.spacing.sm },
+                      ]}
+                    >
+                      {task?.startTime ? formatTime(task.startTime) : "—"}
+                    </Text>
+                  ) : showStartPicker ? (
+                    <DateTimePicker
+                      value={startHour ? new Date(startHour) : new Date()}
+                      mode="time"
+                      onValueChange={(_event: unknown, date?: Date) => {
+                        if (date) setStartHour(date.toISOString());
+                        setShowStartPicker(false);
+                        if (errors.time)
+                          setErrors((e) => ({ ...e, time: undefined }));
+                      }}
+                      onDismiss={() => setShowStartPicker(false)}
+                    />
+                  ) : (
+                    <Pressable
+                      style={styles.timeDisplayBtn}
+                      onPress={() => setShowStartPicker(true)}
+                    >
+                      <Text style={styles.timeDisplayText}>
+                        {startHour ? formatTime(startHour) : "Set time"}
+                      </Text>
+                    </Pressable>
+                  )}
+                </View>
+                <Text style={styles.timeSeparator}>–</Text>
+                <View style={styles.timeCol}>
+                  <Text style={styles.timeLabel}>End</Text>
+                  {mode === "view" ? (
+                    <Text
+                      style={[
+                        styles.timeDisplayText,
+                        { paddingVertical: theme.spacing.sm },
+                      ]}
+                    >
+                      {task?.endTime ? formatTime(task.endTime) : "—"}
+                    </Text>
+                  ) : showEndPicker ? (
+                    <DateTimePicker
+                      value={endHour ? new Date(endHour) : new Date()}
+                      mode="time"
+                      onValueChange={(_event: unknown, date?: Date) => {
+                        if (date) setEndHour(date.toISOString());
+                        setShowEndPicker(false);
+                        if (errors.time)
+                          setErrors((e) => ({ ...e, time: undefined }));
+                      }}
+                      onDismiss={() => setShowEndPicker(false)}
+                    />
+                  ) : (
+                    <Pressable
+                      style={styles.timeDisplayBtn}
+                      onPress={() => setShowEndPicker(true)}
+                    >
+                      <Text style={styles.timeDisplayText}>
+                        {endHour ? formatTime(endHour) : "Set time"}
+                      </Text>
+                    </Pressable>
+                  )}
+                </View>
+                {durationMinutes > 0 && (
+                  <View style={styles.durationBadge}>
+                    <Text style={styles.durationText}>
+                      {formatDuration(durationMinutes)}
+                    </Text>
+                  </View>
+                )}
+              </View>
+              {errors.time && (
+                <Text style={styles.errorText}>{errors.time}</Text>
+              )}
+
+              {/* Date row — below start/end */}
+              <View style={styles.dateRow}>
+                <Text style={styles.timeLabel}>Date</Text>
+                {mode === "view" ? (
+                  <Text
+                    style={[
+                      styles.timeDisplayText,
+                      { paddingVertical: theme.spacing.sm },
+                    ]}
+                  >
+                    {startHour ? formatDate(startHour) : "—"}
+                  </Text>
+                ) : showDatePicker ? (
+                  <DateTimePicker
+                    value={currentDate}
+                    mode="date"
+                    onValueChange={(_event: unknown, date?: Date) => {
+                      if (date) handleDateChange(date);
+                      setShowDatePicker(false);
+                    }}
+                    onDismiss={() => setShowDatePicker(false)}
+                  />
+                ) : (
+                  <Pressable
+                    style={styles.timeDisplayBtn}
+                    onPress={() => setShowDatePicker(true)}
+                    disabled={!startHour || !endHour}
+                  >
+                    <Text
+                      style={[
+                        styles.timeDisplayText,
+                        (!startHour || !endHour) && styles.disabledText,
+                      ]}
+                    >
+                      {startHour ? formatDate(startHour) : "Set times first"}
+                    </Text>
+                  </Pressable>
+                )}
+              </View>
+            </>
+          )}
+
+          {/* Let AI decide toggle — edit/add only */}
           {mode !== "view" && (
-            <View style={[styles.toggleRow, styles.toggleDisabled]}>
+            <View style={styles.toggleRow}>
               <Text style={styles.toggleLabel}>Let AI decide</Text>
               <Switch
                 testID="ai-decides-switch"
-                value={false}
-                disabled
+                value={aiDecidesTime}
+                onValueChange={setAiDecidesTime}
+                disabled={isSaving || isDeleting || isRescheduling}
                 trackColor={{
                   true: theme.colors.primary,
                   false: theme.colors.outlineVariant,
@@ -570,7 +737,7 @@ export default function TaskFormSheet({
               placeholderTextColor={theme.colors.outline}
               multiline
               numberOfLines={3}
-              editable={!isSaving && !isDeleting}
+              editable={!isSaving && !isDeleting && !isRescheduling}
             />
             <Text style={styles.contextHint}>
               Help the AI schedule this task better.
@@ -587,7 +754,7 @@ export default function TaskFormSheet({
                 pressed && { opacity: theme.interaction.pressedOpacity },
               ]}
               onPress={() => setShowDeleteAlert(true)}
-              disabled={isDeleting}
+              disabled={isDeleting || isRescheduling}
               hitSlop={8}
             >
               {isDeleting ? (
@@ -619,7 +786,7 @@ export default function TaskFormSheet({
                 pressed && { opacity: theme.interaction.pressedOpacity },
               ]}
               onPress={handleCancel}
-              disabled={isSaving || isDeleting}
+              disabled={isSaving || isDeleting || isRescheduling}
             >
               <Text style={styles.cancelBtnText}>Cancel</Text>
             </Pressable>
@@ -630,9 +797,9 @@ export default function TaskFormSheet({
                 pressed && { opacity: theme.interaction.pressedOpacity },
               ]}
               onPress={handleDone}
-              disabled={isSaving || isDeleting}
+              disabled={isSaving || isDeleting || isRescheduling}
             >
-              {isSaving ? (
+              {isSaving || isRescheduling ? (
                 <ActivityIndicator
                   size="small"
                   color={theme.colors.onPrimary}

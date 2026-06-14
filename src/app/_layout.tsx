@@ -3,9 +3,11 @@ import { StyleSheet } from 'react-native';
 import { Stack } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
+import { KeyboardProvider } from 'react-native-keyboard-controller';
 import * as Sentry from '@sentry/react-native';
 import { ThemeProvider, useTheme } from '@/providers/theme-provider';
 import { QueryProvider } from '@/providers/query-provider';
+import { ToastProvider } from '@/providers/toast-provider';
 import { useAuth } from '@/features/auth/hooks/useAuth';
 import { initSentry } from '@/services/sentry';
 
@@ -52,11 +54,15 @@ function RootNavigator() {
 function RootLayout() {
   return (
     <SafeAreaProvider>
-      <QueryProvider>
-        <ThemeProvider>
-          <RootNavigator />
-        </ThemeProvider>
-      </QueryProvider>
+      <KeyboardProvider>
+        <QueryProvider>
+          <ThemeProvider>
+            <ToastProvider>
+              <RootNavigator />
+            </ToastProvider>
+          </ThemeProvider>
+        </QueryProvider>
+      </KeyboardProvider>
     </SafeAreaProvider>
   );
 }

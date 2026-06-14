@@ -73,6 +73,12 @@
       "skillPath": "plugins/expo/skills/expo-observe/SKILL.md",
       "computedHash": "25995e59623477f2569df667393849de82b3f09b752a67b63a182c1c4eb53941"
     },
+    "grill-with-docs": {
+      "source": "mattpocock/skills",
+      "sourceType": "github",
+      "skillPath": "skills/engineering/grill-with-docs/SKILL.md",
+      "computedHash": "7c212cee6a823b956aaec7dff2a846814fe9986caa2e62313734010c7bd3db70"
+    },
     "native-data-fetching": {
       "source": "expo/skills",
       "sourceType": "github",
