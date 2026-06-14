@@ -60,6 +60,8 @@ jest.mock('react-native-keyboard-controller', () => {
   const RealReact = require('react');
   const RN = require('react-native');
   return {
+    KeyboardProvider: ({ children }: { children: React.ReactNode }) =>
+      RealReact.createElement(RN.View, null, children),
     KeyboardAwareScrollView: RealReact.forwardRef((
       props: Record<string, unknown>,
       ref: unknown,
