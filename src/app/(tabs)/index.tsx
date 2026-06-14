@@ -113,8 +113,8 @@ export default function ScheduleScreen() {
   const toggleComplete = useToggleComplete();
 
   const { items: listData, activeTaskId } = useMemo(
-    () => buildScheduleData(tasks, now),
-    [tasks, now],
+    () => buildScheduleData(tasks, now, selectedDate.toDateString() === now.toDateString()),
+    [tasks, now, selectedDate],
   );
 
   const completedCount = useMemo(
