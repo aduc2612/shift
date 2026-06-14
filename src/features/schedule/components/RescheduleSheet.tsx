@@ -3,6 +3,7 @@ import {
   ActivityIndicator,
   Platform,
   Pressable,
+  ScrollView,
   StyleSheet,
   Text,
   TextInput,
@@ -11,7 +12,6 @@ import {
 import { useTheme } from "@/providers/theme-provider";
 import type { Theme } from "@/constants/theme";
 import BottomSheet from "@/components/primitives/BottomSheet";
-import { useKeyboardHeight } from "@/hooks/useKeyboardHeight";
 
 type RescheduleSheetProps = {
   visible: boolean;
@@ -92,7 +92,6 @@ export default function RescheduleSheet({
 }: RescheduleSheetProps) {
   const theme = useTheme();
   const styles = createStyles(theme);
-  const keyboardHeight = useKeyboardHeight();
   const [text, setText] = useState("");
   const [error, setError] = useState<string | null>(null);
 
@@ -111,7 +110,9 @@ export default function RescheduleSheet({
       setText("");
       onClose();
     } catch (e) {
-      setError(e instanceof Error ? e.message : "Reschedule failed. Please try again.");
+      setError(
+        e instanceof Error ? e.message : "Reschedule failed. Please try again.",
+      );
     }
   };
 
@@ -122,49 +123,52 @@ export default function RescheduleSheet({
 
   return (
     <BottomSheet visible={visible} onClose={onClose}>
-      <Text style={styles.title}>What changed?</Text>
-      <TextInput
-        style={styles.input}
-        placeholder="e.g. I woke up late, gym is closed today, need to leave at 5 PM…"
-        placeholderTextColor={theme.colors.outline}
-        multiline
-        numberOfLines={4}
-        value={text}
-        onChangeText={handleChangeText}
-        editable={!isRescheduling}
-      />
-      <View style={styles.examples}>
-        {EXAMPLES.map((example) => (
-          <View key={example} style={styles.exampleChip}>
-            <Text style={styles.exampleChipText}>• {example}</Text>
-          </View>
-        ))}
-      </View>
-      {error && (
-        <Text style={styles.errorText}>{error}</Text>
-      )}
-      <Pressable
-        testID="reschedule-cta"
-        style={({ pressed }) => [
-          styles.cta,
-          isRescheduling && styles.ctaDisabled,
-          pressed && !isRescheduling && { opacity: theme.interaction.pressedOpacity },
-        ]}
-        onPress={handleReschedule}
-        disabled={isRescheduling}
-        accessibilityState={{ disabled: isRescheduling }}
+      <ScrollView
+        showsVerticalScrollIndicator={false}
+        keyboardShouldPersistTaps="handled"
       >
-        {isRescheduling ? (
-          <ActivityIndicator
-            testID="reschedule-spinner"
-            size="small"
-            color={theme.colors.onPrimary}
-          />
-        ) : (
-          <Text style={styles.ctaText}>Reschedule</Text>
-        )}
-      </Pressable>
-      {keyboardHeight > 0 && <View style={{ height: keyboardHeight }} />}
+        <Text style={styles.title}>What changed?</Text>
+        <TextInput
+          style={styles.input}
+          placeholder="e.g. I woke up late, gym is closed today, need to leave at 5 PM…"
+          placeholderTextColor={theme.colors.outline}
+          multiline
+          numberOfLines={4}
+          value={text}
+          onChangeText={handleChangeText}
+          editable={!isRescheduling}
+        />
+        <View style={styles.examples}>
+          {EXAMPLES.map((example) => (
+            <View key={example} style={styles.exampleChip}>
+              <Text style={styles.exampleChipText}>• {example}</Text>
+            </View>
+          ))}
+        </View>
+        {error && <Text style={styles.errorText}>{error}</Text>}
+        <Pressable
+          testID="reschedule-cta"
+          style={({ pressed }) => [
+            styles.cta,
+            isRescheduling && styles.ctaDisabled,
+            pressed &&
+              !isRescheduling && { opacity: theme.interaction.pressedOpacity },
+          ]}
+          onPress={handleReschedule}
+          disabled={isRescheduling}
+          accessibilityState={{ disabled: isRescheduling }}
+        >
+          {isRescheduling ? (
+            <ActivityIndicator
+              testID="reschedule-spinner"
+              size="small"
+              color={theme.colors.onPrimary}
+            />
+          ) : (
+            <Text style={styles.ctaText}>Reschedule</Text>
+          )}
+        </Pressable>
+      </ScrollView>
     </BottomSheet>
   );
 }

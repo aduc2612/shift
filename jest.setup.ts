@@ -55,6 +55,26 @@ jest.mock('react-native-safe-area-context', () => {
   };
 });
 
+// Mock react-native-keyboard-controller
+jest.mock('react-native-keyboard-controller', () => {
+  const RealReact = require('react');
+  const RN = require('react-native');
+  return {
+    KeyboardAwareScrollView: RealReact.forwardRef((
+      props: Record<string, unknown>,
+      ref: unknown,
+    ) => RealReact.createElement(RN.ScrollView, { ...props, ref })),
+    KeyboardAvoidingView: RealReact.forwardRef((
+      props: Record<string, unknown>,
+      ref: unknown,
+    ) => RealReact.createElement(RN.View, { ...props, ref })),
+    useKeyboardState: (selector?: (state: { isVisible: boolean }) => unknown) => {
+      const state = { isVisible: false };
+      return selector ? selector(state) : state;
+    },
+  };
+});
+
 // Helper: wrap a component with ThemeProvider
 import { ThemeProvider } from '@/providers/theme-provider';
 

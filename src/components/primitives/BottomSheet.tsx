@@ -1,5 +1,6 @@
 import { Modal, Pressable, StyleSheet, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { KeyboardAvoidingView, useKeyboardState } from "react-native-keyboard-controller";
 import { useTheme } from "@/providers/theme-provider";
 import type { Theme } from "@/constants/theme";
 
@@ -46,6 +47,7 @@ export default function BottomSheet({
   const theme = useTheme();
   const insets = useSafeAreaInsets();
   const styles = createStyles(theme);
+  const isKeyboardVisible = useKeyboardState((state) => state.isVisible);
 
   return (
     <Modal
@@ -59,12 +61,19 @@ export default function BottomSheet({
         style={styles.backdrop}
         onPress={onClose}
       />
-      <View style={[styles.sheetContainer, { paddingBottom: insets.bottom }]}>
-        <View style={styles.sheetContent}>
-          <View style={styles.handle} />
-          {children}
+      <KeyboardAvoidingView behavior="padding" style={styles.sheetContainer}>
+        <View
+          style={{
+            paddingBottom: isKeyboardVisible ? 0 : insets.bottom,
+            paddingTop: insets.top + theme.spacing.lg,
+          }}
+        >
+          <View style={styles.sheetContent}>
+            <View style={styles.handle} />
+            {children}
+          </View>
         </View>
-      </View>
+      </KeyboardAvoidingView>
     </Modal>
   );
 }

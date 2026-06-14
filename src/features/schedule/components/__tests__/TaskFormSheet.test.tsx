@@ -55,11 +55,6 @@ jest.mock('@/components/primitives/Alert', () => {
   };
 });
 
-// Mock useKeyboardHeight
-jest.mock('@/hooks/useKeyboardHeight', () => ({
-  useKeyboardHeight: () => 0,
-}));
-
 // Mock useReschedule
 const mockMutateAsync = jest.fn().mockResolvedValue([]);
 jest.mock('@/features/schedule/hooks/useReschedule', () => ({

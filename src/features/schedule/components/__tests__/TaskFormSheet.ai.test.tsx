@@ -66,11 +66,6 @@ jest.mock("@/components/primitives/Alert", () => {
   };
 });
 
-// Mock useKeyboardHeight
-jest.mock("@/hooks/useKeyboardHeight", () => ({
-  useKeyboardHeight: () => 0,
-}));
-
 // Mock supabase — needed because TaskFormSheet imports useReschedule which imports api which imports supabase
 jest.mock("@/services/supabase", () => ({
   supabase: {

@@ -16,7 +16,6 @@ import type { Theme } from "@/constants/theme";
 import type { Task } from "@/types/task";
 import BottomSheet from "@/components/primitives/BottomSheet";
 import Alert from "@/components/primitives/Alert";
-import { useKeyboardHeight } from "@/hooks/useKeyboardHeight";
 import { formatDuration, formatTime, formatDate } from "@/utils/date";
 import { withOpacity } from "@/utils/color";
 import { useReschedule } from "@/features/schedule/hooks/useReschedule";
@@ -282,7 +281,6 @@ export default function TaskFormSheet({
 }: TaskFormSheetProps) {
   const theme = useTheme();
   const styles = useMemo(() => createStyles(theme), [theme]);
-  const keyboardHeight = useKeyboardHeight();
   const reschedule = useReschedule();
 
   const [name, setName] = useState(task?.name ?? "");
@@ -290,7 +288,9 @@ export default function TaskFormSheet({
   const [endHour, setEndHour] = useState(task?.endTime ?? "");
   const [deadline, setDeadline] = useState(task?.deadline ?? "");
   const [aiContext, setAiContext] = useState(task?.aiContext ?? "");
-  const [aiDecidesTime, setAiDecidesTime] = useState(task?.aiDecidesTime ?? false);
+  const [aiDecidesTime, setAiDecidesTime] = useState(
+    task?.aiDecidesTime ?? false,
+  );
 
   const [showStartPicker, setShowStartPicker] = useState(false);
   const [showEndPicker, setShowEndPicker] = useState(false);
@@ -307,18 +307,29 @@ export default function TaskFormSheet({
   }, [startHour]);
 
   // Shift both start and end to the new date, preserving times
-  const handleDateChange = useCallback((newDate: Date) => {
-    if (startHour) {
-      const start = new Date(startHour);
-      start.setFullYear(newDate.getFullYear(), newDate.getMonth(), newDate.getDate());
-      setStartHour(start.toISOString());
-    }
-    if (endHour) {
-      const end = new Date(endHour);
-      end.setFullYear(newDate.getFullYear(), newDate.getMonth(), newDate.getDate());
-      setEndHour(end.toISOString());
-    }
-  }, [startHour, endHour]);
+  const handleDateChange = useCallback(
+    (newDate: Date) => {
+      if (startHour) {
+        const start = new Date(startHour);
+        start.setFullYear(
+          newDate.getFullYear(),
+          newDate.getMonth(),
+          newDate.getDate(),
+        );
+        setStartHour(start.toISOString());
+      }
+      if (endHour) {
+        const end = new Date(endHour);
+        end.setFullYear(
+          newDate.getFullYear(),
+          newDate.getMonth(),
+          newDate.getDate(),
+        );
+        setEndHour(end.toISOString());
+      }
+    },
+    [startHour, endHour],
+  );
 
   const durationMinutes = useMemo(() => {
     if (!startHour || !endHour) return 0;
@@ -393,12 +404,12 @@ export default function TaskFormSheet({
       aiDecidesTime !== (task?.aiDecidesTime ?? false);
 
     const aiContextChangedWhileOn =
-      mode === "edit" &&
-      aiDecidesTime &&
-      aiContext !== (task?.aiContext ?? "");
+      mode === "edit" && aiDecidesTime && aiContext !== (task?.aiContext ?? "");
 
     const needsReschedule =
-      (mode === "add" && aiDecidesTime) || aiTurnedOn || aiContextChangedWhileOn;
+      (mode === "add" && aiDecidesTime) ||
+      aiTurnedOn ||
+      aiContextChangedWhileOn;
 
     if (needsReschedule) {
       const taskName = name.trim();
@@ -408,7 +419,8 @@ export default function TaskFormSheet({
       } else if (aiTurnedOn) {
         whatChanged = RESCHEDULE_CONSTANTS.WHAT_CHANGED.AI_ENABLED(taskName);
       } else {
-        whatChanged = RESCHEDULE_CONSTANTS.WHAT_CHANGED.AI_CONTEXT_CHANGED(taskName);
+        whatChanged =
+          RESCHEDULE_CONSTANTS.WHAT_CHANGED.AI_CONTEXT_CHANGED(taskName);
       }
 
       try {
@@ -449,7 +461,6 @@ export default function TaskFormSheet({
       <ScrollView
         showsVerticalScrollIndicator={false}
         keyboardShouldPersistTaps="handled"
-        contentContainerStyle={{ paddingBottom: keyboardHeight }}
       >
         {/* Header */}
         <View style={styles.header}>
