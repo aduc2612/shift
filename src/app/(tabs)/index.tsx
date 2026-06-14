@@ -35,6 +35,7 @@ import { formatTime } from "@/utils/date";
 import { useAuth } from "@/features/auth/hooks/useAuth";
 import { useCurrentTime } from "@/hooks/useCurrentTime";
 import { useReschedule } from "@/features/schedule/hooks/useReschedule";
+import { useSyncNotifications } from "@/features/schedule/hooks/useSyncNotifications";
 
 function createStyles(theme: Theme) {
   return StyleSheet.create({
@@ -97,6 +98,8 @@ export default function ScheduleScreen() {
   const [showTaskSheet, setShowTaskSheet] = useState(false);
 
   const { loading: authLoading } = useAuth();
+
+  useSyncNotifications();
 
   const reschedule = useReschedule();
 
