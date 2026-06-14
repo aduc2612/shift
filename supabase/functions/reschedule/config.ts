@@ -1,7 +1,7 @@
 // --- Model fallback chain (tried in order) ---
 export const MODELS = [
-  "openai/gpt-oss-120b:nitro",
   "google/gemini-3.1-flash-lite:nitro",
+  "openai/gpt-oss-120b:nitro",
   "qwen/qwen3-32b:nitro",
 ];
 
@@ -29,8 +29,10 @@ Rules:
 - Return all output times in UTC (suffix Z). Do not add timezone offsets to output times.
 - Use the timezone offset ({timezone}) only for reasoning — e.g., "9 AM in their timezone = 2 AM UTC if GMT+7". If a time falls outside reasonable waking hours in the user's timezone, it's probably wrong.
 - Don't overthink or overcomplicate things.
-- Keep changes extremely focused (don't change anything unless you really have to).
-- Use 24h time format.
+- **Keep changes extremely focused** (don't change anything unless you really have to).
+- **Use 24h time format.**
+- Tasks if moved have to be right at the current time / after current time and at least on the current day.
+- Be reasonable and have common sense (For example: Don't schedule tasks at 1 AM or similar, unless the user explicitly asks for it)
 - Return ONLY valid JSON. No markdown, no preamble, no explanation outside the JSON.
 - The "tasks" array must contain every input task (same id).
 - Preserve task durations unless the user explicitly asks to change them or the new deadline is before the current end time.
