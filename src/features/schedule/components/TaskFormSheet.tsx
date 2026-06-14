@@ -117,6 +117,9 @@ function createStyles(theme: Theme) {
       color: theme.colors.outline,
       marginBottom: theme.spacing.lg,
     },
+    dateRow: {
+      marginTop: theme.spacing.md,
+    },
     durationBadge: {
       backgroundColor: withOpacity(theme.colors.success, 0.1),
       borderWidth: 1,
@@ -146,6 +149,9 @@ function createStyles(theme: Theme) {
     timeDisplayText: {
       ...theme.typography.bodyMedium,
       color: theme.colors.onSurface,
+    },
+    disabledText: {
+      color: theme.colors.outline,
     },
     aiPlaceholder: {
       backgroundColor: theme.colors.surfaceVariant,
@@ -288,11 +294,31 @@ export default function TaskFormSheet({
 
   const [showStartPicker, setShowStartPicker] = useState(false);
   const [showEndPicker, setShowEndPicker] = useState(false);
+  const [showDatePicker, setShowDatePicker] = useState(false);
   const [showDeadlinePicker, setShowDeadlinePicker] = useState(false);
 
   const [showDeleteAlert, setShowDeleteAlert] = useState(false);
 
   const [errors, setErrors] = useState<FieldErrors>({});
+
+  // Date derived from startHour, defaults to today for add mode
+  const currentDate = useMemo(() => {
+    return startHour ? new Date(startHour) : new Date();
+  }, [startHour]);
+
+  // Shift both start and end to the new date, preserving times
+  const handleDateChange = useCallback((newDate: Date) => {
+    if (startHour) {
+      const start = new Date(startHour);
+      start.setFullYear(newDate.getFullYear(), newDate.getMonth(), newDate.getDate());
+      setStartHour(start.toISOString());
+    }
+    if (endHour) {
+      const end = new Date(endHour);
+      end.setFullYear(newDate.getFullYear(), newDate.getMonth(), newDate.getDate());
+      setEndHour(end.toISOString());
+    }
+  }, [startHour, endHour]);
 
   const durationMinutes = useMemo(() => {
     if (!startHour || !endHour) return 0;
@@ -573,6 +599,46 @@ export default function TaskFormSheet({
               {errors.time && (
                 <Text style={styles.errorText}>{errors.time}</Text>
               )}
+
+              {/* Date row — below start/end */}
+              <View style={styles.dateRow}>
+                <Text style={styles.timeLabel}>Date</Text>
+                {mode === "view" ? (
+                  <Text
+                    style={[
+                      styles.timeDisplayText,
+                      { paddingVertical: theme.spacing.sm },
+                    ]}
+                  >
+                    {startHour ? formatDate(startHour) : "—"}
+                  </Text>
+                ) : showDatePicker ? (
+                  <DateTimePicker
+                    value={currentDate}
+                    mode="date"
+                    onValueChange={(_event: unknown, date?: Date) => {
+                      if (date) handleDateChange(date);
+                      setShowDatePicker(false);
+                    }}
+                    onDismiss={() => setShowDatePicker(false)}
+                  />
+                ) : (
+                  <Pressable
+                    style={styles.timeDisplayBtn}
+                    onPress={() => setShowDatePicker(true)}
+                    disabled={!startHour || !endHour}
+                  >
+                    <Text
+                      style={[
+                        styles.timeDisplayText,
+                        (!startHour || !endHour) && styles.disabledText,
+                      ]}
+                    >
+                      {startHour ? formatDate(startHour) : "Set times first"}
+                    </Text>
+                  </Pressable>
+                )}
+              </View>
             </>
           )}
 

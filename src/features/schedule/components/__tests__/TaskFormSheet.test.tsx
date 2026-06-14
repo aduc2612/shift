@@ -390,4 +390,20 @@ describe('TaskFormSheet', () => {
     );
     expect(getByText('Deleting...')).toBeTruthy();
   });
+
+  it('shows date field in edit mode', async () => {
+    const task = makeTask();
+    const { getByText } = await renderWithTheme(
+      <TaskFormSheet visible onClose={jest.fn()} task={task} mode="edit" />,
+    );
+    expect(getByText('Date')).toBeTruthy();
+  });
+
+  it('shows date field in view mode', async () => {
+    const task = makeTask();
+    const { getByText } = await renderWithTheme(
+      <TaskFormSheet visible onClose={jest.fn()} task={task} mode="view" />,
+    );
+    expect(getByText('Date')).toBeTruthy();
+  });
 });
