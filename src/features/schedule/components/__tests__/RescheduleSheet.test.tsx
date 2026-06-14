@@ -49,6 +49,18 @@ describe('RescheduleSheet', () => {
     expect(getByText('Reschedule')).toBeTruthy();
   });
 
+  it('renders Cancel button', async () => {
+    const { getByText } = await renderWithTheme(
+      <RescheduleSheet
+        visible={true}
+        onClose={jest.fn()}
+        onReschedule={jest.fn()}
+        isRescheduling={false}
+      />,
+    );
+    expect(getByText('Cancel')).toBeTruthy();
+  });
+
   describe('reschedule interaction', () => {
     it('calls onReschedule with text input on CTA press', async () => {
       const onReschedule = jest.fn().mockResolvedValue(undefined);
@@ -177,6 +189,24 @@ describe('RescheduleSheet', () => {
       await waitFor(() => {
         expect(input.props.value).toBe('');
       });
+    });
+
+    it('calls onClose when Cancel is pressed', async () => {
+      const onClose = jest.fn();
+      const { getByText } = await renderWithTheme(
+        <RescheduleSheet
+          visible={true}
+          onClose={onClose}
+          onReschedule={jest.fn()}
+          isRescheduling={false}
+        />,
+      );
+
+      await act(async () => {
+        fireEvent.press(getByText('Cancel'));
+      });
+
+      expect(onClose).toHaveBeenCalled();
     });
   });
 });

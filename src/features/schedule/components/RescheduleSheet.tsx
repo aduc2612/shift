@@ -81,6 +81,23 @@ function createStyles(theme: Theme) {
       color: theme.colors.error,
       marginTop: 8,
     },
+    footer: {
+      flexDirection: "row",
+      gap: theme.spacing.md,
+      marginTop: theme.spacing.xl,
+    },
+    cancelBtn: {
+      flex: 1,
+      paddingVertical: theme.spacing.md,
+      borderRadius: theme.borderRadius.xl,
+      backgroundColor: theme.colors.surface,
+      alignItems: "center",
+      justifyContent: "center",
+    },
+    cancelBtnText: {
+      ...theme.typography.titleSmall,
+      color: theme.colors.onSurface,
+    },
   });
 }
 
@@ -116,6 +133,10 @@ export default function RescheduleSheet({
     }
   };
 
+  const handleCancel = () => {
+    onClose();
+  };
+
   const handleChangeText = (value: string) => {
     setText(value);
     if (error) setError(null);
@@ -146,28 +167,40 @@ export default function RescheduleSheet({
           ))}
         </View>
         {error && <Text style={styles.errorText}>{error}</Text>}
-        <Pressable
-          testID="reschedule-cta"
-          style={({ pressed }) => [
-            styles.cta,
-            isRescheduling && styles.ctaDisabled,
-            pressed &&
-              !isRescheduling && { opacity: theme.interaction.pressedOpacity },
-          ]}
-          onPress={handleReschedule}
-          disabled={isRescheduling}
-          accessibilityState={{ disabled: isRescheduling }}
-        >
-          {isRescheduling ? (
-            <ActivityIndicator
-              testID="reschedule-spinner"
-              size="small"
-              color={theme.colors.onPrimary}
-            />
-          ) : (
-            <Text style={styles.ctaText}>Reschedule</Text>
-          )}
-        </Pressable>
+        <View style={styles.footer}>
+          <Pressable
+            style={({ pressed }) => [
+              styles.cancelBtn,
+              pressed && { opacity: theme.interaction.pressedOpacity },
+            ]}
+            onPress={handleCancel}
+            disabled={isRescheduling}
+          >
+            <Text style={styles.cancelBtnText}>Cancel</Text>
+          </Pressable>
+          <Pressable
+            testID="reschedule-cta"
+            style={({ pressed }) => [
+              styles.cta,
+              isRescheduling && styles.ctaDisabled,
+              pressed &&
+                !isRescheduling && { opacity: theme.interaction.pressedOpacity },
+            ]}
+            onPress={handleReschedule}
+            disabled={isRescheduling}
+            accessibilityState={{ disabled: isRescheduling }}
+          >
+            {isRescheduling ? (
+              <ActivityIndicator
+                testID="reschedule-spinner"
+                size="small"
+                color={theme.colors.onPrimary}
+              />
+            ) : (
+              <Text style={styles.ctaText}>Reschedule</Text>
+            )}
+          </Pressable>
+        </View>
       </ScrollView>
     </BottomSheet>
   );
