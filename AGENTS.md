@@ -287,9 +287,14 @@ Never modify existing migration files — always create a new one.
 
 ## AI Integration
 
-**Never call OpenRouter from client.** All AI calls through single Supabase Edge Function.
+**Never call OpenRouter from client.** All AI calls go through Supabase Edge Functions.
 
-### Edge Function contract
+There are two Edge Functions:
+
+1. **`reschedule`** — rearranges all incomplete tasks (used by the RescheduleSheet button)
+2. **`place-task`** — finds a time slot for a single new/edited task without touching others (used by TaskFormSheet when "AI decides time" is on)
+
+### Edge Function: `reschedule`
 
 Function lives at `supabase/functions/reschedule/index.ts`.
 
@@ -336,6 +341,49 @@ Edge Function tries models in order, falls back on error or timeout:
 - Always instruct model to return **only valid JSON** matching response schema. No preamble, no markdown fences.
 - Strip ` ```json ` fences before parsing if model ignores instruction.
 - Validate parsed response shape before writing to DB. If validation fails, return error to client — do not write partial data.
+
+### Edge Function: `place-task`
+
+Function lives at `supabase/functions/place-task/index.ts`.
+
+**Request body:**
+
+```ts
+{
+  task: {
+    id: string;
+    name: string;
+    durationMinutes: number;
+    deadline: string | null;
+    aiContext: string | null;
+  };
+  existingTasks: { id: string; name: string; startTime: string; endTime: string; durationMinutes: number; }[];
+  userContext: string;
+  whatChanged: string;
+  timezone: string;
+}
+```
+
+**Response body:**
+
+```ts
+{
+  task: {
+    id: string;
+    startTime: string; // ISO 8601
+    endTime: string; // ISO 8601
+    durationMinutes: number;
+    aiJustification: string;
+    aiContext: string;
+  };
+}
+```
+
+Key differences from `reschedule`:
+- Returns **one** task (not an array)
+- `existingTasks` is read-only context — the AI must not move or modify them
+- Validates returned `task.id` matches input `task.id`
+- Fixed token/timeout budget (not per-task-count scaling)
 
 ---
 

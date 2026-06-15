@@ -18,7 +18,10 @@ import BottomSheet from "@/components/primitives/BottomSheet";
 import Alert from "@/components/primitives/Alert";
 import { formatDuration, formatTime, formatDate } from "@/utils/date";
 import { withOpacity } from "@/utils/color";
-import { useReschedule } from "@/features/schedule/hooks/useReschedule";
+import {
+  usePlaceTask,
+  type PlaceTaskParams,
+} from "@/features/schedule/hooks/usePlaceTask";
 import { RESCHEDULE_CONSTANTS } from "@/constants/reschedule";
 
 type FieldErrors = {
@@ -281,7 +284,7 @@ export default function TaskFormSheet({
 }: TaskFormSheetProps) {
   const theme = useTheme();
   const styles = useMemo(() => createStyles(theme), [theme]);
-  const reschedule = useReschedule();
+  const placeTask = usePlaceTask();
 
   const [name, setName] = useState(task?.name ?? "");
   const [startHour, setStartHour] = useState(task?.startTime ?? "");
@@ -369,35 +372,12 @@ export default function TaskFormSheet({
 
     setErrors({});
 
-    // Build task payload
-    const taskPayload: Partial<Task> = {
-      name: name.trim(),
-      durationMinutes,
-      deadline: deadline || null,
-      aiDecidesTime,
-      aiContext: aiContext || null,
-    };
-
-    // Only include times if user set them manually
-    if (!aiDecidesTime) {
-      taskPayload.startTime = startHour;
-      taskPayload.endTime = endHour;
-    }
-
-    // Save task first
-    try {
-      await onSave?.(taskPayload);
-    } catch {
-      // Save failed — stay open
-      return;
-    }
-
-    // Determine if reschedule is needed
-    // Reschedule when:
+    // Determine if AI placement is needed
+    // Place when:
     //   - New task with AI deciding time
     //   - AI turned ON (user hands control to AI)
     //   - AI context changed while AI is already on
-    // Do NOT reschedule when user turns AI OFF (manual control)
+    // Do NOT place when user turns AI OFF (manual control)
     const aiTurnedOn =
       mode === "edit" &&
       aiDecidesTime &&
@@ -406,13 +386,19 @@ export default function TaskFormSheet({
     const aiContextChangedWhileOn =
       mode === "edit" && aiDecidesTime && aiContext !== (task?.aiContext ?? "");
 
-    const needsReschedule =
+    const needsAiPlacement =
       (mode === "add" && aiDecidesTime) ||
       aiTurnedOn ||
       aiContextChangedWhileOn;
 
-    if (needsReschedule) {
+    if (needsAiPlacement) {
+      // AI flow: place-task handles creation/update internally
       const taskName = name.trim();
+
+      // Use a sensible default duration if times weren't set
+      const effectiveDuration =
+        durationMinutes > 0 ? durationMinutes : 30;
+
       let whatChanged: string;
       if (mode === "add") {
         whatChanged = RESCHEDULE_CONSTANTS.WHAT_CHANGED.NEW_AI_TASK(taskName);
@@ -424,9 +410,41 @@ export default function TaskFormSheet({
       }
 
       try {
-        await reschedule.mutateAsync({ whatChanged });
+        await placeTask.mutateAsync({
+          taskData: {
+            name: name.trim(),
+            durationMinutes: effectiveDuration,
+            deadline: deadline || null,
+            aiContext: aiContext || null,
+          },
+          whatChanged,
+          mode: mode as "add" | "edit",
+          previousTask: mode === "edit" ? (task ?? undefined) : undefined,
+          existingTaskId: mode === "edit" ? task?.id : undefined,
+        } as PlaceTaskParams);
       } catch {
-        // Stay open — error displayed inline in RescheduleSheet
+        // Stay open — error displayed inline
+        return;
+      }
+    } else {
+      // Manual flow: save task directly via onSave
+      const taskPayload: Partial<Task> = {
+        name: name.trim(),
+        durationMinutes,
+        deadline: deadline || null,
+        aiDecidesTime,
+        aiContext: aiContext || null,
+      };
+
+      if (!aiDecidesTime) {
+        taskPayload.startTime = startHour;
+        taskPayload.endTime = endHour;
+      }
+
+      try {
+        await onSave?.(taskPayload);
+      } catch {
+        // Save failed — stay open
         return;
       }
     }
@@ -444,7 +462,7 @@ export default function TaskFormSheet({
     task,
     onSave,
     onClose,
-    reschedule,
+    placeTask,
   ]);
 
   const handleDeleteConfirm = useCallback(() => {
@@ -454,7 +472,7 @@ export default function TaskFormSheet({
     setShowDeleteAlert(false);
   }, [task, onDelete]);
 
-  const isRescheduling = reschedule.isPending && mode !== "view";
+  const isRescheduling = placeTask.isPending && mode !== "view";
 
   return (
     <BottomSheet visible={visible} onClose={onClose}>
@@ -465,7 +483,9 @@ export default function TaskFormSheet({
         {/* Header */}
         <View style={styles.header}>
           {mode === "view" ? (
-            <View style={{ width: 36 }} />
+            <Pressable style={styles.headerBtn} onPress={onClose} hitSlop={8}>
+              <Ionicons name="close" size={18} color={theme.colors.onSurface} />
+            </Pressable>
           ) : (
             <Pressable
               style={styles.headerBtn}

@@ -6,16 +6,13 @@ import {
   MODELS,
   OPENROUTER_BASE_URL,
   SYSTEM_PROMPT,
-  TOKENS_PER_TASK,
-  TOKENS_BASE,
-  TIMEOUT_PER_TASK,
-  TIMEOUT_BASE,
   MAX_TOKENS,
-  MAX_TIMEOUT_MS,
+  TIMEOUT_MS,
 } from "./config.ts";
 
-// --- Zod schema for structured output ---
-const TaskResultSchema = z.object({
+// --- Zod schemas for structured output ---
+
+const NewTaskSchema = z.object({
   id: z.string(),
   startTime: z.string(),
   endTime: z.string(),
@@ -24,11 +21,13 @@ const TaskResultSchema = z.object({
   aiContext: z.string(),
 });
 
-const RescheduleSchema = z.object({
-  tasks: z.array(TaskResultSchema),
+const PlaceTaskResponseSchema = z.object({
+  task: NewTaskSchema,
 });
 
-Deno.serve(async (req) => {
+// --- Handler exported for testing ---
+
+export async function handler(req: Request): Promise<Response> {
   try {
     const authHeader = req.headers.get("Authorization");
     if (!authHeader) {
@@ -37,13 +36,47 @@ Deno.serve(async (req) => {
       });
     }
 
-    const body = await req.json();
-    const { tasks, userContext, whatChanged, timezone } = body;
+    let body: Record<string, unknown>;
+    try {
+      body = await req.json();
+    } catch {
+      return new Response(
+        JSON.stringify({ error: "Invalid or malformed JSON body" }),
+        { status: 400, headers: { "Content-Type": "application/json" } },
+      );
+    }
 
-    if (!Array.isArray(tasks) || tasks.length === 0) {
-      return new Response(JSON.stringify({ error: "tasks array required" }), {
+    const { task, existingTasks, userContext, whatChanged, timezone } =
+      body as {
+        task: Record<string, unknown>;
+        existingTasks: unknown[];
+        userContext: string;
+        whatChanged: string;
+        timezone: string;
+      };
+
+    // Validate task input
+    if (!task || typeof task !== "object") {
+      return new Response(JSON.stringify({ error: "task object required" }), {
         status: 400,
+        headers: { "Content-Type": "application/json" },
       });
+    }
+
+    if (!task.id || !task.name || typeof task.durationMinutes !== "number") {
+      return new Response(
+        JSON.stringify({
+          error: "task must have id, name, and durationMinutes",
+        }),
+        { status: 400, headers: { "Content-Type": "application/json" } },
+      );
+    }
+
+    if (!Array.isArray(existingTasks)) {
+      return new Response(
+        JSON.stringify({ error: "existingTasks array required" }),
+        { status: 400, headers: { "Content-Type": "application/json" } },
+      );
     }
 
     const tz = timezone || "UTC";
@@ -78,21 +111,24 @@ Deno.serve(async (req) => {
       .replace("{isWeekend}", isWeekend ? "Yes" : "No")
       .replace("{timezone}", tzDisplay);
 
-    const userMessage = `Tasks:\n${JSON.stringify(tasks, null, 2)}\n\nUser context: ${userContext || "None provided"}\n\nWhat changed: ${whatChanged || "Initial scheduling"}`;
-    const inputIds = new Set(tasks.map((t: { id: string }) => t.id));
-    const maxTokens = Math.min(
-      tasks.length * TOKENS_PER_TASK + TOKENS_BASE,
-      MAX_TOKENS,
-    );
-    const timeout = Math.min(
-      tasks.length * TIMEOUT_PER_TASK + TIMEOUT_BASE,
-      MAX_TIMEOUT_MS,
-    );
+    const newTaskInfo = {
+      id: task.id,
+      name: task.name,
+      durationMinutes: task.durationMinutes,
+      deadline: task.deadline || null,
+      aiContext: task.aiContext || null,
+    };
+
+    const userMessage =
+      `New task to place:\n${JSON.stringify(newTaskInfo, null, 2)}\n\n` +
+      `Existing scheduled tasks (READ-ONLY — do not modify):\n${JSON.stringify(existingTasks, null, 2)}\n\n` +
+      `User context: ${userContext || "None provided"}\n\n` +
+      `What changed: ${whatChanged || "Adding a new task"}`;
 
     const openai = new OpenAI({
       baseURL: OPENROUTER_BASE_URL,
       apiKey: Deno.env.get("OPENROUTER_API_KEY"),
-      timeout,
+      timeout: TIMEOUT_MS,
       maxRetries: 0,
     });
 
@@ -106,8 +142,11 @@ Deno.serve(async (req) => {
             { role: "system", content: systemPrompt },
             { role: "user", content: userMessage },
           ],
-          response_format: zodResponseFormat(RescheduleSchema, "reschedule"),
-          max_tokens: maxTokens,
+          response_format: zodResponseFormat(
+            PlaceTaskResponseSchema,
+            "place_task",
+          ),
+          max_tokens: MAX_TOKENS,
           reasoning_effort: "minimal",
         });
 
@@ -123,22 +162,16 @@ Deno.serve(async (req) => {
           .trim();
 
         // Zod validates the response matches the schema exactly
-        const parsed = RescheduleSchema.parse(JSON.parse(content));
+        const parsed = PlaceTaskResponseSchema.parse(JSON.parse(content));
 
-        // Validate exact task ID parity — no extras, no duplicates
-        const outputIds = new Set(parsed.tasks.map((t) => t.id));
-        if (outputIds.size !== inputIds.size) {
+        // Validate returned task ID matches input
+        if (parsed.task.id !== task.id) {
           throw new Error(
-            `Task count mismatch: expected ${inputIds.size}, got ${outputIds.size}`,
+            `Task ID mismatch: expected ${task.id}, got ${parsed.task.id}`,
           );
         }
-        for (const id of inputIds) {
-          if (!outputIds.has(id)) {
-            throw new Error(`Missing task id in output: ${id}`);
-          }
-        }
 
-        return new Response(JSON.stringify({ tasks: parsed.tasks }), {
+        return new Response(JSON.stringify({ task: parsed.task }), {
           headers: { "Content-Type": "application/json" },
           status: 200,
         });
@@ -164,4 +197,7 @@ Deno.serve(async (req) => {
       { status: 500, headers: { "Content-Type": "application/json" } },
     );
   }
-});
+}
+
+// --- Deno server entry point ---
+Deno.serve(handler);
