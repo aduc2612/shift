@@ -483,7 +483,9 @@ export default function TaskFormSheet({
         {/* Header */}
         <View style={styles.header}>
           {mode === "view" ? (
-            <View style={{ width: 36 }} />
+            <Pressable style={styles.headerBtn} onPress={onClose} hitSlop={8}>
+              <Ionicons name="close" size={18} color={theme.colors.onSurface} />
+            </Pressable>
           ) : (
             <Pressable
               style={styles.headerBtn}
