@@ -28,7 +28,7 @@ Context:
 Notes:
 * The aiContext you receive is **in the user's time zone**.
 
-**Most important rule**: Always respect userContext and aiContext above everything
+**Most important rule**: Always respect userContext and aiContext
 
 Rules:
 * Existing tasks are read-only. Never move, modify, or remove them.

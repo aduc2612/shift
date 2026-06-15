@@ -10,6 +10,8 @@ import {
   TOKENS_BASE,
   TIMEOUT_PER_TASK,
   TIMEOUT_BASE,
+  MAX_TOKENS,
+  MAX_TIMEOUT_MS,
 } from "./config.ts";
 
 // --- Zod schema for structured output ---
@@ -78,8 +80,14 @@ Deno.serve(async (req) => {
 
     const userMessage = `Tasks:\n${JSON.stringify(tasks, null, 2)}\n\nUser context: ${userContext || "None provided"}\n\nWhat changed: ${whatChanged || "Initial scheduling"}`;
     const inputIds = new Set(tasks.map((t: { id: string }) => t.id));
-    const maxTokens = tasks.length * TOKENS_PER_TASK + TOKENS_BASE;
-    const timeout = tasks.length * TIMEOUT_PER_TASK + TIMEOUT_BASE;
+    const maxTokens = Math.min(
+      tasks.length * TOKENS_PER_TASK + TOKENS_BASE,
+      MAX_TOKENS,
+    );
+    const timeout = Math.min(
+      tasks.length * TIMEOUT_PER_TASK + TIMEOUT_BASE,
+      MAX_TIMEOUT_MS,
+    );
 
     const openai = new OpenAI({
       baseURL: OPENROUTER_BASE_URL,
@@ -109,7 +117,10 @@ Deno.serve(async (req) => {
         }
 
         // Strip markdown fences if model wraps JSON
-        content = content.replace(/^```(?:json)?\n?/, "").replace(/\n?```$/, "").trim();
+        content = content
+          .replace(/^```(?:json)?\n?/, "")
+          .replace(/\n?```$/, "")
+          .trim();
 
         // Zod validates the response matches the schema exactly
         const parsed = RescheduleSchema.parse(JSON.parse(content));
