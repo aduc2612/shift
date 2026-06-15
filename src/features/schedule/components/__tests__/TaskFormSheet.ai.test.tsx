@@ -34,39 +34,47 @@ jest.mock("@/components/primitives/Alert", () => {
       onCancel,
     }: Record<string, unknown>) => {
       if (!visible) return null;
-      return mockReact.createElement(
-        RN.View,
-        { testID: "mock-alert" },
-        [
-          mockReact.createElement(RN.Text, { key: "title" }, title as string),
-          message
-            ? mockReact.createElement(RN.Text, { key: "message" }, message as string)
-            : null,
+      return mockReact.createElement(RN.View, { testID: "mock-alert" }, [
+        mockReact.createElement(RN.Text, { key: "title" }, title as string),
+        message
+          ? mockReact.createElement(
+              RN.Text,
+              { key: "message" },
+              message as string,
+            )
+          : null,
+        mockReact.createElement(
+          RN.Pressable,
+          {
+            key: "confirm",
+            testID: "alert-confirm-btn",
+            onPress: onConfirm as () => void,
+          },
           mockReact.createElement(
-            RN.Pressable,
-            {
-              key: "confirm",
-              testID: "alert-confirm-btn",
-              onPress: onConfirm as () => void,
-            },
-            mockReact.createElement(RN.Text, null, (confirmLabel as string) ?? "Confirm"),
+            RN.Text,
+            null,
+            (confirmLabel as string) ?? "Confirm",
           ),
+        ),
+        mockReact.createElement(
+          RN.Pressable,
+          {
+            key: "cancel",
+            testID: "alert-cancel-btn",
+            onPress: onCancel as () => void,
+          },
           mockReact.createElement(
-            RN.Pressable,
-            {
-              key: "cancel",
-              testID: "alert-cancel-btn",
-              onPress: onCancel as () => void,
-            },
-            mockReact.createElement(RN.Text, null, (cancelLabel as string) ?? "Cancel"),
+            RN.Text,
+            null,
+            (cancelLabel as string) ?? "Cancel",
           ),
-        ],
-      );
+        ),
+      ]);
     },
   };
 });
 
-// Mock supabase — needed because TaskFormSheet imports useReschedule which imports api which imports supabase
+// Mock supabase — needed because TaskFormSheet imports usePlaceTask which imports api which imports supabase
 jest.mock("@/services/supabase", () => ({
   supabase: {
     auth: {
@@ -77,11 +85,11 @@ jest.mock("@/services/supabase", () => ({
   },
 }));
 
-// Mutable mock for useReschedule — lets tests toggle isPending
+// Mutable mock for usePlaceTask — lets tests toggle isPending
 let mockIsPending = false;
 const mockMutateAsync = jest.fn();
-jest.mock("@/features/schedule/hooks/useReschedule", () => ({
-  useReschedule: () => ({
+jest.mock("@/features/schedule/hooks/usePlaceTask", () => ({
+  usePlaceTask: () => ({
     mutateAsync: mockMutateAsync,
     get isPending() {
       return mockIsPending;
@@ -175,7 +183,11 @@ describe("TaskFormSheet — AI fields", () => {
       mockMutateAsync.mockResolvedValue([]);
       const onSave = jest.fn();
       const onClose = jest.fn();
-      const task = makeTask({ aiDecidesTime: false, aiContext: "", name: "Test task" });
+      const task = makeTask({
+        aiDecidesTime: false,
+        aiContext: "",
+        name: "Test task",
+      });
 
       const { getByTestId } = await renderWithTheme(
         <TaskFormSheet
@@ -198,15 +210,13 @@ describe("TaskFormSheet — AI fields", () => {
         fireEvent.press(getByTestId("done-btn"));
       });
 
-      expect(onSave).toHaveBeenCalledWith(
-        expect.objectContaining({
-          aiDecidesTime: true,
-        }),
-      );
+      // AI flow: onSave should NOT be called — placeTask handles it
+      expect(onSave).not.toHaveBeenCalled();
       await waitFor(() => {
         expect(mockMutateAsync).toHaveBeenCalledWith(
           expect.objectContaining({
             whatChanged: expect.stringContaining("Test task"),
+            mode: "edit",
           }),
         );
       });
@@ -295,17 +305,18 @@ describe("TaskFormSheet — AI fields", () => {
         fireEvent.press(getByTestId("done-btn"));
       });
 
-      // onSave should have been called with aiDecidesTime: true
-      expect(onSave).toHaveBeenCalledWith(
-        expect.objectContaining({
-          name: "New AI task",
-          aiDecidesTime: true,
-        }),
-      );
+      // AI flow: onSave should NOT be called — placeTask handles creation
+      expect(onSave).not.toHaveBeenCalled();
 
-      // reschedule should have been triggered
+      // placeTask should have been triggered
       await waitFor(() => {
-        expect(mockMutateAsync).toHaveBeenCalled();
+        expect(mockMutateAsync).toHaveBeenCalledWith(
+          expect.objectContaining({
+            taskData: expect.objectContaining({ name: "New AI task" }),
+            mode: "add",
+            whatChanged: expect.stringContaining("New AI task"),
+          }),
+        );
       });
     });
   });
