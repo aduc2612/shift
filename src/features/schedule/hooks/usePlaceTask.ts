@@ -12,18 +12,31 @@ import { useToast } from "@/providers/toast-provider";
 import { RESCHEDULE_CONSTANTS } from "@/constants/reschedule";
 import type { Task } from "@/types/task";
 
-export type PlaceTaskParams = {
-  taskData: {
-    name: string;
-    durationMinutes: number;
-    deadline: string | null;
-    aiContext: string | null;
-  };
-  whatChanged: string;
-  mode: "add" | "edit";
-  previousTask?: Task;
-  existingTaskId?: string;
-};
+export type PlaceTaskParams =
+  | {
+      taskData: {
+        name: string;
+        durationMinutes: number;
+        deadline: string | null;
+        aiContext: string | null;
+      };
+      whatChanged: string;
+      mode: "add";
+      previousTask?: undefined;
+      existingTaskId?: string;
+    }
+  | {
+      taskData: {
+        name: string;
+        durationMinutes: number;
+        deadline: string | null;
+        aiContext: string | null;
+      };
+      whatChanged: string;
+      mode: "edit";
+      previousTask: Task;
+      existingTaskId: string;
+    };
 
 type UndoMeta = {
   mode: "add" | "edit";
@@ -111,9 +124,9 @@ export function usePlaceTask() {
         return created;
       } else {
         // Update existing task with AI-assigned times
-        if (!existingTaskId)
-          throw new Error("existingTaskId required for edit mode");
-        const updated = await updateTask(existingTaskId, {
+        const editId = (params as { existingTaskId: string }).existingTaskId;
+        const editPrev = (params as { previousTask: Task }).previousTask;
+        const updated = await updateTask(editId, {
           name: taskData.name,
           startTime: result.startTime,
           endTime: result.endTime,
@@ -123,7 +136,7 @@ export function usePlaceTask() {
           aiDecidesTime: true,
           aiJustification: result.aiJustification,
         });
-        undoMetaRef.current = { mode: "edit", previousTask };
+        undoMetaRef.current = { mode: "edit", previousTask: editPrev };
         return updated;
       }
     },

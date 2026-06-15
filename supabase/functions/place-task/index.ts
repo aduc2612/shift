@@ -36,8 +36,24 @@ export async function handler(req: Request): Promise<Response> {
       });
     }
 
-    const body = await req.json();
-    const { task, existingTasks, userContext, whatChanged, timezone } = body;
+    let body: Record<string, unknown>;
+    try {
+      body = await req.json();
+    } catch {
+      return new Response(
+        JSON.stringify({ error: "Invalid or malformed JSON body" }),
+        { status: 400, headers: { "Content-Type": "application/json" } },
+      );
+    }
+
+    const { task, existingTasks, userContext, whatChanged, timezone } =
+      body as {
+        task: Record<string, unknown>;
+        existingTasks: unknown[];
+        userContext: string;
+        whatChanged: string;
+        timezone: string;
+      };
 
     // Validate task input
     if (!task || typeof task !== "object") {

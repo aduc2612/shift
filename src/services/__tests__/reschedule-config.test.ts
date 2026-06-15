@@ -1,12 +1,14 @@
 // Tests for the reschedule Edge Function dynamic budget clamping logic.
 // These test the pure math — no network or Deno runtime needed.
 
-const TOKENS_PER_TASK = 150;
-const TOKENS_BASE = 300;
-const TIMEOUT_PER_TASK = 1_000;
-const TIMEOUT_BASE = 5_000;
-const MAX_TOKENS = 4_096;
-const MAX_TIMEOUT_MS = 30_000;
+import {
+  TOKENS_PER_TASK,
+  TOKENS_BASE,
+  TIMEOUT_PER_TASK,
+  TIMEOUT_BASE,
+  MAX_TOKENS,
+  MAX_TIMEOUT_MS,
+} from "../../../supabase/functions/reschedule/config";
 
 function computeMaxTokens(taskCount: number): number {
   return Math.min(taskCount * TOKENS_PER_TASK + TOKENS_BASE, MAX_TOKENS);

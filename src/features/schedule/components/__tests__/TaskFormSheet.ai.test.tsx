@@ -312,7 +312,7 @@ describe("TaskFormSheet — AI fields", () => {
       await waitFor(() => {
         expect(mockMutateAsync).toHaveBeenCalledWith(
           expect.objectContaining({
-            taskData: expect.objectContaining({ name: "New AI task" }),
+            taskData: expect.objectContaining({ name: "New AI task", durationMinutes: expect.any(Number) }),
             mode: "add",
             whatChanged: expect.stringContaining("New AI task"),
           }),

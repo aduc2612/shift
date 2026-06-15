@@ -7,6 +7,8 @@
  * These tests validate the input validation and response schema shape logic.
  */
 
+import { MODELS, MAX_TOKENS, TIMEOUT_MS } from "../config";
+
 // --- Response schema shape validation (mirrors Zod schema in index.ts) ---
 
 function isValidTaskShape(task: unknown): task is {
@@ -223,19 +225,11 @@ describe("place-task task ID validation", () => {
 
 describe("place-task config constants", () => {
   it("has correct model count", () => {
-    // Import would fail in Deno, so we replicate the expected values
-    const MODELS = [
-      "google/gemini-3.1-flash-lite:nitro",
-      "openai/gpt-oss-120b:nitro",
-      "qwen/qwen3-32b:nitro",
-    ];
     expect(MODELS).toHaveLength(3);
-    expect(MODELS[0]).toContain("gemini");
+    expect(MODELS[0]).toContain("openai");
   });
 
   it("has reasonable fixed budgets", () => {
-    const MAX_TOKENS = 500;
-    const TIMEOUT_MS = 10_000;
     expect(MAX_TOKENS).toBeGreaterThan(0);
     expect(TIMEOUT_MS).toBeGreaterThan(0);
     expect(TIMEOUT_MS).toBeLessThanOrEqual(30_000);

@@ -18,7 +18,10 @@ import BottomSheet from "@/components/primitives/BottomSheet";
 import Alert from "@/components/primitives/Alert";
 import { formatDuration, formatTime, formatDate } from "@/utils/date";
 import { withOpacity } from "@/utils/color";
-import { usePlaceTask } from "@/features/schedule/hooks/usePlaceTask";
+import {
+  usePlaceTask,
+  type PlaceTaskParams,
+} from "@/features/schedule/hooks/usePlaceTask";
 import { RESCHEDULE_CONSTANTS } from "@/constants/reschedule";
 
 type FieldErrors = {
@@ -391,6 +394,11 @@ export default function TaskFormSheet({
     if (needsAiPlacement) {
       // AI flow: place-task handles creation/update internally
       const taskName = name.trim();
+
+      // Use a sensible default duration if times weren't set
+      const effectiveDuration =
+        durationMinutes > 0 ? durationMinutes : 30;
+
       let whatChanged: string;
       if (mode === "add") {
         whatChanged = RESCHEDULE_CONSTANTS.WHAT_CHANGED.NEW_AI_TASK(taskName);
@@ -405,7 +413,7 @@ export default function TaskFormSheet({
         await placeTask.mutateAsync({
           taskData: {
             name: name.trim(),
-            durationMinutes,
+            durationMinutes: effectiveDuration,
             deadline: deadline || null,
             aiContext: aiContext || null,
           },
@@ -413,7 +421,7 @@ export default function TaskFormSheet({
           mode: mode as "add" | "edit",
           previousTask: mode === "edit" ? (task ?? undefined) : undefined,
           existingTaskId: mode === "edit" ? task?.id : undefined,
-        });
+        } as PlaceTaskParams);
       } catch {
         // Stay open — error displayed inline
         return;
