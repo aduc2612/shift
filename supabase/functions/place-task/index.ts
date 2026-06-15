@@ -147,7 +147,10 @@ export async function handler(req: Request): Promise<Response> {
             "place_task",
           ),
           max_tokens: MAX_TOKENS,
-          reasoning_effort: "minimal",
+          reasoning: {
+            effort: "low",
+            exclude: true,
+          },
         });
 
         let content = completion.choices[0]?.message?.content;

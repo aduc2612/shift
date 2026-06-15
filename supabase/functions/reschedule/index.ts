@@ -108,7 +108,10 @@ Deno.serve(async (req) => {
           ],
           response_format: zodResponseFormat(RescheduleSchema, "reschedule"),
           max_tokens: maxTokens,
-          reasoning_effort: "minimal",
+          reasoning: {
+            effort: "low",
+            exclude: true,
+          },
         });
 
         let content = completion.choices[0]?.message?.content;
