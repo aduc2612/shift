@@ -2,7 +2,7 @@ import type { ProductivityPeak } from '@/types/onboarding';
 import { PERSONA_REVIEWS } from '@/constants/onboarding-reviews';
 import type { PersonaReview } from '@/constants/onboarding-reviews';
 
-export function getPersonaReview(persona: string | null): PersonaReview {
+export function getPersonaReviews(persona: string | null): PersonaReview[] {
   const key = (persona ?? 'other') as keyof typeof PERSONA_REVIEWS;
   return PERSONA_REVIEWS[key] ?? PERSONA_REVIEWS.other;
 }
@@ -24,9 +24,9 @@ export function buildSchedulePreview(
     'your peak';
 
   const bullets = [
-    `🧠  Deep work in the ${peakLabel} hours`,
-    "⏱   Tasks under 90 min to match your focus style",
-    "🔄  Buffer time built in so one delay doesn't collapse the day",
+    `Deep work in the ${peakLabel} hours`,
+    "Tasks under 90 min to match your focus style",
+    "Buffer time built in so one delay doesn't collapse the day",
   ];
 
   return { deepWorkBlock, bullets };

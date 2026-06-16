@@ -2,10 +2,10 @@ import type { UserPreferences } from '@/types/userPreferences';
 
 function formatConstraints(prefs: UserPreferences): string {
   if (!prefs.hardConstraints || prefs.hardConstraints.length === 0) {
-    return 'No fixed constraints.';
+    return 'No prioritized tasks.';
   }
   if (prefs.hardConstraints.includes('none')) {
-    return 'No fixed constraints — full flexibility.';
+    return 'No prioritized tasks — full flexibility.';
   }
   const labelMap: Record<string, string> = {
     morning_routine: 'morning routine / gym',
@@ -15,9 +15,9 @@ function formatConstraints(prefs: UserPreferences): string {
     medical: 'medication or appointments',
   };
   return (
-    'Fixed constraints: ' +
+    'Prioritize these tasks: ' +
     prefs.hardConstraints.map((c) => labelMap[c] ?? c).join(', ') +
-    '. These cannot be moved.'
+    '. Schedule these around their natural times when possible, but if the user explicitly asks to move them, you must comply.'
   );
 }
 

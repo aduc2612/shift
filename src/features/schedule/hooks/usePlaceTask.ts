@@ -91,7 +91,6 @@ export function usePlaceTask() {
         name: t.name,
         startTime: t.startTime,
         endTime: t.endTime,
-        durationMinutes: t.durationMinutes,
       }));
 
       // Call AI to find a slot

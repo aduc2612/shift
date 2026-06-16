@@ -1,33 +1,35 @@
-import { getPersonaReview, buildSchedulePreview } from '../utils';
+import { getPersonaReviews, buildSchedulePreview } from '../utils';
 import type { ProductivityPeak } from '@/types/onboarding';
 
 beforeEach(() => {
   jest.resetModules();
 });
 
-describe('getPersonaReview', () => {
-  it('returns a review for a known persona', () => {
-    const review = getPersonaReview('student');
-    expect(review).toBeDefined();
-    expect(review.name).toBe('Sofia L.');
-    expect(review.rating).toBe(5);
-    expect(review.quote.length).toBeGreaterThan(10);
+describe('getPersonaReviews', () => {
+  it('returns 3 reviews for a known persona', () => {
+    const reviews = getPersonaReviews('student');
+    expect(reviews).toHaveLength(3);
+    expect(reviews[0].name).toBe('Sofia L.');
+    expect(reviews[0].rating).toBe(5);
+    expect(reviews[0].quote.length).toBeGreaterThan(10);
   });
 
-  it('returns a review for "other" when persona is null', () => {
-    const review = getPersonaReview(null);
-    expect(review.name).toBe('Sam T.');
+  it('returns 3 reviews for "other" when persona is null', () => {
+    const reviews = getPersonaReviews(null);
+    expect(reviews).toHaveLength(3);
+    expect(reviews[0].name).toBe('Sam T.');
   });
 
   it('falls back to "other" for unknown persona', () => {
-    const review = getPersonaReview('unknown_persona');
-    expect(review.name).toBe('Sam T.');
+    const reviews = getPersonaReviews('unknown_persona');
+    expect(reviews).toHaveLength(3);
+    expect(reviews[0].name).toBe('Sam T.');
   });
 
-  it('returns different reviews for different personas', () => {
-    const student = getPersonaReview('student');
-    const parent = getPersonaReview('parent');
-    expect(student.name).not.toBe(parent.name);
+  it('returns different reviewer sets for different personas', () => {
+    const student = getPersonaReviews('student');
+    const parent = getPersonaReviews('parent');
+    expect(student[0].name).not.toBe(parent[0].name);
   });
 });
 

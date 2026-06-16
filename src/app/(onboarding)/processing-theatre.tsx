@@ -2,7 +2,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { router } from 'expo-router';
-import { supabase } from '@/services/supabase';
+import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '@/providers/theme-provider';
 import { useOnboardingStore } from '@/features/onboarding/state';
 import { saveOnboardingData } from '@/features/onboarding/api';
@@ -11,12 +11,12 @@ import { useAuth } from '@/features/auth/hooks/useAuth';
 import type { Theme } from '@/constants/theme';
 
 const TOTAL = 14;
-const RITUAL_DURATION_MS = 12_000;
-const CHECKPOINTS = [
-  { time: 0, label: 'Learning your peak hours', emoji: '✓' },
-  { time: 3_000, label: 'Mapping your fixed commitments', emoji: '✓' },
-  { time: 6_000, label: 'Calibrating your AI assistant', emoji: '✓' },
-  { time: 9_000, label: 'Personalizing your experience', emoji: '░' },
+const CHECKPOINT_INTERVAL_MS = 3_000;
+const CHECKPOINTS: { label: string; icon: keyof typeof Ionicons.glyphMap }[] = [
+  { label: 'Learning your peak hours', icon: 'checkmark-circle' },
+  { label: 'Mapping your fixed commitments', icon: 'checkmark-circle' },
+  { label: 'Calibrating your AI assistant', icon: 'checkmark-circle' },
+  { label: 'Personalizing your experience', icon: 'checkmark-circle' },
 ];
 
 function createStyles(theme: Theme, insets: { top: number; bottom: number }) {
@@ -57,19 +57,12 @@ function createStyles(theme: Theme, insets: { top: number; bottom: number }) {
     itemVisible: {
       opacity: 1,
     },
-    itemEmoji: {
-      fontSize: 18,
+    itemIcon: {
       marginRight: theme.spacing.md,
     },
     itemText: {
       ...theme.typography.bodyLarge,
       color: theme.colors.onSurface,
-    },
-    caption: {
-      ...theme.typography.bodySmall,
-      color: theme.colors.onSurfaceVariant,
-      marginTop: theme.spacing.xxl,
-      textAlign: 'center',
     },
     errorBox: {
       backgroundColor: theme.colors.errorContainer,
@@ -137,33 +130,30 @@ export default function ProcessingTheatreScreen() {
     }
   }, [userId, data]);
 
-  // Start the real save + the ritual timer
+  // Start the real save — re-attempts when userId becomes available
   useEffect(() => {
+    if (!userId) return;
     if (saveStarted.current) return;
     saveStarted.current = true;
-
     doSave();
+  }, [doSave, userId]);
 
-    // Ritual: reveal checklist items over 12s
-    CHECKPOINTS.forEach((cp) => {
-      setTimeout(() => {
-        if (mountedRef.current) setVisibleItems((i) => Math.max(i, cp.time / 1000));
-      }, cp.time);
-    });
+  // Reveal one checkpoint every 3s. Independent effect so auth re-renders
+  // can't kill the timers by triggering a cleanup.
+  useEffect(() => {
+    const timeouts: ReturnType<typeof setTimeout>[] = [];
+    for (let i = 1; i < CHECKPOINTS.length; i++) {
+      timeouts.push(
+        setTimeout(() => {
+          if (mountedRef.current) setVisibleItems(i);
+        }, i * CHECKPOINT_INTERVAL_MS),
+      );
+    }
+    return () => timeouts.forEach(clearTimeout);
+  }, []);
 
-    // After 12s, if save is done, advance; if save errored, stay on error
-    const timer = setTimeout(() => {
-      if (mountedRef.current) {
-        setVisibleItems(CHECKPOINTS.length);
-        // If save hasn't errored yet but might still be running, stay
-      }
-    }, RITUAL_DURATION_MS);
-
-    return () => clearTimeout(timer);
-  }, [doSave]);
-
-  // When both ritual timer passed AND save succeeded, allow advance
-  const ritualComplete = visibleItems >= CHECKPOINTS.length;
+  // Ritual completes when the last item is visible (T+9s); button enables once save also done
+  const ritualComplete = visibleItems >= CHECKPOINTS.length - 1;
   const canAdvance = ritualComplete && done;
 
   const handleContinue = useCallback(() => {
@@ -187,18 +177,17 @@ export default function ProcessingTheatreScreen() {
             const visible = i <= visibleItems;
             return (
               <View key={cp.label} style={[styles.item, visible && { opacity: 1 }]}>
-                <Text style={styles.itemEmoji}>{visible ? cp.emoji : '○'}</Text>
+                <Ionicons
+                  name={cp.icon}
+                  size={18}
+                  color={visible ? theme.colors.primary : theme.colors.outline}
+                  style={styles.itemIcon}
+                />
                 <Text style={styles.itemText}>{cp.label}</Text>
               </View>
             );
           })}
         </View>
-
-        {visibleItems >= CHECKPOINTS.length && (
-          <Text style={styles.caption}>
-            This usually takes about{'\n'}12 seconds.
-          </Text>
-        )}
 
         {error && (
           <View style={styles.errorBox}>

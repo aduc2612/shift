@@ -101,9 +101,7 @@ describe("rescheduleTasks", () => {
         name: "Deep work",
         startTime: "2025-06-10T09:00:00",
         endTime: "2025-06-10T10:00:00",
-        durationMinutes: 60,
         deadline: null,
-        aiContext: "morning person",
         aiDecidesTime: true,
       });
       expect(callBody.userContext).toBe("context");
@@ -194,7 +192,6 @@ describe("placeTask", () => {
       name: "Deep work",
       startTime: "2025-06-10T09:00:00",
       endTime: "2025-06-10T10:00:00",
-      durationMinutes: 60,
     },
   ];
 

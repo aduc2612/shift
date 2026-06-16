@@ -2,6 +2,7 @@ import { useMemo, useRef, useState, useEffect, useCallback } from 'react';
 import { Animated, Pressable, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { router } from 'expo-router';
+import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '@/providers/theme-provider';
 import type { Theme } from '@/constants/theme';
 
@@ -88,6 +89,9 @@ function createStyles(theme: Theme, insets: { top: number; bottom: number }) {
       fontSize: 12,
       fontWeight: 'bold',
     },
+    statusIcon: {
+      color: '#fff',
+    },
     rescheduleButton: {
       alignSelf: 'center',
       marginTop: theme.spacing.lg,
@@ -170,7 +174,9 @@ export default function AnimationScreen() {
                 <Text style={styles.taskTime}>{['8:00', '9:00', '11:00', '?', '?'][i]}</Text>
                 <Text style={styles.taskName}>{task.name}</Text>
                 <View style={[styles.taskStatus, task.status === 'missed' && styles.taskStatusMissed, task.status === 'pending' && styles.taskStatusPending]}>
-                  <Text style={styles.statusText}>{task.status === 'missed' ? '✗' : ''}</Text>
+                  {task.status === 'missed' ? (
+                    <Ionicons name="close" size={14} color="#fff" />
+                  ) : null}
                 </View>
               </View>
             ))}
@@ -185,7 +191,9 @@ export default function AnimationScreen() {
                 <Text style={styles.taskTime}>{['8:00', '9:30', '11:00', '13:00', '14:00'][i]}</Text>
                 <Text style={styles.taskName}>{task.name}</Text>
                 <View style={[styles.taskStatus, task.status === 'done' && styles.taskStatusDone, task.status === 'pending' && styles.taskStatusPending]}>
-                  <Text style={styles.statusText}>{task.status === 'done' ? '✓' : ''}</Text>
+                  {task.status === 'done' ? (
+                    <Ionicons name="checkmark" size={14} color="#fff" />
+                  ) : null}
                 </View>
               </View>
             ))}

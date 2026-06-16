@@ -222,6 +222,20 @@ function createStyles(theme: Theme) {
       gap: theme.spacing.md,
       marginTop: theme.spacing.xl,
     },
+    errorBanner: {
+      flexDirection: "row",
+      alignItems: "center",
+      gap: theme.spacing.sm,
+      backgroundColor: withOpacity(theme.colors.error, 0.1),
+      borderRadius: theme.borderRadius.lg,
+      padding: theme.spacing.md,
+      marginTop: theme.spacing.md,
+    },
+    errorBannerText: {
+      ...theme.typography.bodySmall,
+      color: theme.colors.error,
+      flex: 1,
+    },
     cancelBtn: {
       flex: 1,
       paddingVertical: theme.spacing.md,
@@ -303,6 +317,7 @@ export default function TaskFormSheet({
   const [showDeleteAlert, setShowDeleteAlert] = useState(false);
 
   const [errors, setErrors] = useState<FieldErrors>({});
+  const [submitError, setSubmitError] = useState<string | null>(null);
 
   // Date derived from startHour, defaults to today for add mode
   const currentDate = useMemo(() => {
@@ -395,18 +410,18 @@ export default function TaskFormSheet({
       // AI flow: place-task handles creation/update internally
       const taskName = name.trim();
 
-      // Use a sensible default duration if times weren't set
-      const effectiveDuration =
-        durationMinutes > 0 ? durationMinutes : 30;
+      // Use 0 if times weren't set — AI will decide appropriate duration
+      const effectiveDuration = durationMinutes > 0 ? durationMinutes : 0;
 
       let whatChanged: string;
+      const aiCtx = aiContext.trim() || undefined;
       if (mode === "add") {
-        whatChanged = RESCHEDULE_CONSTANTS.WHAT_CHANGED.NEW_AI_TASK(taskName);
+        whatChanged = RESCHEDULE_CONSTANTS.WHAT_CHANGED.NEW_AI_TASK(taskName, aiCtx);
       } else if (aiTurnedOn) {
-        whatChanged = RESCHEDULE_CONSTANTS.WHAT_CHANGED.AI_ENABLED(taskName);
+        whatChanged = RESCHEDULE_CONSTANTS.WHAT_CHANGED.AI_ENABLED(taskName, aiCtx);
       } else {
         whatChanged =
-          RESCHEDULE_CONSTANTS.WHAT_CHANGED.AI_CONTEXT_CHANGED(taskName);
+          RESCHEDULE_CONSTANTS.WHAT_CHANGED.AI_CONTEXT_CHANGED(taskName, aiCtx);
       }
 
       try {
@@ -422,8 +437,11 @@ export default function TaskFormSheet({
           previousTask: mode === "edit" ? (task ?? undefined) : undefined,
           existingTaskId: mode === "edit" ? task?.id : undefined,
         } as PlaceTaskParams);
-      } catch {
-        // Stay open — error displayed inline
+        setSubmitError(null);
+      } catch (err) {
+        setSubmitError(
+          err instanceof Error ? err.message : 'Failed to schedule task. Please try again.',
+        );
         return;
       }
     } else {
@@ -524,6 +542,7 @@ export default function TaskFormSheet({
                   setName(text);
                   if (errors.name)
                     setErrors((e) => ({ ...e, name: undefined }));
+                  if (submitError) setSubmitError(null);
                 }}
                 placeholder="Task name"
                 placeholderTextColor={theme.colors.outline}
@@ -794,6 +813,13 @@ export default function TaskFormSheet({
                 {isDeleting ? "Deleting..." : "Delete Task"}
               </Text>
             </Pressable>
+          </View>
+        )}
+
+        {submitError && (
+          <View style={styles.errorBanner}>
+            <Ionicons name="alert-circle" size={16} color={theme.colors.error} />
+            <Text style={styles.errorBannerText}>{submitError}</Text>
           </View>
         )}
 

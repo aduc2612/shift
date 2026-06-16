@@ -43,7 +43,7 @@ describe('buildSystemPrompt', () => {
   it('handles "none" constraint by stating flexibility', () => {
     const prefs = { ...BASE_PREFS, hardConstraints: ['none'] };
     const result = buildSystemPrompt(prefs);
-    expect(result).toContain('No fixed constraints');
+    expect(result).toContain('No prioritized tasks');
     expect(result).toContain('flexibility');
   });
 

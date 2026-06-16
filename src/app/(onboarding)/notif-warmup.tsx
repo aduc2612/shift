@@ -2,7 +2,10 @@ import { useCallback, useMemo } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { router } from 'expo-router';
+import { Ionicons } from '@expo/vector-icons';
+import { useAuth } from '@/features/auth/hooks/useAuth';
 import { useTheme } from '@/providers/theme-provider';
+import { queryClient } from '@/providers/query-provider';
 import ProgressBar from '@/features/onboarding/components/ProgressBar';
 import type { Theme } from '@/constants/theme';
 
@@ -14,6 +17,7 @@ function createStyles(theme: Theme, insets: { top: number; bottom: number }) {
       flex: 1,
       backgroundColor: theme.colors.background,
       paddingTop: insets.top + theme.spacing.lg,
+      paddingBottom: insets.bottom + theme.spacing.xl,
       paddingHorizontal: theme.spacing.xl,
     },
     progressRow: { marginBottom: theme.spacing.xxl },
@@ -21,9 +25,8 @@ function createStyles(theme: Theme, insets: { top: number; bottom: number }) {
       flex: 1,
       justifyContent: 'center',
     },
-    bell: {
-      fontSize: 48,
-      textAlign: 'center',
+    bellWrap: {
+      alignItems: 'center',
       marginBottom: theme.spacing.xl,
     },
     title: {
@@ -41,9 +44,6 @@ function createStyles(theme: Theme, insets: { top: number; bottom: number }) {
       alignItems: 'flex-start',
       gap: theme.spacing.md,
     },
-    bulletEmoji: {
-      fontSize: 20,
-    },
     bulletText: {
       ...theme.typography.bodyLarge,
       color: theme.colors.onSurface,
@@ -58,6 +58,7 @@ function createStyles(theme: Theme, insets: { top: number; bottom: number }) {
     },
     buttonRow: {
       gap: theme.spacing.md,
+      marginTop: theme.spacing.xl,
     },
     primaryButton: {
       ...theme.componentStyles.button,
@@ -76,6 +77,9 @@ function createStyles(theme: Theme, insets: { top: number; bottom: number }) {
     bottom: {
       paddingBottom: insets.bottom + theme.spacing.xl,
     },
+    bottomSpacer: {
+      height: theme.spacing.lg,
+    },
   });
 }
 
@@ -84,13 +88,19 @@ export default function NotifWarmupScreen() {
   const insets = useSafeAreaInsets();
   const styles = useMemo(() => createStyles(theme, insets), [theme, insets]);
 
+  const { user } = useAuth();
+  const userId = user?.id ?? null;
+
   const handleTurnOn = useCallback(() => {
     router.push('/(onboarding)/notif-permission' as any);
   }, []);
 
   const handleMaybeLater = useCallback(() => {
+    if (userId) {
+      queryClient.setQueryData(['onboardingStatus', userId], true);
+    }
     router.replace('/(tabs)');
-  }, []);
+  }, [userId]);
 
   return (
     <View style={styles.container}>
@@ -99,24 +109,52 @@ export default function NotifWarmupScreen() {
       </View>
 
       <View style={styles.content}>
-        <Text style={styles.bell}>🔔</Text>
+        <View style={styles.bellWrap}>
+          <Ionicons
+            name="notifications-outline"
+            size={48}
+            color={theme.colors.primary}
+          />
+        </View>
         <Text style={styles.title}>Stay on track{'\n'}without looking</Text>
 
         <View style={styles.bullets}>
           <View style={styles.bullet}>
-            <Text style={styles.bulletEmoji}>🔔</Text>
+            <Ionicons
+              name="notifications-outline"
+              size={20}
+              color={theme.colors.onSurface}
+            />
             <Text style={styles.bulletText}>
               A heads-up 10 min before each task starts
             </Text>
           </View>
           <View style={styles.bullet}>
-            <Text style={styles.bulletEmoji}>✅</Text>
+            <Ionicons
+              name="play-circle-outline"
+              size={20}
+              color={theme.colors.onSurface}
+            />
+            <Text style={styles.bulletText}>
+              A nudge the moment a task starts
+            </Text>
+          </View>
+          <View style={styles.bullet}>
+            <Ionicons
+              name="checkmark-circle-outline"
+              size={20}
+              color={theme.colors.onSurface}
+            />
             <Text style={styles.bulletText}>
               A check-in when a task ends
             </Text>
           </View>
           <View style={styles.bullet}>
-            <Text style={styles.bulletEmoji}>💬</Text>
+            <Ionicons
+              name="chatbubble-ellipses-outline"
+              size={20}
+              color={theme.colors.onSurface}
+            />
             <Text style={styles.bulletText}>
               A nudge if you fall behind — so nothing is lost
             </Text>

@@ -2,7 +2,10 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { router } from 'expo-router';
+import { Ionicons } from '@expo/vector-icons';
+import { useAuth } from '@/features/auth/hooks/useAuth';
 import { useTheme } from '@/providers/theme-provider';
+import { queryClient } from '@/providers/query-provider';
 import { requestNotificationPermission } from '@/services/notifications';
 import type { Theme } from '@/constants/theme';
 
@@ -12,6 +15,7 @@ function createStyles(theme: Theme, insets: { top: number; bottom: number }) {
       flex: 1,
       backgroundColor: theme.colors.background,
       paddingTop: insets.top + theme.spacing.lg,
+      paddingBottom: insets.bottom + theme.spacing.xl,
       paddingHorizontal: theme.spacing.xl,
     },
     content: {
@@ -20,7 +24,6 @@ function createStyles(theme: Theme, insets: { top: number; bottom: number }) {
       alignItems: 'center',
     },
     icon: {
-      fontSize: 48,
       marginBottom: theme.spacing.xl,
     },
     title: {
@@ -34,9 +37,6 @@ function createStyles(theme: Theme, insets: { top: number; bottom: number }) {
       color: theme.colors.onSurfaceVariant,
       textAlign: 'center',
       marginBottom: theme.spacing.lg,
-    },
-    bottom: {
-      paddingBottom: insets.bottom + theme.spacing.xl,
     },
     continueButton: {
       ...theme.componentStyles.button,
@@ -53,19 +53,37 @@ export default function NotifPermissionScreen() {
   const insets = useSafeAreaInsets();
   const styles = useMemo(() => createStyles(theme, insets), [theme, insets]);
   const [granted, setGranted] = useState<boolean | null>(null);
+  const { user } = useAuth();
+  const userId = user?.id ?? null;
 
   useEffect(() => {
     requestNotificationPermission().then(setGranted).catch(() => setGranted(false));
   }, []);
 
   const handleContinue = useCallback(() => {
+    // Update the cached onboarding status so the routing guard flips to (tabs).
+    // Done here (at navigation time) rather than in saveOnboardingData so the
+    // guard doesn't redirect away from the remaining onboarding screens
+    // (schedule-preview, notif-warmup) mid-flow.
+    if (userId) {
+      queryClient.setQueryData(['onboardingStatus', userId], true);
+    }
     router.replace('/(tabs)');
-  }, []);
+  }, [userId]);
+
+  const iconName: keyof typeof Ionicons.glyphMap =
+    granted === null ? 'hourglass-outline' : granted ? 'checkmark-circle' : 'notifications-off-outline';
+  const iconColor =
+    granted === null
+      ? theme.colors.onSurfaceVariant
+      : granted
+        ? theme.colors.primary
+        : theme.colors.outline;
 
   return (
     <View style={styles.container}>
       <View style={styles.content}>
-        <Text style={styles.icon}>{granted === null ? '⏳' : granted ? '✅' : '🔕'}</Text>
+        <Ionicons name={iconName} size={64} color={iconColor} style={styles.icon} />
         <Text style={styles.title}>
           {granted === null
             ? 'Requesting...'
@@ -82,22 +100,20 @@ export default function NotifPermissionScreen() {
         </Text>
       </View>
 
-      <View style={styles.bottom}>
-        <Pressable
-          style={({ pressed }) => [
-            styles.continueButton,
-            pressed && { opacity: theme.interaction.pressedOpacity },
-          ]}
-          onPress={handleContinue}
-          disabled={granted === null}
-          accessibilityRole="button"
-          accessibilityLabel="Finish"
-        >
-          <Text style={styles.continueText}>
-            {granted === null ? 'Please wait...' : 'Open Shift AI  →'}
-          </Text>
-        </Pressable>
-      </View>
+      <Pressable
+        style={({ pressed }) => [
+          styles.continueButton,
+          pressed && { opacity: theme.interaction.pressedOpacity },
+        ]}
+        onPress={handleContinue}
+        disabled={granted === null}
+        accessibilityRole="button"
+        accessibilityLabel="Open Shift AI"
+      >
+        <Text style={styles.continueText}>
+          {granted === null ? 'Please wait...' : 'Open Shift AI  →'}
+        </Text>
+      </Pressable>
     </View>
   );
 }

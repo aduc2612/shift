@@ -44,9 +44,7 @@ export async function rescheduleTasks(
         name: t.name,
         startTime: t.startTime,
         endTime: t.endTime,
-        durationMinutes: t.durationMinutes,
         deadline: t.deadline,
-        aiContext: t.aiContext,
         aiDecidesTime: t.aiDecidesTime,
       })),
       userContext,
@@ -80,7 +78,6 @@ export async function placeTask(
     name: string;
     startTime: string;
     endTime: string;
-    durationMinutes: number;
   }[],
   userContext: string,
   whatChanged: string,

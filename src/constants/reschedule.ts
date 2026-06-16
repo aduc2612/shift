@@ -10,10 +10,18 @@ export const RESCHEDULE_CONSTANTS = {
 
   /** Templates for whatChanged field */
   WHAT_CHANGED: {
-    AI_ENABLED: (name: string) => `User enabled AI scheduling for task: ${name}`,
+    AI_ENABLED: (name: string, aiContext?: string) =>
+      aiContext
+        ? `User enabled AI scheduling for task: ${name}. User instructions: ${aiContext}`
+        : `User enabled AI scheduling for task: ${name}`,
     AI_DISABLED: (name: string) => `User disabled AI scheduling for task: ${name}`,
-    AI_CONTEXT_CHANGED: (name: string) =>
-      `User updated AI context for task: ${name}`,
-    NEW_AI_TASK: (name: string) => `New task added: ${name}`,
+    AI_CONTEXT_CHANGED: (name: string, aiContext?: string) =>
+      aiContext
+        ? `User updated AI context for task: ${name}. User instructions: ${aiContext}`
+        : `User updated AI context for task: ${name}`,
+    NEW_AI_TASK: (name: string, aiContext?: string) =>
+      aiContext
+        ? `New task added: ${name}. User instructions: ${aiContext}`
+        : `New task added: ${name}`,
   },
 } as const;
