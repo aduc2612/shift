@@ -1,26 +1,36 @@
-import { useMemo, useCallback } from 'react';
-import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { router } from 'expo-router';
-import { useTheme } from '@/providers/theme-provider';
-import { useOnboardingStore } from '@/features/onboarding/state';
-import { getPersonaReviews } from '@/features/onboarding/utils';
-import { PERSONA_OPTIONS } from '@/types/onboarding';
-import { withOpacity } from '@/utils/color';
-import ProgressBar from '@/features/onboarding/components/ProgressBar';
-import type { Theme } from '@/constants/theme';
-import type { PersonaReview } from '@/constants/onboarding-reviews';
+import { useMemo, useCallback } from "react";
+import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { router } from "expo-router";
+import { Ionicons } from "@expo/vector-icons";
+import { useTheme } from "@/providers/theme-provider";
+import { useOnboardingStore } from "@/features/onboarding/state";
+import { getPersonaReviews } from "@/features/onboarding/utils";
+import { PERSONA_OPTIONS } from "@/types/onboarding";
+import { withOpacity } from "@/utils/color";
+import ProgressBar from "@/features/onboarding/components/ProgressBar";
+import type { Theme } from "@/constants/theme";
+import type { PersonaReview } from "@/constants/onboarding-reviews";
 
 const TOTAL = 13;
 
 function personaLabel(persona: string | null): string {
-  if (!persona) return 'people';
-  return PERSONA_OPTIONS.find((p) => p.value === persona)?.label ?? 'people';
+  if (!persona) return "people";
+  return PERSONA_OPTIONS.find((p) => p.value === persona)?.label ?? "people";
 }
 
-function ReviewCard({ review, personaTag }: { review: PersonaReview; personaTag: string }) {
+function ReviewCard({
+  review,
+  personaTag,
+}: {
+  review: PersonaReview;
+  personaTag: string;
+}) {
   const theme = useTheme();
-  const styles = useMemo(() => createStyles(theme, { top: 0, bottom: 0 }), [theme]);
+  const styles = useMemo(
+    () => createStyles(theme, { top: 0, bottom: 0 }),
+    [theme],
+  );
 
   return (
     <View style={styles.card}>
@@ -31,14 +41,15 @@ function ReviewCard({ review, personaTag }: { review: PersonaReview; personaTag:
         <View style={styles.headerText}>
           <Text style={styles.name}>{review.name}</Text>
           <View style={styles.tagRow}>
-            <View style={styles.tag}>
+            {/* <View style={styles.tag}>
               <Text style={styles.tagText}>{personaTag}</Text>
-            </View>
-            <Text style={styles.rating}>★ {review.rating}.0</Text>
+            </View> */}
+            <Ionicons name="star" size={12} color={theme.colors.primary} />
+            <Text style={styles.rating}> {review.rating}.0</Text>
           </View>
         </View>
       </View>
-      <Text style={styles.quote}>"{review.quote}"</Text>
+      <Text style={styles.quote}>{review.quote}</Text>
     </View>
   );
 }
@@ -57,7 +68,7 @@ function createStyles(theme: Theme, insets: { top: number; bottom: number }) {
       ...theme.typography.bodyLarge,
       color: theme.colors.onSurfaceVariant,
       marginBottom: theme.spacing.xxl,
-      textAlign: 'center',
+      textAlign: "center",
     },
     cards: {
       gap: theme.spacing.md,
@@ -66,10 +77,11 @@ function createStyles(theme: Theme, insets: { top: number; bottom: number }) {
       backgroundColor: theme.colors.surfaceVariant,
       borderRadius: theme.spacing.md,
       padding: theme.spacing.lg,
+      overflow: "visible",
     },
     cardHeader: {
-      flexDirection: 'row',
-      alignItems: 'center',
+      flexDirection: "row",
+      alignItems: "center",
       marginBottom: theme.spacing.md,
     },
     avatar: {
@@ -77,16 +89,23 @@ function createStyles(theme: Theme, insets: { top: number; bottom: number }) {
       height: 44,
       borderRadius: 22,
       backgroundColor: theme.colors.primaryContainer,
-      alignItems: 'center',
-      justifyContent: 'center',
+      alignItems: "center",
+      justifyContent: "center",
       marginRight: theme.spacing.md,
     },
-    avatarText: { ...theme.typography.titleSmall, color: theme.colors.onPrimaryContainer },
+    avatarText: {
+      ...theme.typography.titleSmall,
+      color: theme.colors.onPrimaryContainer,
+    },
     headerText: { flex: 1 },
-    name: { ...theme.typography.titleSmall, color: theme.colors.onSurface, marginBottom: theme.spacing.xs },
+    name: {
+      ...theme.typography.titleSmall,
+      color: theme.colors.onSurface,
+      marginBottom: theme.spacing.xs,
+    },
     tagRow: {
-      flexDirection: 'row',
-      alignItems: 'center',
+      flexDirection: "row",
+      alignItems: "center",
       gap: theme.spacing.sm,
     },
     tag: {
@@ -98,23 +117,29 @@ function createStyles(theme: Theme, insets: { top: number; bottom: number }) {
     tagText: {
       ...theme.typography.labelSmall,
       color: theme.colors.primary,
-      fontWeight: '600',
+      fontWeight: "600",
     },
-    rating: { ...theme.typography.labelSmall, color: theme.colors.onSurfaceVariant },
+    rating: {
+      ...theme.typography.labelSmall,
+      color: theme.colors.onSurfaceVariant,
+    },
     quote: {
       ...theme.typography.bodyMedium,
       color: theme.colors.onSurface,
-      fontStyle: 'italic',
+      fontStyle: "italic",
       lineHeight: 22,
     },
     continueButton: {
       ...theme.componentStyles.button,
       backgroundColor: theme.colors.primary,
-      alignItems: 'center',
+      alignItems: "center",
       minHeight: 48,
       marginTop: theme.spacing.xl,
     },
-    continueText: { ...theme.typography.labelLarge, color: theme.colors.onPrimary },
+    continueText: {
+      ...theme.typography.labelLarge,
+      color: theme.colors.onPrimary,
+    },
   });
 }
 
@@ -127,7 +152,7 @@ export default function PersonaReviewScreen() {
   const tag = personaLabel(data.persona);
 
   const handleContinue = useCallback(() => {
-    router.push('/(onboarding)/progress-graph' as any);
+    router.push("/(onboarding)/progress-graph");
   }, []);
 
   return (
@@ -137,7 +162,7 @@ export default function PersonaReviewScreen() {
       </View>
 
       <Text style={styles.subtitle}>
-        Here's what {tag.toLowerCase()} are saying about Shift AI.
+        Here's what {tag.toLowerCase()}s are saying about Shift AI.
       </Text>
 
       <ScrollView
@@ -151,12 +176,15 @@ export default function PersonaReviewScreen() {
       </ScrollView>
 
       <Pressable
-        style={({ pressed }) => [styles.continueButton, pressed && { opacity: theme.interaction.pressedOpacity }]}
+        style={({ pressed }) => [
+          styles.continueButton,
+          pressed && { opacity: theme.interaction.pressedOpacity },
+        ]}
         onPress={handleContinue}
         accessibilityRole="button"
         accessibilityLabel="Continue"
       >
-        <Text style={styles.continueText}>Continue →</Text>
+        <Text style={styles.continueText}>Continue</Text>
       </Pressable>
     </View>
   );

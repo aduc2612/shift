@@ -1,4 +1,4 @@
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import {
   ActivityIndicator,
   Pressable,
@@ -319,6 +319,11 @@ export default function TaskFormSheet({
   const [errors, setErrors] = useState<FieldErrors>({});
   const [submitError, setSubmitError] = useState<string | null>(null);
 
+  // Clear stale errors when sheet context changes
+  useEffect(() => {
+    setSubmitError(null);
+  }, [visible, task?.id, mode]);
+
   // Date derived from startHour, defaults to today for add mode
   const currentDate = useMemo(() => {
     return startHour ? new Date(startHour) : new Date();
@@ -439,9 +444,8 @@ export default function TaskFormSheet({
         } as PlaceTaskParams);
         setSubmitError(null);
       } catch (err) {
-        setSubmitError(
-          err instanceof Error ? err.message : 'Failed to schedule task. Please try again.',
-        );
+        console.error('TaskFormSheet placement error:', err);
+        setSubmitError('Failed to schedule task. Please try again.');
         return;
       }
     } else {

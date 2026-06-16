@@ -14,7 +14,7 @@ const BASE_PREFS: UserPreferences = {
 };
 
 describe('buildSystemPrompt', () => {
-  it('returns empty string when only defaults are set and no context', () => {
+  it('returns non-empty prompt with default prefs', () => {
     const result = buildSystemPrompt(BASE_PREFS);
     // morning peak with no persona/context — should produce some text
     expect(result.length).toBeGreaterThan(0);
@@ -70,9 +70,9 @@ describe('buildSystemPrompt', () => {
     expect(result.length).toBeGreaterThan(100);
   });
 
-  it('handles varies productivity peak without crashing', () => {
-    const prefs = { ...BASE_PREFS, productivityPeak: 'varies' as const };
+  it('returns empty string when onboarding not completed', () => {
+    const prefs = { ...BASE_PREFS, onboardingCompleted: false };
     const result = buildSystemPrompt(prefs);
-    expect(result).toContain('varies');
+    expect(result).toBe('');
   });
 });

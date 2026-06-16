@@ -6,6 +6,6 @@ export type UserPreferences = {
   onboardingCompleted: boolean;
   persona: string | null;
   sleepTime: string | null; // "HH:MM" format
-  painPoints: string[] | null;
-  hardConstraints: string[] | null;
+  painPoints: string[];
+  hardConstraints: string[];
 };

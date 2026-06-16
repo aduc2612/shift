@@ -1,19 +1,20 @@
-import { useCallback, useMemo, useState } from 'react';
-import { Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { router } from 'expo-router';
-import { KeyboardAwareScrollView } from 'react-native-keyboard-controller';
-import { useTheme } from '@/providers/theme-provider';
-import { useOnboardingStore } from '@/features/onboarding/state';
-import ProgressBar from '@/features/onboarding/components/ProgressBar';
-import type { Theme } from '@/constants/theme';
+import { useCallback, useMemo, useState } from "react";
+import { Pressable, StyleSheet, Text, TextInput, View } from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { router } from "expo-router";
+import { Ionicons } from "@expo/vector-icons";
+import { KeyboardAwareScrollView } from "react-native-keyboard-controller";
+import { useTheme } from "@/providers/theme-provider";
+import { useOnboardingStore } from "@/features/onboarding/state";
+import ProgressBar from "@/features/onboarding/components/ProgressBar";
+import type { Theme } from "@/constants/theme";
 
 const TOTAL = 14;
 const EXAMPLES = [
-  'I have ADHD and lose focus fast',
-  'I work night shifts 3x a week',
+  "I have ADHD and lose focus fast",
+  "I work night shifts 3x a week",
   "I can't focus after 4 PM",
-  'I have school pickup at 3 PM',
+  "I have school pickup at 3 PM",
 ];
 
 function createStyles(theme: Theme, insets: { top: number; bottom: number }) {
@@ -37,16 +38,14 @@ function createStyles(theme: Theme, insets: { top: number; bottom: number }) {
     },
     input: {
       ...theme.componentStyles.input,
-      backgroundColor: theme.colors.surface,
+      backgroundColor: theme.colors.surfaceVariant,
       color: theme.colors.onSurface,
       minHeight: 120,
-      textAlignVertical: 'top',
-      borderWidth: 0,
-      ...theme.shadows.sm,
+      textAlignVertical: "top",
     },
     chipsRow: {
-      flexDirection: 'row',
-      flexWrap: 'wrap',
+      flexDirection: "row",
+      flexWrap: "wrap",
       gap: theme.spacing.sm,
       marginTop: theme.spacing.lg,
       marginBottom: theme.spacing.xxl,
@@ -63,26 +62,35 @@ function createStyles(theme: Theme, insets: { top: number; bottom: number }) {
       paddingBottom: insets.bottom + theme.spacing.xl,
     },
     buttonRow: {
-      flexDirection: 'row',
+      flexDirection: "row",
       gap: theme.spacing.md,
       marginTop: theme.spacing.lg,
+    },
+    scrollContent: {
+      flexGrow: 1,
     },
     continueButton: {
       ...theme.componentStyles.button,
       backgroundColor: theme.colors.primary,
       flex: 1,
-      alignItems: 'center',
+      alignItems: "center",
       minHeight: 48,
     },
     skipButton: {
       ...theme.componentStyles.button,
       backgroundColor: theme.colors.surfaceVariant,
       flex: 1,
-      alignItems: 'center',
+      alignItems: "center",
       minHeight: 48,
     },
-    continueText: { ...theme.typography.labelLarge, color: theme.colors.onPrimary },
-    skipText: { ...theme.typography.labelLarge, color: theme.colors.onSurfaceVariant },
+    continueText: {
+      ...theme.typography.labelLarge,
+      color: theme.colors.onPrimary,
+    },
+    skipText: {
+      ...theme.typography.labelLarge,
+      color: theme.colors.onSurfaceVariant,
+    },
   });
 }
 
@@ -95,24 +103,22 @@ export default function FreeformScreen() {
   const [input, setInput] = useState(context);
 
   const advance = useCallback(() => {
-    setField('schedulingContext', input);
-    router.push('/(onboarding)/persona-review' as any);
+    setField("schedulingContext", input);
+    router.push("/(onboarding)/persona-review");
   }, [input, setField]);
 
   return (
     <View style={styles.container}>
       <KeyboardAwareScrollView
         keyboardShouldPersistTaps="handled"
-        contentContainerStyle={{ flexGrow: 1 }}
+        contentContainerStyle={styles.scrollContent}
       >
         <View style={styles.progressRow}>
           <ProgressBar current={7} total={TOTAL} />
         </View>
 
         <Text style={styles.question}>One last thing...</Text>
-        <Text style={styles.prompt}>
-          Anything we should know about you?
-        </Text>
+        <Text style={styles.prompt}>Anything we should know about you?</Text>
 
         <TextInput
           style={styles.input}
@@ -148,7 +154,14 @@ export default function FreeformScreen() {
             accessibilityRole="button"
             accessibilityLabel="Skip for now"
           >
-            <Text style={styles.skipText}>Skip for now →</Text>
+            <Text style={styles.skipText}>
+              Skip for now{" "}
+              <Ionicons
+                name="arrow-forward"
+                size={16}
+                color={theme.colors.onSurfaceVariant}
+              />
+            </Text>
           </Pressable>
 
           <Pressable
@@ -160,7 +173,7 @@ export default function FreeformScreen() {
             accessibilityRole="button"
             accessibilityLabel="Continue"
           >
-            <Text style={styles.continueText}>Continue  →</Text>
+            <Text style={styles.continueText}>Continue</Text>
           </Pressable>
         </View>
       </KeyboardAwareScrollView>

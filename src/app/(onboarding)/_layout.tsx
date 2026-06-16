@@ -1,3 +1,4 @@
+import { useEffect } from 'react';
 import { useMemo } from 'react';
 import { StyleSheet } from 'react-native';
 import { Stack } from 'expo-router';
@@ -8,7 +9,9 @@ export default function OnboardingLayout() {
   const theme = useTheme();
 
   // Reset state on mount in case of navigation back
-  useOnboardingStore.getState().reset();
+  useEffect(() => {
+    useOnboardingStore.getState().reset();
+  }, []);
 
   const styles = useMemo(
     () =>

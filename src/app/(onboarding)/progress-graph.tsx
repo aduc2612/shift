@@ -1,26 +1,49 @@
-import { useCallback, useEffect, useMemo } from 'react';
-import { Pressable, StyleSheet, Text, View } from 'react-native';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { router } from 'expo-router';
-import Animated, { useSharedValue, useAnimatedStyle, withTiming, Easing } from 'react-native-reanimated';
-import { useTheme } from '@/providers/theme-provider';
-import ProgressBar from '@/features/onboarding/components/ProgressBar';
-import { ONBOARDING_STATS } from '@/constants/onboarding-stats';
-import type { Theme } from '@/constants/theme';
+import { useCallback, useEffect, useMemo } from "react";
+import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { router } from "expo-router";
+import { Ionicons } from "@expo/vector-icons";
+import Animated, {
+  useSharedValue,
+  useAnimatedStyle,
+  withTiming,
+  Easing,
+} from "react-native-reanimated";
+import { useTheme } from "@/providers/theme-provider";
+import ProgressBar from "@/features/onboarding/components/ProgressBar";
+import { ONBOARDING_STATS } from "@/constants/onboarding-stats";
+import type { Theme } from "@/constants/theme";
 
 const TOTAL = 13;
 
 const RATE_MAX = 100;
 const REPLAN_MAX = 80;
-const [withoutRate, withRate] = [ONBOARDING_STATS.completionRate.without, ONBOARDING_STATS.completionRate.with];
-const [withoutMin, withMin] = [ONBOARDING_STATS.replanningMinutes.without, ONBOARDING_STATS.replanningMinutes.with];
+const [withoutRate, withRate] = [
+  ONBOARDING_STATS.completionRate.without,
+  ONBOARDING_STATS.completionRate.with,
+];
+const [withoutMin, withMin] = [
+  ONBOARDING_STATS.replanningMinutes.without,
+  ONBOARDING_STATS.replanningMinutes.with,
+];
 
-function AnimatedBar({ value, max, backgroundColor }: { value: number; max: number; backgroundColor: string }) {
+function AnimatedBar({
+  value,
+  max,
+  backgroundColor,
+}: {
+  value: number;
+  max: number;
+  backgroundColor: string;
+}) {
   const targetHeight = (value / max) * 160;
   const height = useSharedValue(0);
 
   useEffect(() => {
-    height.value = withTiming(targetHeight, { duration: 1200, easing: Easing.out(Easing.ease) });
+    height.value = withTiming(targetHeight, {
+      duration: 1200,
+      easing: Easing.out(Easing.ease),
+    });
   }, [targetHeight, height]);
 
   const style = useAnimatedStyle(() => ({ height: height.value }));
@@ -41,6 +64,7 @@ type BarGroupProps = {
   suffix: string;
   withoutColor: string;
   withColor: string;
+  theme: import("@/constants/theme").Theme;
 };
 
 function BarGroup({
@@ -52,17 +76,66 @@ function BarGroup({
   suffix,
   withoutColor,
   withColor,
+  theme,
 }: BarGroupProps) {
   return (
-    <View style={{ flexDirection: 'row', alignItems: 'flex-end', justifyContent: 'center', gap: 32, height: 200 }}>
-      <View style={{ alignItems: 'center', flex: 1, maxWidth: 100 }}>
-        <Text style={{ fontSize: 14, color: '#999', marginBottom: 8 }}>{withoutLabel}</Text>
-        <Text style={{ fontSize: 18, fontWeight: '600', color: '#000', marginBottom: 4 }}>{withoutValue}{suffix}</Text>
-        <AnimatedBar value={withoutValue} max={max} backgroundColor={withoutColor} />
+    <View
+      style={{
+        flexDirection: "row",
+        alignItems: "flex-end",
+        justifyContent: "center",
+        gap: 32,
+        height: 160,
+      }}
+    >
+      <View style={{ alignItems: "center", flex: 1, maxWidth: 100 }}>
+        <Text
+          style={{
+            fontSize: 14,
+            color: theme.colors.onSurfaceVariant,
+            marginBottom: 4,
+          }}
+        >
+          {withoutLabel}
+        </Text>
+        <Text
+          style={{
+            fontSize: 18,
+            fontWeight: "600",
+            color: theme.colors.onSurface,
+            marginBottom: 4,
+          }}
+        >
+          {withoutValue}
+          {suffix}
+        </Text>
+        <AnimatedBar
+          value={withoutValue}
+          max={max}
+          backgroundColor={withoutColor}
+        />
       </View>
-      <View style={{ alignItems: 'center', flex: 1, maxWidth: 100 }}>
-        <Text style={{ fontSize: 14, color: '#999', marginBottom: 8 }}>{withLabel}</Text>
-        <Text style={{ fontSize: 18, fontWeight: '600', color: '#000', marginBottom: 4 }}>{withValue}{suffix}</Text>
+      <View style={{ alignItems: "center", flex: 1, maxWidth: 100 }}>
+        <Text
+          style={{
+            fontSize: 14,
+            color: theme.colors.onSurfaceVariant,
+            marginBottom: 4,
+          }}
+        >
+          {withLabel}
+        </Text>
+        <Text
+          style={{
+            fontSize: 18,
+            fontWeight: "600",
+            color: theme.colors.onSurface,
+            marginBottom: 4,
+          }}
+        >
+          {withValue}
+          {suffix}
+        </Text>
         <AnimatedBar value={withValue} max={max} backgroundColor={withColor} />
       </View>
     </View>
@@ -79,7 +152,11 @@ function createStyles(theme: Theme, insets: { top: number; bottom: number }) {
       paddingHorizontal: theme.spacing.xl,
     },
     progressRow: { marginBottom: theme.spacing.xxl },
-    title: { ...theme.typography.headlineSmall, color: theme.colors.onBackground, marginBottom: theme.spacing.xxl },
+    title: {
+      ...theme.typography.headlineSmall,
+      color: theme.colors.onBackground,
+      marginBottom: theme.spacing.xl,
+    },
     chartCard: {
       backgroundColor: theme.colors.surface,
       borderRadius: theme.spacing.md,
@@ -90,17 +167,24 @@ function createStyles(theme: Theme, insets: { top: number; bottom: number }) {
       ...theme.typography.titleSmall,
       color: theme.colors.onSurface,
       marginBottom: theme.spacing.lg,
-      fontWeight: '600',
+      fontWeight: "600",
     },
-    bottom: { flex: 1, justifyContent: 'flex-end' },
+    bottom: {
+      flex: 1,
+      justifyContent: "flex-end",
+      marginTop: theme.spacing.xxl,
+    },
     continueButton: {
       backgroundColor: theme.colors.primary,
       borderRadius: theme.spacing.sm,
       minHeight: 48,
-      alignItems: 'center',
-      justifyContent: 'center',
+      alignItems: "center",
+      justifyContent: "center",
     },
-    continueText: { ...theme.typography.labelLarge, color: theme.colors.onPrimary },
+    continueText: {
+      ...theme.typography.labelLarge,
+      color: theme.colors.onPrimary,
+    },
   });
 }
 
@@ -110,7 +194,7 @@ export default function ProgressGraphScreen() {
   const styles = useMemo(() => createStyles(theme, insets), [theme, insets]);
 
   const handleContinue = useCallback(() => {
-    router.push('/(onboarding)/processing-theatre' as any);
+    router.push("/(onboarding)/processing-theatre");
   }, []);
 
   return (
@@ -119,44 +203,56 @@ export default function ProgressGraphScreen() {
         <ProgressBar current={9} total={TOTAL} />
       </View>
 
-      <Text style={styles.title}>Here's what users see in their first week.</Text>
+      <Text style={styles.title}>
+        Here's what users see in their first week.
+      </Text>
 
-      <View style={styles.chartCard}>
-        <Text style={styles.chartLabel}>Completion rate</Text>
-        <BarGroup
-          withoutLabel="Without Shift AI"
-          withLabel="With Shift AI"
-          withoutValue={withoutRate}
-          withValue={withRate}
-          max={RATE_MAX}
-          suffix="%"
-          withoutColor={theme.colors.outline}
-          withColor={theme.colors.primary}
-        />
-      </View>
+      <ScrollView
+        showsVerticalScrollIndicator={false}
+        contentContainerStyle={{ paddingBottom: theme.spacing.lg }}
+      >
+        <View style={styles.chartCard}>
+          <Text style={styles.chartLabel}>Completion rate</Text>
+          <BarGroup
+            withoutLabel="Without Shift AI"
+            withLabel="With Shift AI"
+            withoutValue={withoutRate}
+            withValue={withRate}
+            max={RATE_MAX}
+            suffix="%"
+            withoutColor={theme.colors.outline}
+            withColor={theme.colors.primary}
+            theme={theme}
+          />
+        </View>
 
-      <View style={styles.chartCard}>
-        <Text style={styles.chartLabel}>Time replanning</Text>
-        <BarGroup
-          withoutLabel="Without"
-          withLabel="With"
-          withoutValue={withoutMin}
-          withValue={withMin}
-          max={REPLAN_MAX}
-          suffix=" min"
-          withoutColor={theme.colors.outline}
-          withColor={theme.colors.primary}
-        />
-      </View>
+        <View style={styles.chartCard}>
+          <Text style={styles.chartLabel}>Time replanning</Text>
+          <BarGroup
+            withoutLabel="Without Shift AI"
+            withLabel="With Shift AI"
+            withoutValue={withoutMin}
+            withValue={withMin}
+            max={REPLAN_MAX}
+            suffix=" min"
+            withoutColor={theme.colors.outline}
+            withColor={theme.colors.primary}
+            theme={theme}
+          />
+        </View>
+      </ScrollView>
 
       <View style={styles.bottom}>
         <Pressable
-          style={({ pressed }) => [styles.continueButton, pressed && { opacity: theme.interaction.pressedOpacity }]}
+          style={({ pressed }) => [
+            styles.continueButton,
+            pressed && { opacity: theme.interaction.pressedOpacity },
+          ]}
           onPress={handleContinue}
           accessibilityRole="button"
           accessibilityLabel="Continue"
         >
-          <Text style={styles.continueText}>Continue →</Text>
+          <Text style={styles.continueText}>Continue</Text>
         </Pressable>
       </View>
     </View>

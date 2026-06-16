@@ -1,22 +1,22 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { Pressable, StyleSheet, Text, View } from 'react-native';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { router } from 'expo-router';
-import { Ionicons } from '@expo/vector-icons';
-import { useTheme } from '@/providers/theme-provider';
-import { useOnboardingStore } from '@/features/onboarding/state';
-import { saveOnboardingData } from '@/features/onboarding/api';
-import ProgressBar from '@/features/onboarding/components/ProgressBar';
-import { useAuth } from '@/features/auth/hooks/useAuth';
-import type { Theme } from '@/constants/theme';
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { Pressable, StyleSheet, Text, View } from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { router } from "expo-router";
+import { Ionicons } from "@expo/vector-icons";
+import { useTheme } from "@/providers/theme-provider";
+import { useOnboardingStore } from "@/features/onboarding/state";
+import { saveOnboardingData } from "@/features/onboarding/api";
+import ProgressBar from "@/features/onboarding/components/ProgressBar";
+import { useAuth } from "@/features/auth/hooks/useAuth";
+import type { Theme } from "@/constants/theme";
 
 const TOTAL = 14;
 const CHECKPOINT_INTERVAL_MS = 3_000;
 const CHECKPOINTS: { label: string; icon: keyof typeof Ionicons.glyphMap }[] = [
-  { label: 'Learning your peak hours', icon: 'checkmark-circle' },
-  { label: 'Mapping your fixed commitments', icon: 'checkmark-circle' },
-  { label: 'Calibrating your AI assistant', icon: 'checkmark-circle' },
-  { label: 'Personalizing your experience', icon: 'checkmark-circle' },
+  { label: "Learning your peak hours", icon: "checkmark-circle" },
+  { label: "Mapping your fixed commitments", icon: "checkmark-circle" },
+  { label: "Calibrating your AI assistant", icon: "checkmark-circle" },
+  { label: "Personalizing your experience", icon: "checkmark-circle" },
 ];
 
 function createStyles(theme: Theme, insets: { top: number; bottom: number }) {
@@ -30,8 +30,8 @@ function createStyles(theme: Theme, insets: { top: number; bottom: number }) {
     progressRow: { marginBottom: theme.spacing.xxl },
     content: {
       flex: 1,
-      justifyContent: 'center',
-      alignItems: 'center',
+      justifyContent: "center",
+      alignItems: "center",
     },
     logo: {
       ...theme.typography.displaySmall,
@@ -42,15 +42,15 @@ function createStyles(theme: Theme, insets: { top: number; bottom: number }) {
       ...theme.typography.titleLarge,
       color: theme.colors.onBackground,
       marginBottom: theme.spacing.xxl,
-      textAlign: 'center',
+      textAlign: "center",
     },
     checklist: {
-      width: '100%',
+      width: "100%",
       paddingHorizontal: theme.spacing.xl,
     },
     item: {
-      flexDirection: 'row',
-      alignItems: 'center',
+      flexDirection: "row",
+      alignItems: "center",
       paddingVertical: theme.spacing.md,
       opacity: 0,
     },
@@ -68,14 +68,14 @@ function createStyles(theme: Theme, insets: { top: number; bottom: number }) {
       backgroundColor: theme.colors.errorContainer,
       borderRadius: theme.borderRadius.lg,
       padding: theme.spacing.lg,
-      alignItems: 'center',
+      alignItems: "center",
       marginTop: theme.spacing.lg,
     },
     errorText: {
       ...theme.typography.bodyMedium,
       color: theme.colors.onErrorContainer,
       marginBottom: theme.spacing.md,
-      textAlign: 'center',
+      textAlign: "center",
     },
     retryButton: {
       ...theme.componentStyles.button,
@@ -109,7 +109,9 @@ export default function ProcessingTheatreScreen() {
   const mountedRef = useRef(true);
 
   useEffect(() => {
-    return () => { mountedRef.current = false; };
+    return () => {
+      mountedRef.current = false;
+    };
   }, []);
 
   const doSave = useCallback(async () => {
@@ -124,7 +126,11 @@ export default function ProcessingTheatreScreen() {
       }
     } catch (err) {
       if (mountedRef.current) {
-        setError(err instanceof Error ? err.message : 'Failed to save. Please try again.');
+        setError(
+          err instanceof Error
+            ? err.message
+            : "Failed to save. Please try again.",
+        );
         setSaving(false);
       }
     }
@@ -159,7 +165,7 @@ export default function ProcessingTheatreScreen() {
   const handleContinue = useCallback(() => {
     if (!canAdvance) return;
     // ritual complete + save done — advance
-    router.replace('/(onboarding)/schedule-preview' as any);
+    router.replace("/(onboarding)/schedule-preview");
   }, [canAdvance, setField]);
 
   return (
@@ -170,13 +176,18 @@ export default function ProcessingTheatreScreen() {
 
       <View style={styles.content}>
         <Text style={styles.logo}>Shift</Text>
-        <Text style={styles.title}>Crafting your{'\n'}personal schedule...</Text>
+        <Text style={styles.title}>
+          Crafting your{"\n"}personal schedule...
+        </Text>
 
         <View style={styles.checklist}>
           {CHECKPOINTS.map((cp, i) => {
             const visible = i <= visibleItems;
             return (
-              <View key={cp.label} style={[styles.item, visible && { opacity: 1 }]}>
+              <View
+                key={cp.label}
+                style={[styles.item, visible && { opacity: 1 }]}
+              >
                 <Ionicons
                   name={cp.icon}
                   size={18}
@@ -202,7 +213,9 @@ export default function ProcessingTheatreScreen() {
               accessibilityRole="button"
               accessibilityLabel="Try again"
             >
-              <Text style={styles.retryText}>{saving ? 'Saving...' : 'Try again'}</Text>
+              <Text style={styles.retryText}>
+                {saving ? "Saving..." : "Try again"}
+              </Text>
             </Pressable>
           </View>
         )}
@@ -214,7 +227,7 @@ export default function ProcessingTheatreScreen() {
             {
               ...theme.componentStyles.button,
               backgroundColor: theme.colors.primary,
-              alignItems: 'center',
+              alignItems: "center",
               minHeight: 48,
             },
             !canAdvance && { opacity: 0.4 },
@@ -225,8 +238,13 @@ export default function ProcessingTheatreScreen() {
           accessibilityRole="button"
           accessibilityLabel="Continue"
         >
-          <Text style={{ ...theme.typography.labelLarge, color: theme.colors.onPrimary }}>
-            Continue  →
+          <Text
+            style={{
+              ...theme.typography.labelLarge,
+              color: theme.colors.onPrimary,
+            }}
+          >
+            Continue
           </Text>
         </Pressable>
       </View>

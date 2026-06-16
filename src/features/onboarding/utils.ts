@@ -8,7 +8,6 @@ export function getPersonaReviews(persona: string | null): PersonaReview[] {
 }
 
 export function buildSchedulePreview(
-  wakeUpTime: string,
   productivityPeak: ProductivityPeak,
 ): { deepWorkBlock: string; bullets: string[] } {
   const deepWorkBlock =

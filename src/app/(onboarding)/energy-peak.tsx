@@ -1,13 +1,13 @@
-import { useCallback, useMemo } from 'react';
-import { Pressable, StyleSheet, Text, View } from 'react-native';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { router } from 'expo-router';
-import { useTheme } from '@/providers/theme-provider';
-import { useOnboardingStore } from '@/features/onboarding/state';
-import ProgressBar from '@/features/onboarding/components/ProgressBar';
-import { PRODUCTIVITY_PEAK_OPTIONS } from '@/types/onboarding';
-import type { Theme } from '@/constants/theme';
-import type { ProductivityPeak } from '@/types/onboarding';
+import { useCallback, useMemo } from "react";
+import { Pressable, StyleSheet, Text, View } from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { router } from "expo-router";
+import { useTheme } from "@/providers/theme-provider";
+import { useOnboardingStore } from "@/features/onboarding/state";
+import ProgressBar from "@/features/onboarding/components/ProgressBar";
+import { PRODUCTIVITY_PEAK_OPTIONS } from "@/types/onboarding";
+import type { Theme } from "@/constants/theme";
+import type { ProductivityPeak } from "@/types/onboarding";
 
 const TOTAL = 14;
 
@@ -32,25 +32,34 @@ function createStyles(theme: Theme, insets: { top: number; bottom: number }) {
       paddingHorizontal: theme.spacing.lg,
       marginBottom: theme.spacing.sm,
       minHeight: 48,
-      justifyContent: 'center',
+      justifyContent: "center",
       ...theme.shadows.sm,
     },
     optionSelected: { backgroundColor: theme.colors.primaryContainer },
-    optionText: { ...theme.typography.bodyLarge, color: theme.colors.onSurface },
-    optionTextSelected: { color: theme.colors.onPrimaryContainer, fontWeight: '700' },
+    optionText: {
+      ...theme.typography.bodyLarge,
+      color: theme.colors.onSurface,
+    },
+    optionTextSelected: {
+      color: theme.colors.onPrimaryContainer,
+      fontWeight: "700",
+    },
     bottom: {
       flex: 1,
-      justifyContent: 'flex-end',
+      justifyContent: "flex-end",
       paddingBottom: insets.bottom + theme.spacing.xl,
     },
     continueButton: {
       ...theme.componentStyles.button,
       backgroundColor: theme.colors.primary,
-      alignItems: 'center',
+      alignItems: "center",
       minHeight: 48,
     },
     continueDisabled: { opacity: 0.4 },
-    continueText: { ...theme.typography.labelLarge, color: theme.colors.onPrimary },
+    continueText: {
+      ...theme.typography.labelLarge,
+      color: theme.colors.onPrimary,
+    },
   });
 }
 
@@ -67,7 +76,7 @@ export default function EnergyPeakScreen() {
         <ProgressBar current={5} total={TOTAL} />
       </View>
 
-      <Text style={styles.question}>When does your{'\n'}energy peak?</Text>
+      <Text style={styles.question}>When does your{"\n"}energy peak?</Text>
 
       {PRODUCTIVITY_PEAK_OPTIONS.map((opt) => (
         <Pressable
@@ -77,7 +86,7 @@ export default function EnergyPeakScreen() {
             peak === opt.value && styles.optionSelected,
             pressed && { opacity: theme.interaction.pressedOpacity },
           ]}
-          onPress={() => setField('productivityPeak', opt.value)}
+          onPress={() => setField("productivityPeak", opt.value)}
           accessibilityRole="radio"
           accessibilityState={{ selected: peak === opt.value }}
           accessibilityLabel={opt.label}
@@ -100,12 +109,12 @@ export default function EnergyPeakScreen() {
             !peak && styles.continueDisabled,
             pressed && { opacity: theme.interaction.pressedOpacity },
           ]}
-          onPress={() => router.push('/(onboarding)/hard-constraints' as any)}
+          onPress={() => router.push("/(onboarding)/hard-constraints")}
           disabled={!peak}
           accessibilityRole="button"
           accessibilityLabel="Continue"
         >
-          <Text style={styles.continueText}>Continue  →</Text>
+          <Text style={styles.continueText}>Continue</Text>
         </Pressable>
       </View>
     </View>

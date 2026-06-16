@@ -1,12 +1,13 @@
-import { useMemo, useState, useCallback } from 'react';
-import { Pressable, StyleSheet, Text, View } from 'react-native';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { router } from 'expo-router';
-import { DateTimePicker } from '@expo/ui/community/datetime-picker';
-import { useTheme } from '@/providers/theme-provider';
-import { useOnboardingStore } from '@/features/onboarding/state';
-import ProgressBar from '@/features/onboarding/components/ProgressBar';
-import type { Theme } from '@/constants/theme';
+import { useMemo, useState, useCallback } from "react";
+import { Pressable, StyleSheet, Text, View } from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { router } from "expo-router";
+import { Ionicons } from "@expo/vector-icons";
+import { DateTimePicker } from "@expo/ui/community/datetime-picker";
+import { useTheme } from "@/providers/theme-provider";
+import { useOnboardingStore } from "@/features/onboarding/state";
+import ProgressBar from "@/features/onboarding/components/ProgressBar";
+import type { Theme } from "@/constants/theme";
 
 const TOTAL = 13;
 
@@ -20,44 +21,58 @@ function createStyles(theme: Theme, insets: { top: number; bottom: number }) {
       paddingHorizontal: theme.spacing.xl,
     },
     progressContainer: { paddingBottom: theme.spacing.xxl },
-    question: { ...theme.typography.headlineSmall, color: theme.colors.onBackground, marginBottom: theme.spacing.xxl },
+    question: {
+      ...theme.typography.headlineSmall,
+      color: theme.colors.onBackground,
+      marginBottom: theme.spacing.xxl,
+    },
     timeRow: {
       marginBottom: theme.spacing.xxl,
     },
-    timeLabel: { ...theme.typography.bodyLarge, color: theme.colors.onSurface, marginBottom: theme.spacing.sm },
+    timeLabel: {
+      ...theme.typography.bodyLarge,
+      color: theme.colors.onSurface,
+      marginBottom: theme.spacing.sm,
+    },
     timeDisplayBtn: {
       backgroundColor: theme.colors.surfaceVariant,
       borderRadius: theme.borderRadius.lg,
       padding: theme.spacing.md,
       minHeight: 48,
-      justifyContent: 'center',
+      justifyContent: "center",
     },
     timeDisplayText: {
       ...theme.typography.titleMedium,
       color: theme.colors.onSurface,
     },
-    caption: { ...theme.typography.bodyMedium, color: theme.colors.onSurfaceVariant, fontStyle: 'italic' },
+    caption: {
+      ...theme.typography.bodyMedium,
+      color: theme.colors.onSurfaceVariant,
+      fontStyle: "italic",
+    },
     continueButton: {
       backgroundColor: theme.colors.primary,
       borderRadius: theme.spacing.sm,
       minHeight: 48,
-      alignItems: 'center',
-      justifyContent: 'center',
-      marginTop: 'auto',
+      alignItems: "center",
+      justifyContent: "center",
+      marginTop: "auto",
     },
-    continueDisabled: { opacity: 0.4 },
-    continueText: { ...theme.typography.labelLarge, color: theme.colors.onPrimary },
+    continueText: {
+      ...theme.typography.labelLarge,
+      color: theme.colors.onPrimary,
+    },
   });
 }
 
 function formatTime(hour: number, minute: number): string {
-  const period = hour >= 12 ? 'PM' : 'AM';
+  const period = hour >= 12 ? "PM" : "AM";
   const h12 = hour === 0 ? 12 : hour > 12 ? hour - 12 : hour;
-  return `${h12}:${minute.toString().padStart(2, '0')} ${period}`;
+  return `${h12}:${minute.toString().padStart(2, "0")} ${period}`;
 }
 
 function toHHMM(hour: number, minute: number): string {
-  return `${hour.toString().padStart(2, '0')}:${minute.toString().padStart(2, '0')}`;
+  return `${hour.toString().padStart(2, "0")}:${minute.toString().padStart(2, "0")}`;
 }
 
 function pickerDate(hour: number, minute: number): Date {
@@ -80,12 +95,10 @@ export default function SleepWakeScreen() {
   const [showWakePicker, setShowWakePicker] = useState(false);
   const [showSleepPicker, setShowSleepPicker] = useState(false);
 
-  const valid = true; // always valid with defaults
-
   const handleContinue = useCallback(() => {
-    setField('wakeUpTime', toHHMM(wakeH, wakeM));
-    setField('sleepTime', toHHMM(sleepH, sleepM));
-    router.push('/(onboarding)/energy-peak' as any);
+    setField("wakeUpTime", toHHMM(wakeH, wakeM));
+    setField("sleepTime", toHHMM(sleepH, sleepM));
+    router.push("/(onboarding)/energy-peak");
   }, [wakeH, wakeM, sleepH, sleepM, setField]);
 
   return (
@@ -93,7 +106,7 @@ export default function SleepWakeScreen() {
       <View style={styles.progressContainer}>
         <ProgressBar current={4} total={TOTAL} />
       </View>
-      <Text style={styles.question}>When do you sleep and wake?</Text>
+      <Text style={styles.question}>When do you sleep and wake up?</Text>
 
       <View style={styles.timeRow}>
         <Text style={styles.timeLabel}>Wake up</Text>
@@ -117,7 +130,9 @@ export default function SleepWakeScreen() {
             accessibilityRole="button"
             accessibilityLabel="Set wake up time"
           >
-            <Text style={styles.timeDisplayText}>{formatTime(wakeH, wakeM)}</Text>
+            <Text style={styles.timeDisplayText}>
+              {formatTime(wakeH, wakeM)}
+            </Text>
           </Pressable>
         )}
       </View>
@@ -144,20 +159,27 @@ export default function SleepWakeScreen() {
             accessibilityRole="button"
             accessibilityLabel="Set sleep time"
           >
-            <Text style={styles.timeDisplayText}>{formatTime(sleepH, sleepM)}</Text>
+            <Text style={styles.timeDisplayText}>
+              {formatTime(sleepH, sleepM)}
+            </Text>
           </Pressable>
         )}
       </View>
 
-      <Text style={styles.caption}>We use this to build your daily structure.</Text>
+      <Text style={styles.caption}>
+        We use this to build your daily structure.
+      </Text>
 
       <Pressable
-        style={({ pressed }) => [styles.continueButton, !valid && styles.continueDisabled, pressed && { opacity: theme.interaction.pressedOpacity }]}
+        style={({ pressed }) => [
+          styles.continueButton,
+          pressed && { opacity: theme.interaction.pressedOpacity },
+        ]}
         onPress={handleContinue}
         accessibilityRole="button"
         accessibilityLabel="Continue"
       >
-        <Text style={styles.continueText}>Continue →</Text>
+        <Text style={styles.continueText}>Continue</Text>
       </Pressable>
     </View>
   );

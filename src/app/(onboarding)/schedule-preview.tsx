@@ -1,19 +1,19 @@
-import { useCallback, useMemo } from 'react';
-import { Pressable, StyleSheet, Text, View } from 'react-native';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { router } from 'expo-router';
-import { Ionicons } from '@expo/vector-icons';
-import { useTheme } from '@/providers/theme-provider';
-import { useOnboardingStore } from '@/features/onboarding/state';
-import { buildSchedulePreview } from '@/features/onboarding/utils';
-import ProgressBar from '@/features/onboarding/components/ProgressBar';
-import type { Theme } from '@/constants/theme';
+import { useCallback, useMemo } from "react";
+import { Pressable, StyleSheet, Text, View } from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { router } from "expo-router";
+import { Ionicons } from "@expo/vector-icons";
+import { useTheme } from "@/providers/theme-provider";
+import { useOnboardingStore } from "@/features/onboarding/state";
+import { buildSchedulePreview } from "@/features/onboarding/utils";
+import ProgressBar from "@/features/onboarding/components/ProgressBar";
+import type { Theme } from "@/constants/theme";
 
 const TOTAL = 14;
 const BULLET_ICONS: (keyof typeof Ionicons.glyphMap)[] = [
-  'bulb-outline',
-  'timer-outline',
-  'sync-outline',
+  "bulb-outline",
+  "timer-outline",
+  "sync-outline",
 ];
 
 function createStyles(theme: Theme, insets: { top: number; bottom: number }) {
@@ -29,13 +29,13 @@ function createStyles(theme: Theme, insets: { top: number; bottom: number }) {
       ...theme.typography.headlineSmall,
       color: theme.colors.onBackground,
       marginBottom: theme.spacing.xs,
-      textAlign: 'center',
+      textAlign: "center",
     },
     subtitle: {
       ...theme.typography.bodyMedium,
       color: theme.colors.onSurfaceVariant,
       marginBottom: theme.spacing.xxl,
-      textAlign: 'center',
+      textAlign: "center",
     },
     previewCard: {
       backgroundColor: theme.colors.surface,
@@ -44,8 +44,8 @@ function createStyles(theme: Theme, insets: { top: number; bottom: number }) {
       ...theme.shadows.md,
     },
     blockRow: {
-      flexDirection: 'row',
-      alignItems: 'center',
+      flexDirection: "row",
+      alignItems: "center",
       paddingVertical: theme.spacing.md,
       borderBottomWidth: StyleSheet.hairlineWidth,
       borderBottomColor: theme.colors.outlineVariant,
@@ -56,15 +56,15 @@ function createStyles(theme: Theme, insets: { top: number; bottom: number }) {
     },
     blockTimeAccent: {
       color: theme.colors.onSurfaceVariant,
-      fontWeight: '500',
+      fontWeight: "500",
     },
     bullets: {
       marginTop: theme.spacing.lg,
       gap: theme.spacing.md,
     },
     bullet: {
-      flexDirection: 'row',
-      alignItems: 'flex-start',
+      flexDirection: "row",
+      alignItems: "flex-start",
       gap: theme.spacing.sm,
     },
     bulletIcon: {
@@ -77,16 +77,19 @@ function createStyles(theme: Theme, insets: { top: number; bottom: number }) {
     },
     bottom: {
       flex: 1,
-      justifyContent: 'flex-end',
+      justifyContent: "flex-end",
       paddingBottom: insets.bottom + theme.spacing.xl,
     },
     continueButton: {
       ...theme.componentStyles.button,
       backgroundColor: theme.colors.primary,
-      alignItems: 'center',
+      alignItems: "center",
       minHeight: 48,
     },
-    continueText: { ...theme.typography.labelLarge, color: theme.colors.onPrimary },
+    continueText: {
+      ...theme.typography.labelLarge,
+      color: theme.colors.onPrimary,
+    },
   });
 }
 
@@ -94,12 +97,11 @@ export default function SchedulePreviewScreen() {
   const theme = useTheme();
   const insets = useSafeAreaInsets();
   const styles = useMemo(() => createStyles(theme, insets), [theme, insets]);
-  const wakeUpTime = useOnboardingStore((s) => s.data.wakeUpTime);
   const productivityPeak = useOnboardingStore((s) => s.data.productivityPeak);
 
   const preview = useMemo(
-    () => buildSchedulePreview(wakeUpTime ?? '07:00', productivityPeak ?? 'varies'),
-    [wakeUpTime, productivityPeak],
+    () => buildSchedulePreview(productivityPeak ?? "varies"),
+    [productivityPeak],
   );
 
   return (
@@ -108,16 +110,14 @@ export default function SchedulePreviewScreen() {
         <ProgressBar current={11} total={TOTAL} />
       </View>
 
-      <Text style={styles.title}>Your personal schedule{'\n'}is ready.</Text>
-      <Text style={styles.subtitle}>
-        Based on your profile, we recommend:
-      </Text>
+      <Text style={styles.title}>Your personal schedule{"\n"}is ready.</Text>
+      <Text style={styles.subtitle}>Based on your profile, we recommend:</Text>
 
       <View style={styles.previewCard}>
         <View style={styles.blockRow}>
           <Text style={styles.blockLine}>
             <Text style={styles.blockTimeAccent}>{preview.deepWorkBlock}</Text>
-            {'  ·  Deep work'}
+            {"  ·  Deep work"}
           </Text>
         </View>
 
@@ -125,7 +125,7 @@ export default function SchedulePreviewScreen() {
           {preview.bullets.map((b, i) => (
             <View key={i} style={styles.bullet}>
               <Ionicons
-                name={BULLET_ICONS[i] ?? 'ellipse-outline'}
+                name={BULLET_ICONS[i] ?? "ellipse-outline"}
                 size={18}
                 color={theme.colors.primary}
                 style={styles.bulletIcon}
@@ -142,11 +142,11 @@ export default function SchedulePreviewScreen() {
             styles.continueButton,
             pressed && { opacity: theme.interaction.pressedOpacity },
           ]}
-          onPress={() => router.push('/(onboarding)/notif-warmup' as any)}
+          onPress={() => router.push("/(onboarding)/notif-warmup")}
           accessibilityRole="button"
           accessibilityLabel="Continue"
         >
-          <Text style={styles.continueText}>Continue  →</Text>
+          <Text style={styles.continueText}>Continue</Text>
         </Pressable>
       </View>
     </View>

@@ -1,13 +1,13 @@
-import { useCallback, useMemo } from 'react';
-import { Pressable, StyleSheet, Text, View } from 'react-native';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { router } from 'expo-router';
-import { Ionicons } from '@expo/vector-icons';
-import { useAuth } from '@/features/auth/hooks/useAuth';
-import { useTheme } from '@/providers/theme-provider';
-import { queryClient } from '@/providers/query-provider';
-import ProgressBar from '@/features/onboarding/components/ProgressBar';
-import type { Theme } from '@/constants/theme';
+import { useCallback, useMemo } from "react";
+import { Pressable, StyleSheet, Text, View } from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { router } from "expo-router";
+import { Ionicons } from "@expo/vector-icons";
+import { useAuth } from "@/features/auth/hooks/useAuth";
+import { useTheme } from "@/providers/theme-provider";
+import { queryClient } from "@/providers/query-provider";
+import ProgressBar from "@/features/onboarding/components/ProgressBar";
+import type { Theme } from "@/constants/theme";
 
 const TOTAL = 14;
 
@@ -23,16 +23,16 @@ function createStyles(theme: Theme, insets: { top: number; bottom: number }) {
     progressRow: { marginBottom: theme.spacing.xxl },
     content: {
       flex: 1,
-      justifyContent: 'center',
+      justifyContent: "center",
     },
     bellWrap: {
-      alignItems: 'center',
+      alignItems: "center",
       marginBottom: theme.spacing.xl,
     },
     title: {
       ...theme.typography.headlineSmall,
       color: theme.colors.onBackground,
-      textAlign: 'center',
+      textAlign: "center",
       marginBottom: theme.spacing.xl,
     },
     bullets: {
@@ -40,8 +40,8 @@ function createStyles(theme: Theme, insets: { top: number; bottom: number }) {
       gap: theme.spacing.lg,
     },
     bullet: {
-      flexDirection: 'row',
-      alignItems: 'flex-start',
+      flexDirection: "row",
+      alignItems: "flex-start",
       gap: theme.spacing.md,
     },
     bulletText: {
@@ -52,8 +52,8 @@ function createStyles(theme: Theme, insets: { top: number; bottom: number }) {
     spamNote: {
       ...theme.typography.bodySmall,
       color: theme.colors.onSurfaceVariant,
-      textAlign: 'center',
-      fontStyle: 'italic',
+      textAlign: "center",
+      fontStyle: "italic",
       marginBottom: theme.spacing.xxl,
     },
     buttonRow: {
@@ -63,17 +63,23 @@ function createStyles(theme: Theme, insets: { top: number; bottom: number }) {
     primaryButton: {
       ...theme.componentStyles.button,
       backgroundColor: theme.colors.primary,
-      alignItems: 'center',
+      alignItems: "center",
       minHeight: 48,
     },
-    primaryText: { ...theme.typography.labelLarge, color: theme.colors.onPrimary },
+    primaryText: {
+      ...theme.typography.labelLarge,
+      color: theme.colors.onPrimary,
+    },
     secondaryButton: {
       ...theme.componentStyles.button,
       backgroundColor: theme.colors.surfaceVariant,
-      alignItems: 'center',
+      alignItems: "center",
       minHeight: 48,
     },
-    secondaryText: { ...theme.typography.labelLarge, color: theme.colors.onSurfaceVariant },
+    secondaryText: {
+      ...theme.typography.labelLarge,
+      color: theme.colors.onSurfaceVariant,
+    },
     bottom: {
       paddingBottom: insets.bottom + theme.spacing.xl,
     },
@@ -92,14 +98,14 @@ export default function NotifWarmupScreen() {
   const userId = user?.id ?? null;
 
   const handleTurnOn = useCallback(() => {
-    router.push('/(onboarding)/notif-permission' as any);
+    router.push("/(onboarding)/notif-permission");
   }, []);
 
   const handleMaybeLater = useCallback(() => {
     if (userId) {
-      queryClient.setQueryData(['onboardingStatus', userId], true);
+      queryClient.setQueryData(["onboardingStatus", userId], true);
     }
-    router.replace('/(tabs)');
+    router.replace("/(tabs)");
   }, [userId]);
 
   return (
@@ -116,7 +122,7 @@ export default function NotifWarmupScreen() {
             color={theme.colors.primary}
           />
         </View>
-        <Text style={styles.title}>Stay on track{'\n'}without looking</Text>
+        <Text style={styles.title}>Stay on track{"\n"}without looking</Text>
 
         <View style={styles.bullets}>
           <View style={styles.bullet}>
@@ -145,9 +151,7 @@ export default function NotifWarmupScreen() {
               size={20}
               color={theme.colors.onSurface}
             />
-            <Text style={styles.bulletText}>
-              A check-in when a task ends
-            </Text>
+            <Text style={styles.bulletText}>A check-in when a task ends</Text>
           </View>
           <View style={styles.bullet}>
             <Ionicons
@@ -161,7 +165,9 @@ export default function NotifWarmupScreen() {
           </View>
         </View>
 
-        <Text style={styles.spamNote}>We don't spam. One tap to turn off anytime.</Text>
+        <Text style={styles.spamNote}>
+          We don't spam. One tap to turn off anytime.
+        </Text>
       </View>
 
       <View style={styles.buttonRow}>
@@ -174,7 +180,7 @@ export default function NotifWarmupScreen() {
           accessibilityRole="button"
           accessibilityLabel="Turn on reminders"
         >
-          <Text style={styles.primaryText}>Turn on reminders  →</Text>
+          <Text style={styles.primaryText}>Turn on reminders</Text>
         </Pressable>
 
         <Pressable

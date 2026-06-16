@@ -36,7 +36,11 @@ export default function ProgressBar({ current, total }: ProgressBarProps) {
   const fraction = Math.min(current / total, 1);
 
   return (
-    <View style={styles.container}>
+    <View
+      style={styles.container}
+      accessibilityRole="progressbar"
+      accessibilityValue={{ min: 0, max: 100, now: Math.round(fraction * 100) }}
+    >
       <View style={[styles.fill, { width: `${fraction * 100}%` }]} />
     </View>
   );

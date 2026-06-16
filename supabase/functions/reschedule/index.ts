@@ -107,14 +107,16 @@ Deno.serve(async (req) => {
 
     // Strip fields the AI might treat as fixed constraints.
     // Keep: id, name, startTime, endTime, deadline (current state, all mutable except id/name).
-    // Remove: durationMinutes (AI decides duration), aiJustification, aiContext (AI wrote these),
+    // Remove: durationMinutes (AI decides duration), aiJustification (AI wrote this),
     //         completed, createdAt, updatedAt (metadata, irrelevant for scheduling).
+    // Keep: aiContext (task characteristics, useful for rescheduling).
     const strippedTasks = tasks.map((t: Record<string, unknown>) => ({
       id: t.id,
       name: t.name,
       startTime: t.startTime,
       endTime: t.endTime,
       deadline: t.deadline || null,
+      aiContext: t.aiContext || null,
     }));
 
     const userMessage = `Tasks (current schedule — all fields except id and name are mutable):\n${JSON.stringify(strippedTasks, null, 2)}\n\nUser context: ${userContext || "None provided"}\n\nWhat changed: ${whatChanged || "Initial scheduling"}`;
@@ -169,9 +171,9 @@ Deno.serve(async (req) => {
 
         // Validate exact task ID parity — no extras, no duplicates
         const outputIds = new Set(parsed.tasks.map((t) => t.id));
-        if (outputIds.size !== inputIds.size) {
+        if (parsed.tasks.length !== inputIds.size || outputIds.size !== inputIds.size) {
           throw new Error(
-            `Task count mismatch: expected ${inputIds.size}, got ${outputIds.size}`,
+            `Task count mismatch: expected ${inputIds.size}, got ${parsed.tasks.length} (${outputIds.size} unique)`,
           );
         }
         for (const id of inputIds) {

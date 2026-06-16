@@ -1,13 +1,13 @@
-import { useCallback, useMemo } from 'react';
-import { Pressable, StyleSheet, Text, View } from 'react-native';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { router } from 'expo-router';
-import { useTheme } from '@/providers/theme-provider';
-import { useOnboardingStore } from '@/features/onboarding/state';
-import ProgressBar from '@/features/onboarding/components/ProgressBar';
-import { PERSONA_OPTIONS } from '@/types/onboarding';
-import type { Theme } from '@/constants/theme';
-import type { Persona } from '@/types/onboarding';
+import { useCallback, useMemo } from "react";
+import { Pressable, StyleSheet, Text, View } from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { router } from "expo-router";
+import { useTheme } from "@/providers/theme-provider";
+import { useOnboardingStore } from "@/features/onboarding/state";
+import ProgressBar from "@/features/onboarding/components/ProgressBar";
+import { PERSONA_OPTIONS } from "@/types/onboarding";
+import type { Theme } from "@/constants/theme";
+import type { Persona } from "@/types/onboarding";
 
 const TOTAL = 14;
 
@@ -39,7 +39,7 @@ function createStyles(theme: Theme, insets: { top: number; bottom: number }) {
       paddingHorizontal: theme.spacing.lg,
       marginBottom: theme.spacing.sm,
       minHeight: 48,
-      justifyContent: 'center',
+      justifyContent: "center",
       ...theme.shadows.sm,
     },
     optionSelected: {
@@ -51,17 +51,17 @@ function createStyles(theme: Theme, insets: { top: number; bottom: number }) {
     },
     optionTextSelected: {
       color: theme.colors.onPrimaryContainer,
-      fontWeight: '700',
+      fontWeight: "700",
     },
     bottom: {
       flex: 1,
-      justifyContent: 'flex-end',
+      justifyContent: "flex-end",
       paddingBottom: insets.bottom + theme.spacing.xl,
     },
     continueButton: {
       ...theme.componentStyles.button,
       backgroundColor: theme.colors.primary,
-      alignItems: 'center',
+      alignItems: "center",
       minHeight: 48,
     },
     continueDisabled: {
@@ -82,13 +82,13 @@ export default function IdentityScreen() {
   const setField = useOnboardingStore((s) => s.setField);
 
   const handleSelect = useCallback(
-    (value: Persona) => setField('persona', value),
+    (value: Persona) => setField("persona", value),
     [setField],
   );
 
   const handleContinue = useCallback(() => {
     if (!persona) return;
-    router.push('/(onboarding)/pain-points' as any);
+    router.push("/(onboarding)/pain-points");
   }, [persona]);
 
   return (
@@ -136,7 +136,7 @@ export default function IdentityScreen() {
           accessibilityRole="button"
           accessibilityLabel="Continue"
         >
-          <Text style={styles.continueText}>Continue  →</Text>
+          <Text style={styles.continueText}>Continue</Text>
         </Pressable>
       </View>
     </View>

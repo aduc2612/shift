@@ -15,7 +15,6 @@ export async function saveOnboardingData(
     pain_points: data.painPoints,
     hard_constraints: data.hardConstraints,
     scheduling_context: data.schedulingContext,
-    updated_at: new Date().toISOString(),
   };
 
   const { error } = await supabase

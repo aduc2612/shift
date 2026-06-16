@@ -1,10 +1,6 @@
 import { getPersonaReviews, buildSchedulePreview } from '../utils';
 import type { ProductivityPeak } from '@/types/onboarding';
 
-beforeEach(() => {
-  jest.resetModules();
-});
-
 describe('getPersonaReviews', () => {
   it('returns 3 reviews for a known persona', () => {
     const reviews = getPersonaReviews('student');
@@ -35,26 +31,26 @@ describe('getPersonaReviews', () => {
 
 describe('buildSchedulePreview', () => {
   it('returns morning deep work block for morning peak', () => {
-    const preview = buildSchedulePreview('07:00', 'morning');
+    const preview = buildSchedulePreview('morning');
     expect(preview.deepWorkBlock).toContain('8:00');
     expect(preview.bullets).toHaveLength(3);
     expect(preview.bullets[0]).toContain('morning');
   });
 
   it('returns afternoon deep work block for afternoon peak', () => {
-    const preview = buildSchedulePreview('07:00', 'afternoon');
+    const preview = buildSchedulePreview('afternoon');
     expect(preview.deepWorkBlock).toContain('1:00');
     expect(preview.bullets[0]).toContain('afternoon');
   });
 
   it('returns evening deep work block for evening peak', () => {
-    const preview = buildSchedulePreview('09:00', 'evening');
+    const preview = buildSchedulePreview('evening');
     expect(preview.deepWorkBlock).toContain('6:00');
     expect(preview.bullets[0]).toContain('evening');
   });
 
   it('returns rotating blocks for varies peak', () => {
-    const preview = buildSchedulePreview('07:00', 'varies');
+    const preview = buildSchedulePreview('varies');
     expect(preview.deepWorkBlock).toContain('90-minute');
     expect(preview.bullets[0]).toContain('peak');
   });
@@ -62,7 +58,7 @@ describe('buildSchedulePreview', () => {
   it('bullet points are always size 3', () => {
     const peaks: ProductivityPeak[] = ['morning', 'afternoon', 'evening', 'varies'];
     for (const peak of peaks) {
-      const preview = buildSchedulePreview('07:00', peak);
+      const preview = buildSchedulePreview(peak);
       expect(preview.bullets).toHaveLength(3);
     }
   });

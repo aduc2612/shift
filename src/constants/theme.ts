@@ -32,7 +32,7 @@ export const colors = {
 
     surface: "#FFFFFF",
     onSurface: "#1C1C1C",
-    surfaceVariant: "#F5F5F5",
+    surfaceVariant: "#EBEBEB",
     onSurfaceVariant: "#666666",
 
     outline: "#D0D0D0",
