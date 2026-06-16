@@ -99,3 +99,9 @@ export function onNotificationTapped(
     callback();
   });
 }
+
+/** Request permission to show notifications. Returns true if granted, false if denied. */
+export async function requestNotificationPermission(): Promise<boolean> {
+  const { status } = await Notifications.requestPermissionsAsync();
+  return status === 'granted';
+}

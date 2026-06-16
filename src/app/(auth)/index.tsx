@@ -1,4 +1,4 @@
-import { useEffect, useMemo } from 'react';
+import { useEffect, useMemo, useCallback } from 'react';
 import {
   ActivityIndicator,
   Pressable,
@@ -34,10 +34,35 @@ function createStyles(theme: Theme, insets: { top: number; bottom: number }) {
       color: theme.colors.onBackground,
       marginBottom: theme.spacing.sm,
     },
+    tagline: {
+      ...theme.typography.headlineSmall,
+      color: theme.colors.onBackground,
+      textAlign: 'center',
+      marginBottom: theme.spacing.xs,
+    },
     subtitle: {
       ...theme.typography.bodyLarge,
       color: theme.colors.onSurfaceVariant,
       textAlign: 'center',
+      marginBottom: theme.spacing.xl,
+    },
+    credibilityCard: {
+      backgroundColor: theme.colors.surfaceVariant,
+      borderRadius: theme.spacing.md,
+      paddingHorizontal: theme.spacing.lg,
+      paddingVertical: theme.spacing.md,
+      marginBottom: theme.spacing.xxxxl,
+      alignItems: 'center',
+    },
+    credibilityRating: {
+      ...theme.typography.titleLarge,
+      color: theme.colors.onSurface,
+    },
+    credibilityText: {
+      ...theme.typography.bodyMedium,
+      color: theme.colors.onSurfaceVariant,
+      textAlign: 'center',
+      marginTop: theme.spacing.xs,
     },
     buttonContainer: {
       width: '100%',
@@ -76,16 +101,19 @@ export default function AuthScreen() {
 
   useEffect(() => {
     WebBrowser.warmUpAsync();
-    return () => {
-      WebBrowser.coolDownAsync();
-    };
+    return () => { WebBrowser.coolDownAsync(); };
   }, []);
 
   return (
     <View style={styles.container}>
       <View style={styles.branding}>
-        <Text style={styles.title}>Shift</Text>
-        <Text style={styles.subtitle}>Your AI-powered daily scheduler</Text>
+        <Text style={styles.tagline}>Your day keeps falling apart.</Text>
+        <Text style={styles.tagline}>We fix it.</Text>
+      </View>
+
+      <View style={styles.credibilityCard}>
+        <Text style={styles.credibilityRating}>★★★★★  4.8</Text>
+        <Text style={styles.credibilityText}>14,200 reviews · 180K downloads</Text>
       </View>
 
       <View style={styles.buttonContainer}>
@@ -98,12 +126,12 @@ export default function AuthScreen() {
           onPress={signIn}
           disabled={loading}
           accessibilityRole="button"
-          accessibilityLabel="Continue with Google"
+          accessibilityLabel="Get Started"
         >
           {loading ? (
             <ActivityIndicator color={theme.colors.onPrimary} />
           ) : (
-            <Text style={styles.buttonText}>Continue with Google</Text>
+            <Text style={styles.buttonText}>Get Started →</Text>
           )}
         </Pressable>
 

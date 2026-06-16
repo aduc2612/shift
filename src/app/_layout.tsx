@@ -9,6 +9,7 @@ import { ThemeProvider, useTheme } from "@/providers/theme-provider";
 import { QueryProvider } from "@/providers/query-provider";
 import { ToastProvider } from "@/providers/toast-provider";
 import { useAuth } from "@/features/auth/hooks/useAuth";
+import { useOnboardingRouting } from "@/features/onboarding/hooks/useOnboardingRouting";
 import { initSentry } from "@/services/sentry";
 import { setupNotificationChannel } from "@/services/notifications";
 import { useNotificationTapListener } from "@/hooks/useNotificationTapListener";
@@ -17,7 +18,8 @@ initSentry();
 
 function RootNavigator() {
   const theme = useTheme();
-  const { isAuthenticated, loading } = useAuth();
+  const { isAuthenticated, loading: authLoading } = useAuth();
+  const { loading: routingLoading, shouldShowAuth, shouldShowOnboarding, shouldShowTabs = false } = useOnboardingRouting();
 
   useNotificationTapListener();
 
@@ -37,6 +39,7 @@ function RootNavigator() {
     [theme.colors.background],
   );
 
+  const loading = authLoading || routingLoading;
   if (loading) return null;
 
   return (
@@ -50,11 +53,14 @@ function RootNavigator() {
           contentStyle: styles.contentBackground,
         }}
       >
-        <Stack.Protected guard={isAuthenticated}>
-          <Stack.Screen name="(tabs)" />
-        </Stack.Protected>
-        <Stack.Protected guard={!isAuthenticated}>
+        <Stack.Protected guard={shouldShowAuth}>
           <Stack.Screen name="(auth)" />
+        </Stack.Protected>
+        <Stack.Protected guard={shouldShowOnboarding}>
+          <Stack.Screen name="(onboarding)" />
+        </Stack.Protected>
+        <Stack.Protected guard={shouldShowTabs}>
+          <Stack.Screen name="(tabs)" />
         </Stack.Protected>
       </Stack>
     </>
