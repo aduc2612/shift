@@ -10,13 +10,6 @@ export type UserPreferences = {
   onboardingCompleted: boolean;
 };
 
-const PEAK_LABEL_MAP: Record<string, string> = {
-  morning: "morning (sharpest before noon)",
-  afternoon: "afternoon (midday stride)",
-  evening: "evening (comes alive after 5 PM)",
-  varies: "varies day to day",
-};
-
 /**
  * Build a system prompt fragment from the user's stored context.
  * The `userContext` field is a freeform text block assembled client-side
