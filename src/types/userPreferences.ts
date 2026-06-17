@@ -1,11 +1,7 @@
 export type UserPreferences = {
   userId: string;
-  productivityPeak: 'morning' | 'afternoon' | 'evening' | 'varies';
   wakeUpTime: string; // "HH:MM" format
-  schedulingContext: string; // freeform text
+  sleepTime: string; // "HH:MM" format
+  userContext: string; // freeform text built from onboarding, editable in settings
   onboardingCompleted: boolean;
-  persona: string | null;
-  sleepTime: string | null; // "HH:MM" format
-  painPoints: string[];
-  hardConstraints: string[];
 };

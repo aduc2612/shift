@@ -22,7 +22,7 @@ export async function fetchUserPreferences(
 ): Promise<import('./ai-prompt.ts').UserPreferences | null> {
   const { data, error } = await client
     .from('user_preferences')
-    .select('user_id, productivity_peak, wake_up_time, scheduling_context, onboarding_completed, persona, sleep_time, pain_points, hard_constraints')
+    .select('user_id, wake_up_time, sleep_time, user_context, onboarding_completed')
     .eq('user_id', userId)
     .maybeSingle();
 
@@ -35,13 +35,9 @@ export async function fetchUserPreferences(
   // Map snake_case DB columns to camelCase TypeScript type
   return {
     userId: data.user_id,
-    productivityPeak: data.productivity_peak,
     wakeUpTime: data.wake_up_time,
-    schedulingContext: data.scheduling_context,
-    onboardingCompleted: data.onboarding_completed,
-    persona: data.persona,
     sleepTime: data.sleep_time,
-    painPoints: data.pain_points,
-    hardConstraints: data.hard_constraints,
+    userContext: data.user_context,
+    onboardingCompleted: data.onboarding_completed,
   } as import('./ai-prompt.ts').UserPreferences;
 }
