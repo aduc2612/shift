@@ -69,8 +69,8 @@ providers/    # Context providers
 - [ ] Users complete onboarding, preferences stored
 - [x] Users view daily schedule with tasks ordered by time
 - [x] Users add, edit, complete tasks
-- [ ] AI reschedules tasks based on user input
-- [ ] Users undo AI reschedule within 5 seconds
+- [x] AI reschedules tasks based on user input
+- [x] Users undo AI reschedule within 5 seconds
 - [ ] Notifications fire at correct times (10 min before, on start, on end, 5 min nudge)
 - [ ] Paid users unlimited reschedules; free users daily limit
 - [ ] Users update scheduling preferences in settings

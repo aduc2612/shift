@@ -13,6 +13,11 @@ import {
   MAX_TOKENS,
   MAX_TIMEOUT_MS,
 } from "./config.ts";
+import { buildSystemPrompt } from "../_shared/ai-prompt.ts";
+import {
+  createUserClient,
+  fetchUserPreferences,
+} from "../_shared/supabase-client.ts";
 
 // --- Zod schema for structured output ---
 const TaskResultSchema = z.object({
@@ -78,8 +83,44 @@ Deno.serve(async (req) => {
       .replace("{isWeekend}", isWeekend ? "Yes" : "No")
       .replace("{timezone}", tzDisplay);
 
-    const userMessage = `Tasks:\n${JSON.stringify(tasks, null, 2)}\n\nUser context: ${userContext || "None provided"}\n\nWhat changed: ${whatChanged || "Initial scheduling"}`;
+    // Augment with user's onboarding-completed preferences (best-effort).
+    // If the user hasn't done onboarding or the prefs read fails, we fall
+    // through with the unmodified system prompt.
+    let augmentedPrompt = systemPrompt;
+    try {
+      const userClient = createUserClient(authHeader);
+      const { data: userData } = await userClient.auth.getUser();
+      if (userData?.user) {
+        const prefs = await fetchUserPreferences(userClient, userData.user.id);
+        if (prefs) {
+          const fragment = buildSystemPrompt(prefs);
+          if (fragment) {
+            augmentedPrompt = `${systemPrompt}\n\nUser preferences (from onboarding):\n${fragment}`;
+          }
+        }
+      }
+    } catch (err) {
+      console.error("Failed to load user preferences:", err);
+    }
+
     const inputIds = new Set(tasks.map((t: { id: string }) => t.id));
+
+    // Strip fields the AI might treat as fixed constraints.
+    // Keep: id, name, startTime, endTime, deadline (current state, all mutable except id/name).
+    // Remove: durationMinutes (AI decides duration), aiJustification (AI wrote this),
+    //         completed, createdAt, updatedAt (metadata, irrelevant for scheduling).
+    // Keep: aiContext (task characteristics, useful for rescheduling).
+    const strippedTasks = tasks.map((t: Record<string, unknown>) => ({
+      id: t.id,
+      name: t.name,
+      startTime: t.startTime,
+      endTime: t.endTime,
+      deadline: t.deadline || null,
+      aiContext: t.aiContext || null,
+    }));
+
+    const userMessage = `Tasks (current schedule — all fields except id and name are mutable):\n${JSON.stringify(strippedTasks, null, 2)}\n\nUser context: ${userContext || "None provided"}\n\nWhat changed: ${whatChanged || "Initial scheduling"}`;
+
     const maxTokens = Math.min(
       tasks.length * TOKENS_PER_TASK + TOKENS_BASE,
       MAX_TOKENS,
@@ -103,12 +144,15 @@ Deno.serve(async (req) => {
         const completion = await openai.chat.completions.create({
           model,
           messages: [
-            { role: "system", content: systemPrompt },
+            { role: "system", content: augmentedPrompt },
             { role: "user", content: userMessage },
           ],
           response_format: zodResponseFormat(RescheduleSchema, "reschedule"),
           max_tokens: maxTokens,
-          reasoning_effort: "minimal",
+          reasoning: {
+            effort: "low",
+            exclude: true,
+          },
         });
 
         let content = completion.choices[0]?.message?.content;
@@ -127,9 +171,9 @@ Deno.serve(async (req) => {
 
         // Validate exact task ID parity — no extras, no duplicates
         const outputIds = new Set(parsed.tasks.map((t) => t.id));
-        if (outputIds.size !== inputIds.size) {
+        if (parsed.tasks.length !== inputIds.size || outputIds.size !== inputIds.size) {
           throw new Error(
-            `Task count mismatch: expected ${inputIds.size}, got ${outputIds.size}`,
+            `Task count mismatch: expected ${inputIds.size}, got ${parsed.tasks.length} (${outputIds.size} unique)`,
           );
         }
         for (const id of inputIds) {

@@ -22,7 +22,7 @@ describe("reschedule Edge Function — dynamic budget clamping", () => {
   describe("maxTokens", () => {
     it("uses dynamic value when below ceiling", () => {
       const result = computeMaxTokens(1);
-      expect(result).toBe(1 * 150 + 300);
+      expect(result).toBe(1 * TOKENS_PER_TASK + TOKENS_BASE);
       expect(result).toBeLessThan(MAX_TOKENS);
     });
 
@@ -43,7 +43,7 @@ describe("reschedule Edge Function — dynamic budget clamping", () => {
   describe("timeout", () => {
     it("uses dynamic value when below ceiling", () => {
       const result = computeTimeout(1);
-      expect(result).toBe(1 * 1_000 + 5_000);
+      expect(result).toBe(1 * TIMEOUT_PER_TASK + TIMEOUT_BASE);
       expect(result).toBeLessThan(MAX_TIMEOUT_MS);
     });
 
@@ -64,12 +64,12 @@ describe("reschedule Edge Function — dynamic budget clamping", () => {
   });
 
   describe("ceiling constants", () => {
-    it("MAX_TOKENS is 4096", () => {
-      expect(MAX_TOKENS).toBe(4_096);
+    it("MAX_TOKENS is 8192", () => {
+      expect(MAX_TOKENS).toBe(8_192);
     });
 
-    it("MAX_TIMEOUT_MS is 30s", () => {
-      expect(MAX_TIMEOUT_MS).toBe(30_000);
+    it("MAX_TIMEOUT_MS is 90s", () => {
+      expect(MAX_TIMEOUT_MS).toBe(90_000);
     });
 
     it("dynamic values for 5 tasks stay below ceilings", () => {

@@ -169,20 +169,25 @@ SQL migration scripts live in `supabase/migrations/`. Run each new migration in 
 ---
 
 ### Phase 8: Onboarding Flow
-**Goal:** Collect user preferences through 3-screen onboarding.
+**Goal:** Collect user preferences through multi-screen onboarding with AI demo.
 
-**Deliverables:**
-- Screen 1: Productivity peak selection (morning/afternoon/evening/varies)
-- Screen 2: Wake-up time picker (default 7:00 AM)
-- Screen 3: Freeform scheduling context input
-- Store preferences in Supabase `user_preferences` table
-- Onboarding completion flag in Zustand
-- Notification permission request after Screen 3
+**Status:** Complete — see `.planning/shift/08-00-DESIGN.md`, `.planning/shift/08-01-PLAN.md`, `.planning/shift/08-02-ONBOARDING-FIXES.md`
 
-**Validation:** New users complete onboarding, preferences saved to Supabase, returning users skip onboarding.
-
-**Supabase Setup Required:**
-- Create `user_preferences` table: user_id, productivity_peak, wake_up_time, scheduling_context
+**Key Deliverables:**
+- 14-screen onboarding flow with animations, progress graph, persona review, schedule preview
+- Sleep/wake picker with native DateTimePicker
+- AI processing theatre with timed checkpoint reveal
+- Notification permission request and warmup screens
+- Supabase migration for onboarding fields (004)
+- Onboarding state management (Zustand) and API layer
+- User preferences saved to Supabase on completion
+- Edge Function wiring with `buildSystemPrompt` and `supabase-client.ts`
+- AI prompt priority hierarchy (user request → preferences → task data → general rules)
+- Field stripping (durationMinutes removed from AI payloads)
+- "Fixed constraints" → "Prioritized tasks" language
+- aiContext vs aiJustification disambiguation in prompts
+- Error display in TaskFormSheet for AI placement failures
+- 292 tests passing
 
 ---
 

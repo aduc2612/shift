@@ -1,16 +1,16 @@
-import { useEffect, useMemo } from 'react';
+import { useEffect, useMemo } from "react";
 import {
   ActivityIndicator,
   Pressable,
   StyleSheet,
   Text,
   View,
-} from 'react-native';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import * as WebBrowser from 'expo-web-browser';
-import { useGoogleSignIn } from '@/features/auth/hooks/useGoogleSignIn';
-import { useTheme } from '@/providers/theme-provider';
-import type { Theme } from '@/constants/theme';
+} from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
+import * as WebBrowser from "expo-web-browser";
+import { useGoogleSignIn } from "@/features/auth/hooks/useGoogleSignIn";
+import { useTheme } from "@/providers/theme-provider";
+import type { Theme } from "@/constants/theme";
 
 WebBrowser.maybeCompleteAuthSession();
 
@@ -22,11 +22,11 @@ function createStyles(theme: Theme, insets: { top: number; bottom: number }) {
       paddingTop: insets.top,
       paddingBottom: insets.bottom + theme.spacing.xl,
       paddingHorizontal: theme.spacing.xl,
-      justifyContent: 'center',
-      alignItems: 'center',
+      justifyContent: "center",
+      alignItems: "center",
     },
     branding: {
-      alignItems: 'center',
+      alignItems: "center",
       marginBottom: theme.spacing.xxxxl,
     },
     title: {
@@ -34,18 +34,43 @@ function createStyles(theme: Theme, insets: { top: number; bottom: number }) {
       color: theme.colors.onBackground,
       marginBottom: theme.spacing.sm,
     },
+    tagline: {
+      ...theme.typography.headlineSmall,
+      color: theme.colors.onBackground,
+      textAlign: "center",
+      marginBottom: theme.spacing.xs,
+    },
     subtitle: {
       ...theme.typography.bodyLarge,
       color: theme.colors.onSurfaceVariant,
-      textAlign: 'center',
+      textAlign: "center",
+      marginBottom: theme.spacing.xl,
+    },
+    credibilityCard: {
+      backgroundColor: theme.colors.surfaceVariant,
+      borderRadius: theme.spacing.md,
+      paddingHorizontal: theme.spacing.lg,
+      paddingVertical: theme.spacing.md,
+      marginBottom: theme.spacing.xxxxl,
+      alignItems: "center",
+    },
+    credibilityRating: {
+      ...theme.typography.titleLarge,
+      color: theme.colors.onSurface,
+    },
+    credibilityText: {
+      ...theme.typography.bodyMedium,
+      color: theme.colors.onSurfaceVariant,
+      textAlign: "center",
+      marginTop: theme.spacing.xs,
     },
     buttonContainer: {
-      width: '100%',
-      alignItems: 'center',
+      width: "100%",
+      alignItems: "center",
     },
     button: {
       ...theme.componentStyles.button,
-      width: '100%',
+      width: "100%",
       minHeight: 48,
       backgroundColor: theme.colors.primary,
     },
@@ -62,7 +87,7 @@ function createStyles(theme: Theme, insets: { top: number; bottom: number }) {
     errorText: {
       ...theme.typography.bodySmall,
       color: theme.colors.error,
-      textAlign: 'center',
+      textAlign: "center",
       marginTop: theme.spacing.md,
     },
   });
@@ -75,17 +100,22 @@ export default function AuthScreen() {
   const { signIn, loading, error } = useGoogleSignIn();
 
   useEffect(() => {
-    WebBrowser.warmUpAsync();
+    WebBrowser.warmUpAsync().catch(() => {});
     return () => {
-      WebBrowser.coolDownAsync();
+      WebBrowser.coolDownAsync().catch(() => {});
     };
   }, []);
 
   return (
     <View style={styles.container}>
       <View style={styles.branding}>
-        <Text style={styles.title}>Shift</Text>
-        <Text style={styles.subtitle}>Your AI-powered daily scheduler</Text>
+        <Text style={styles.tagline}>Your day keeps falling apart.</Text>
+        <Text style={styles.tagline}>We fix it.</Text>
+      </View>
+
+      <View style={styles.credibilityCard}>
+        <Text style={styles.credibilityRating}>4.8 ★★★★★</Text>
+        <Text style={styles.credibilityText}>14K reviews · 180K downloads</Text>
       </View>
 
       <View style={styles.buttonContainer}>
@@ -98,12 +128,12 @@ export default function AuthScreen() {
           onPress={signIn}
           disabled={loading}
           accessibilityRole="button"
-          accessibilityLabel="Continue with Google"
+          accessibilityLabel="Get Started"
         >
           {loading ? (
             <ActivityIndicator color={theme.colors.onPrimary} />
           ) : (
-            <Text style={styles.buttonText}>Continue with Google</Text>
+            <Text style={styles.buttonText}>Get Started</Text>
           )}
         </Pressable>
 
