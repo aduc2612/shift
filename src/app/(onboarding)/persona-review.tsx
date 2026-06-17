@@ -91,14 +91,14 @@ function createStyles(theme: Theme, insets: { top: number; bottom: number }) {
       width: 44,
       height: 44,
       borderRadius: 22,
-      backgroundColor: theme.colors.primaryContainer,
+      backgroundColor: theme.colors.surface,
       alignItems: "center",
       justifyContent: "center",
       marginRight: theme.spacing.md,
     },
     avatarText: {
       ...theme.typography.titleSmall,
-      color: theme.colors.onPrimaryContainer,
+      color: theme.colors.onSurface,
     },
     headerText: { flex: 1 },
     name: {

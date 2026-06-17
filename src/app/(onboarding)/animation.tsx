@@ -223,7 +223,11 @@ export default function AnimationScreen() {
                   ]}
                 >
                   {task.status === "missed" ? (
-                    <Ionicons name="close" size={14} color="#fff" />
+                    <Ionicons
+                      name="close"
+                      size={14}
+                      color={theme.colors.onError}
+                    />
                   ) : null}
                 </View>
               </View>
@@ -265,7 +269,11 @@ export default function AnimationScreen() {
                   ]}
                 >
                   {task.status === "done" ? (
-                    <Ionicons name="checkmark" size={14} color="#fff" />
+                    <Ionicons
+                      name="checkmark"
+                      size={14}
+                      color={theme.colors.onPrimary}
+                    />
                   ) : null}
                 </View>
               </View>

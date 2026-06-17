@@ -13,7 +13,11 @@ import { useTheme } from "@/providers/theme-provider";
 import ProgressBar from "@/features/onboarding/components/ProgressBar";
 import { ONBOARDING_STATS } from "@/constants/onboarding-stats";
 import type { Theme } from "@/constants/theme";
-import { getNextScreen, getScreenStep, ONBOARDING_TOTAL } from "@/constants/onboarding-screens";
+import {
+  getNextScreen,
+  getScreenStep,
+  ONBOARDING_TOTAL,
+} from "@/constants/onboarding-screens";
 
 const RATE_MAX = 100;
 const REPLAN_MAX = 80;
@@ -66,11 +70,7 @@ function AnimatedBar({
 
   const style = useAnimatedStyle(() => ({ height: height.value }));
 
-  return (
-    <Animated.View
-      style={[barStyles.bar, { backgroundColor }, style]}
-    />
-  );
+  return <Animated.View style={[barStyles.bar, { backgroundColor }, style]} />;
 }
 
 type BarGroupProps = {
@@ -211,11 +211,14 @@ export default function ProgressGraphScreen() {
   return (
     <View style={styles.container}>
       <View style={styles.progressRow}>
-        <ProgressBar current={getScreenStep("progress-graph")} total={ONBOARDING_TOTAL} />
+        <ProgressBar
+          current={getScreenStep("progress-graph")}
+          total={ONBOARDING_TOTAL}
+        />
       </View>
 
       <Text style={styles.title}>
-        Here's what users see in their first week.
+        Here's what our users see{"\n"}in their first week.
       </Text>
 
       <ScrollView
