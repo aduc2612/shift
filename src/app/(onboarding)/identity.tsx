@@ -8,8 +8,7 @@ import ProgressBar from "@/features/onboarding/components/ProgressBar";
 import { PERSONA_OPTIONS } from "@/types/onboarding";
 import type { Theme } from "@/constants/theme";
 import type { Persona } from "@/types/onboarding";
-
-const TOTAL = 14;
+import { getNextScreen, getScreenStep, ONBOARDING_TOTAL } from "@/constants/onboarding-screens";
 
 function createStyles(theme: Theme, insets: { top: number; bottom: number }) {
   return StyleSheet.create({
@@ -88,13 +87,14 @@ export default function IdentityScreen() {
 
   const handleContinue = useCallback(() => {
     if (!persona) return;
-    router.push("/(onboarding)/pain-points");
+    const next = getNextScreen("identity");
+    if (next) router.push(`/(onboarding)/${next}`);
   }, [persona]);
 
   return (
     <View style={styles.container}>
       <View style={styles.progressRow}>
-        <ProgressBar current={2} total={TOTAL} />
+        <ProgressBar current={getScreenStep("identity")} total={ONBOARDING_TOTAL} />
       </View>
 
       <Text style={styles.question}>Tell us about yourself.</Text>

@@ -9,8 +9,7 @@ import ProgressBar from "@/features/onboarding/components/ProgressBar";
 import { PAIN_POINT_OPTIONS } from "@/types/onboarding";
 import type { Theme } from "@/constants/theme";
 import type { PainPoint } from "@/types/onboarding";
-
-const TOTAL = 14;
+import { getNextScreen, getScreenStep, ONBOARDING_TOTAL } from "@/constants/onboarding-screens";
 
 function createStyles(theme: Theme, insets: { top: number; bottom: number }) {
   return StyleSheet.create({
@@ -88,14 +87,17 @@ export default function PainPointsScreen() {
   );
 
   const handleContinue = useCallback(
-    () => router.push("/(onboarding)/animation"),
+    () => {
+      const next = getNextScreen("pain-points");
+      if (next) router.push(`/(onboarding)/${next}`);
+    },
     [],
   );
 
   return (
     <View style={styles.container}>
       <View style={styles.progressRow}>
-        <ProgressBar current={3} total={TOTAL} />
+        <ProgressBar current={getScreenStep("pain-points")} total={ONBOARDING_TOTAL} />
       </View>
 
       <Text style={styles.question}>

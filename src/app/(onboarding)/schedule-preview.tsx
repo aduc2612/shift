@@ -8,8 +8,8 @@ import { useOnboardingStore } from "@/features/onboarding/state";
 import { buildSchedulePreview } from "@/features/onboarding/utils";
 import ProgressBar from "@/features/onboarding/components/ProgressBar";
 import type { Theme } from "@/constants/theme";
+import { getNextScreen, getScreenStep, ONBOARDING_TOTAL } from "@/constants/onboarding-screens";
 
-const TOTAL = 14;
 const BULLET_ICONS: (keyof typeof Ionicons.glyphMap)[] = [
   "bulb-outline",
   "timer-outline",
@@ -107,7 +107,7 @@ export default function SchedulePreviewScreen() {
   return (
     <View style={styles.container}>
       <View style={styles.progressRow}>
-        <ProgressBar current={11} total={TOTAL} />
+        <ProgressBar current={getScreenStep("schedule-preview")} total={ONBOARDING_TOTAL} />
       </View>
 
       <Text style={styles.title}>Your personal schedule{"\n"}is ready.</Text>
@@ -142,7 +142,10 @@ export default function SchedulePreviewScreen() {
             styles.continueButton,
             pressed && { opacity: theme.interaction.pressedOpacity },
           ]}
-          onPress={() => router.push("/(onboarding)/notif-warmup")}
+          onPress={() => {
+            const next = getNextScreen("schedule-preview");
+            if (next) router.push(`/(onboarding)/${next}`);
+          }}
           accessibilityRole="button"
           accessibilityLabel="Continue"
         >

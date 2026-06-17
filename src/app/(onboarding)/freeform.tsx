@@ -8,8 +8,8 @@ import { useTheme } from "@/providers/theme-provider";
 import { useOnboardingStore } from "@/features/onboarding/state";
 import ProgressBar from "@/features/onboarding/components/ProgressBar";
 import type { Theme } from "@/constants/theme";
+import { getNextScreen, getScreenStep, ONBOARDING_TOTAL } from "@/constants/onboarding-screens";
 
-const TOTAL = 14;
 const EXAMPLES = [
   "I have ADHD and lose focus fast",
   "I work night shifts 3x a week",
@@ -104,7 +104,8 @@ export default function FreeformScreen() {
 
   const advance = useCallback(() => {
     setField("schedulingContext", input);
-    router.push("/(onboarding)/persona-review");
+    const next = getNextScreen("freeform");
+    if (next) router.push(`/(onboarding)/${next}`);
   }, [input, setField]);
 
   return (
@@ -114,7 +115,7 @@ export default function FreeformScreen() {
         contentContainerStyle={styles.scrollContent}
       >
         <View style={styles.progressRow}>
-          <ProgressBar current={7} total={TOTAL} />
+          <ProgressBar current={getScreenStep("freeform")} total={ONBOARDING_TOTAL} />
         </View>
 
         <Text style={styles.question}>One last thing...</Text>

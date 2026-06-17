@@ -7,9 +7,12 @@ import { DateTimePicker } from "@expo/ui/community/datetime-picker";
 import { useTheme } from "@/providers/theme-provider";
 import { useOnboardingStore } from "@/features/onboarding/state";
 import ProgressBar from "@/features/onboarding/components/ProgressBar";
+import {
+  getNextScreen,
+  getScreenStep,
+  ONBOARDING_TOTAL,
+} from "@/constants/onboarding-screens";
 import type { Theme } from "@/constants/theme";
-
-const TOTAL = 13;
 
 function createStyles(theme: Theme, insets: { top: number; bottom: number }) {
   return StyleSheet.create({
@@ -98,15 +101,21 @@ export default function SleepWakeScreen() {
   const handleContinue = useCallback(() => {
     setField("wakeUpTime", toHHMM(wakeH, wakeM));
     setField("sleepTime", toHHMM(sleepH, sleepM));
-    router.push("/(onboarding)/energy-peak");
+    const next = getNextScreen("sleep-wake");
+    if (next) router.push(`/(onboarding)/${next}`);
   }, [wakeH, wakeM, sleepH, sleepM, setField]);
 
   return (
     <View style={styles.container}>
       <View style={styles.progressContainer}>
-        <ProgressBar current={4} total={TOTAL} />
+        <ProgressBar
+          current={getScreenStep("sleep-wake")}
+          total={ONBOARDING_TOTAL}
+        />
       </View>
-      <Text style={styles.question}>When do you sleep and wake up?</Text>
+      <Text style={styles.question}>
+        When do you usually{"\n"}sleep and wake up?
+      </Text>
 
       <View style={styles.timeRow}>
         <Text style={styles.timeLabel}>Wake up</Text>

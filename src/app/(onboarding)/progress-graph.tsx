@@ -13,8 +13,7 @@ import { useTheme } from "@/providers/theme-provider";
 import ProgressBar from "@/features/onboarding/components/ProgressBar";
 import { ONBOARDING_STATS } from "@/constants/onboarding-stats";
 import type { Theme } from "@/constants/theme";
-
-const TOTAL = 13;
+import { getNextScreen, getScreenStep, ONBOARDING_TOTAL } from "@/constants/onboarding-screens";
 
 const RATE_MAX = 100;
 const REPLAN_MAX = 80;
@@ -26,6 +25,25 @@ const [withoutMin, withMin] = [
   ONBOARDING_STATS.replanningMinutes.without,
   ONBOARDING_STATS.replanningMinutes.with,
 ];
+
+const barStyles = StyleSheet.create({
+  bar: {
+    width: 56,
+    borderRadius: 6,
+  },
+  barGroup: {
+    flexDirection: "row",
+    alignItems: "flex-end",
+    justifyContent: "center",
+    height: 160,
+    gap: 32,
+  },
+  barColumn: {
+    alignItems: "center",
+    flex: 1,
+    maxWidth: 100,
+  },
+});
 
 function AnimatedBar({
   value,
@@ -50,7 +68,7 @@ function AnimatedBar({
 
   return (
     <Animated.View
-      style={[{ width: 56, borderRadius: 6, backgroundColor }, style]}
+      style={[barStyles.bar, { backgroundColor }, style]}
     />
   );
 }
@@ -79,31 +97,23 @@ function BarGroup({
   theme,
 }: BarGroupProps) {
   return (
-    <View
-      style={{
-        flexDirection: "row",
-        alignItems: "flex-end",
-        justifyContent: "center",
-        gap: 32,
-        height: 160,
-      }}
-    >
-      <View style={{ alignItems: "center", flex: 1, maxWidth: 100 }}>
+    <View style={barStyles.barGroup}>
+      <View style={barStyles.barColumn}>
         <Text
           style={{
-            fontSize: 14,
+            fontSize: theme.typography.bodyMedium.fontSize,
             color: theme.colors.onSurfaceVariant,
-            marginBottom: 4,
+            marginBottom: theme.spacing.xs,
           }}
         >
           {withoutLabel}
         </Text>
         <Text
           style={{
-            fontSize: 18,
+            fontSize: theme.typography.titleMedium.fontSize,
             fontWeight: "600",
             color: theme.colors.onSurface,
-            marginBottom: 4,
+            marginBottom: theme.spacing.xs,
           }}
         >
           {withoutValue}
@@ -115,22 +125,22 @@ function BarGroup({
           backgroundColor={withoutColor}
         />
       </View>
-      <View style={{ alignItems: "center", flex: 1, maxWidth: 100 }}>
+      <View style={barStyles.barColumn}>
         <Text
           style={{
-            fontSize: 14,
+            fontSize: theme.typography.bodyMedium.fontSize,
             color: theme.colors.onSurfaceVariant,
-            marginBottom: 4,
+            marginBottom: theme.spacing.xs,
           }}
         >
           {withLabel}
         </Text>
         <Text
           style={{
-            fontSize: 18,
+            fontSize: theme.typography.titleMedium.fontSize,
             fontWeight: "600",
             color: theme.colors.onSurface,
-            marginBottom: 4,
+            marginBottom: theme.spacing.xs,
           }}
         >
           {withValue}
@@ -194,13 +204,14 @@ export default function ProgressGraphScreen() {
   const styles = useMemo(() => createStyles(theme, insets), [theme, insets]);
 
   const handleContinue = useCallback(() => {
-    router.push("/(onboarding)/processing-theatre");
+    const next = getNextScreen("progress-graph");
+    if (next) router.push(`/(onboarding)/${next}`);
   }, []);
 
   return (
     <View style={styles.container}>
       <View style={styles.progressRow}>
-        <ProgressBar current={9} total={TOTAL} />
+        <ProgressBar current={getScreenStep("progress-graph")} total={ONBOARDING_TOTAL} />
       </View>
 
       <Text style={styles.title}>

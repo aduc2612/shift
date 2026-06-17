@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { Pressable, StyleSheet, Text, View } from "react-native";
+import { Animated, Pressable, StyleSheet, Text, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { router } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
@@ -9,8 +9,12 @@ import { saveOnboardingData } from "@/features/onboarding/api";
 import ProgressBar from "@/features/onboarding/components/ProgressBar";
 import { useAuth } from "@/features/auth/hooks/useAuth";
 import type { Theme } from "@/constants/theme";
+import {
+  getNextScreen,
+  getScreenStep,
+  ONBOARDING_TOTAL,
+} from "@/constants/onboarding-screens";
 
-const TOTAL = 14;
 const CHECKPOINT_INTERVAL_MS = 3_000;
 const CHECKPOINTS: { label: string; icon: keyof typeof Ionicons.glyphMap }[] = [
   { label: "Learning your peak hours", icon: "checkmark-circle" },
@@ -33,11 +37,6 @@ function createStyles(theme: Theme, insets: { top: number; bottom: number }) {
       justifyContent: "center",
       alignItems: "center",
     },
-    logo: {
-      ...theme.typography.displaySmall,
-      color: theme.colors.primary,
-      marginBottom: theme.spacing.xl,
-    },
     title: {
       ...theme.typography.titleLarge,
       color: theme.colors.onBackground,
@@ -47,6 +46,25 @@ function createStyles(theme: Theme, insets: { top: number; bottom: number }) {
     checklist: {
       width: "100%",
       paddingHorizontal: theme.spacing.xl,
+    },
+    progressTrack: {
+      width: "100%",
+      height: 6,
+      backgroundColor: theme.colors.surfaceVariant,
+      borderRadius: 3,
+      overflow: "hidden",
+      marginBottom: theme.spacing.sm,
+    },
+    progressFill: {
+      height: "100%",
+      backgroundColor: theme.colors.primary,
+      borderRadius: 3,
+    },
+    progressPct: {
+      ...theme.typography.labelMedium,
+      color: theme.colors.onSurfaceVariant,
+      textAlign: "center",
+      marginBottom: theme.spacing.lg,
     },
     item: {
       flexDirection: "row",
@@ -107,6 +125,8 @@ export default function ProcessingTheatreScreen() {
   const [done, setDone] = useState(false);
   const saveStarted = useRef(false);
   const mountedRef = useRef(true);
+  const progressAnim = useRef(new Animated.Value(0)).current;
+  const [progressPct, setProgressPct] = useState(0);
 
   useEffect(() => {
     return () => {
@@ -126,11 +146,7 @@ export default function ProcessingTheatreScreen() {
       }
     } catch (err) {
       if (mountedRef.current) {
-        setError(
-          err instanceof Error
-            ? err.message
-            : "Failed to save. Please try again.",
-        );
+        setError("Something went wrong. Please try again.");
         setSaving(false);
       }
     }
@@ -143,6 +159,20 @@ export default function ProcessingTheatreScreen() {
     saveStarted.current = true;
     doSave();
   }, [doSave, userId]);
+
+  // Animate progress bar over the full ritual duration
+  useEffect(() => {
+    const totalDuration = CHECKPOINT_INTERVAL_MS * (CHECKPOINTS.length - 1);
+    const listenerId = progressAnim.addListener(({ value }) => {
+      if (mountedRef.current) setProgressPct(Math.round(value * 100));
+    });
+    Animated.timing(progressAnim, {
+      toValue: 1,
+      duration: totalDuration,
+      useNativeDriver: false,
+    }).start();
+    return () => progressAnim.removeListener(listenerId);
+  }, [progressAnim]);
 
   // Reveal one checkpoint every 3s. Independent effect so auth re-renders
   // can't kill the timers by triggering a cleanup.
@@ -165,20 +195,38 @@ export default function ProcessingTheatreScreen() {
   const handleContinue = useCallback(() => {
     if (!canAdvance) return;
     // ritual complete + save done — advance
-    router.replace("/(onboarding)/schedule-preview");
+    const next = getNextScreen("processing-theatre");
+    if (next) router.replace(`/(onboarding)/${next}`);
   }, [canAdvance, setField]);
 
   return (
     <View style={styles.container}>
       <View style={styles.progressRow}>
-        <ProgressBar current={10} total={TOTAL} />
+        <ProgressBar
+          current={getScreenStep("processing-theatre")}
+          total={ONBOARDING_TOTAL}
+        />
       </View>
 
       <View style={styles.content}>
-        <Text style={styles.logo}>Shift</Text>
         <Text style={styles.title}>
           Crafting your{"\n"}personal schedule...
         </Text>
+
+        <View style={styles.progressTrack}>
+          <Animated.View
+            style={[
+              styles.progressFill,
+              {
+                width: progressAnim.interpolate({
+                  inputRange: [0, 1],
+                  outputRange: ["0%", "100%"],
+                }),
+              },
+            ]}
+          />
+        </View>
+        <Text style={styles.progressPct}>{progressPct}%</Text>
 
         <View style={styles.checklist}>
           {CHECKPOINTS.map((cp, i) => {

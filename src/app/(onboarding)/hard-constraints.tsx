@@ -9,8 +9,7 @@ import ProgressBar from "@/features/onboarding/components/ProgressBar";
 import { HARD_CONSTRAINT_OPTIONS } from "@/types/onboarding";
 import type { Theme } from "@/constants/theme";
 import type { HardConstraint } from "@/types/onboarding";
-
-const TOTAL = 14;
+import { getNextScreen, getScreenStep, ONBOARDING_TOTAL } from "@/constants/onboarding-screens";
 
 function createStyles(theme: Theme, insets: { top: number; bottom: number }) {
   return StyleSheet.create({
@@ -102,7 +101,7 @@ export default function HardConstraintsScreen() {
   return (
     <View style={styles.container}>
       <View style={styles.progressRow}>
-        <ProgressBar current={6} total={TOTAL} />
+        <ProgressBar current={getScreenStep("hard-constraints")} total={ONBOARDING_TOTAL} />
       </View>
 
       <Text style={styles.question}>
@@ -140,7 +139,10 @@ export default function HardConstraintsScreen() {
             styles.continueButton,
             pressed && { opacity: theme.interaction.pressedOpacity },
           ]}
-          onPress={() => router.push("/(onboarding)/freeform")}
+          onPress={() => {
+            const next = getNextScreen("hard-constraints");
+            if (next) router.push(`/(onboarding)/${next}`);
+          }}
           accessibilityRole="button"
           accessibilityLabel="Continue"
         >

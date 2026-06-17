@@ -8,8 +8,7 @@ import ProgressBar from "@/features/onboarding/components/ProgressBar";
 import { PRODUCTIVITY_PEAK_OPTIONS } from "@/types/onboarding";
 import type { Theme } from "@/constants/theme";
 import type { ProductivityPeak } from "@/types/onboarding";
-
-const TOTAL = 14;
+import { getNextScreen, getScreenStep, ONBOARDING_TOTAL } from "@/constants/onboarding-screens";
 
 function createStyles(theme: Theme, insets: { top: number; bottom: number }) {
   return StyleSheet.create({
@@ -73,7 +72,7 @@ export default function EnergyPeakScreen() {
   return (
     <View style={styles.container}>
       <View style={styles.progressRow}>
-        <ProgressBar current={5} total={TOTAL} />
+        <ProgressBar current={getScreenStep("energy-peak")} total={ONBOARDING_TOTAL} />
       </View>
 
       <Text style={styles.question}>When does your{"\n"}energy peak?</Text>
@@ -109,7 +108,10 @@ export default function EnergyPeakScreen() {
             !peak && styles.continueDisabled,
             pressed && { opacity: theme.interaction.pressedOpacity },
           ]}
-          onPress={() => router.push("/(onboarding)/hard-constraints")}
+          onPress={() => {
+            const next = getNextScreen("energy-peak");
+            if (next) router.push(`/(onboarding)/${next}`);
+          }}
           disabled={!peak}
           accessibilityRole="button"
           accessibilityLabel="Continue"

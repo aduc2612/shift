@@ -11,8 +11,11 @@ import { withOpacity } from "@/utils/color";
 import ProgressBar from "@/features/onboarding/components/ProgressBar";
 import type { Theme } from "@/constants/theme";
 import type { PersonaReview } from "@/constants/onboarding-reviews";
-
-const TOTAL = 13;
+import {
+  getNextScreen,
+  getScreenStep,
+  ONBOARDING_TOTAL,
+} from "@/constants/onboarding-screens";
 
 function personaLabel(persona: string | null): string {
   if (!persona) return "people";
@@ -45,7 +48,7 @@ function ReviewCard({
               <Text style={styles.tagText}>{personaTag}</Text>
             </View> */}
             <Ionicons name="star" size={12} color={theme.colors.primary} />
-            <Text style={styles.rating}> {review.rating}.0</Text>
+            <Text style={styles.rating}> {review.rating}</Text>
           </View>
         </View>
       </View>
@@ -66,9 +69,9 @@ function createStyles(theme: Theme, insets: { top: number; bottom: number }) {
     progressContainer: { paddingBottom: theme.spacing.xxl },
     subtitle: {
       ...theme.typography.bodyLarge,
-      color: theme.colors.onSurfaceVariant,
+      color: theme.colors.onBackground,
       marginBottom: theme.spacing.xxl,
-      textAlign: "center",
+      textAlign: "left",
     },
     cards: {
       gap: theme.spacing.md,
@@ -152,17 +155,22 @@ export default function PersonaReviewScreen() {
   const tag = personaLabel(data.persona);
 
   const handleContinue = useCallback(() => {
-    router.push("/(onboarding)/progress-graph");
+    const next = getNextScreen("persona-review");
+    if (next) router.push(`/(onboarding)/${next}`);
   }, []);
 
   return (
     <View style={styles.container}>
       <View style={styles.progressContainer}>
-        <ProgressBar current={8} total={TOTAL} />
+        <ProgressBar
+          current={getScreenStep("persona-review")}
+          total={ONBOARDING_TOTAL}
+        />
       </View>
 
       <Text style={styles.subtitle}>
-        Here's what {tag.toLowerCase()}s are saying about Shift AI.
+        That's great.{"\n"}
+        Shift AI is made for people like you.
       </Text>
 
       <ScrollView

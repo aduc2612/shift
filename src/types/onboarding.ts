@@ -68,8 +68,8 @@ export const PRODUCTIVITY_PEAK_OPTIONS: { value: ProductivityPeak; label: string
 export interface OnboardingData {
   persona: Persona | null;
   painPoints: PainPoint[];
-  sleepTime: string | null; // 'HH:MM'
-  wakeUpTime: string | null; // 'HH:MM'
+  sleepTime: string; // 'HH:MM'
+  wakeUpTime: string; // 'HH:MM'
   productivityPeak: ProductivityPeak | null;
   hardConstraints: HardConstraint[];
   schedulingContext: string;

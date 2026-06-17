@@ -4,8 +4,8 @@ import type { OnboardingData } from '@/types/onboarding';
 const EMPTY_ONBOARDING_DATA: OnboardingData = {
   persona: null,
   painPoints: [],
-  sleepTime: null,
-  wakeUpTime: null,
+  sleepTime: '23:00',
+  wakeUpTime: '07:00',
   productivityPeak: null,
   hardConstraints: [],
   schedulingContext: '',

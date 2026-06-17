@@ -10,8 +10,8 @@ describe('useOnboardingStore', () => {
     expect(data.persona).toBeNull();
     expect(data.painPoints).toEqual([]);
     expect(data.hardConstraints).toEqual([]);
-    expect(data.sleepTime).toBeNull();
-    expect(data.wakeUpTime).toBeNull();
+    expect(data.sleepTime).toBe('23:00');
+    expect(data.wakeUpTime).toBe('07:00');
     expect(data.productivityPeak).toBeNull();
     expect(data.schedulingContext).toBe('');
   });

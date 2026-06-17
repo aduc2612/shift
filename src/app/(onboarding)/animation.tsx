@@ -4,6 +4,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { router } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import { useTheme } from "@/providers/theme-provider";
+import { getNextScreen } from "@/constants/onboarding-screens";
 import type { Theme } from "@/constants/theme";
 
 const DURATION = 4000;
@@ -182,7 +183,8 @@ export default function AnimationScreen() {
   }, [beforeOpacity, afterOpacity, buttonScale]);
 
   const handleContinue = useCallback(() => {
-    router.push("/(onboarding)/sleep-wake");
+    const next = getNextScreen("animation");
+    if (next) router.push(`/(onboarding)/${next}`);
   }, []);
 
   return (

@@ -8,8 +8,7 @@ import { useTheme } from "@/providers/theme-provider";
 import { queryClient } from "@/providers/query-provider";
 import ProgressBar from "@/features/onboarding/components/ProgressBar";
 import type { Theme } from "@/constants/theme";
-
-const TOTAL = 14;
+import { getNextScreen, getScreenStep, ONBOARDING_TOTAL } from "@/constants/onboarding-screens";
 
 function createStyles(theme: Theme, insets: { top: number; bottom: number }) {
   return StyleSheet.create({
@@ -98,7 +97,8 @@ export default function NotifWarmupScreen() {
   const userId = user?.id ?? null;
 
   const handleTurnOn = useCallback(() => {
-    router.push("/(onboarding)/notif-permission");
+    const next = getNextScreen("notif-warmup");
+    if (next) router.push(`/(onboarding)/${next}`);
   }, []);
 
   const handleMaybeLater = useCallback(() => {
@@ -111,7 +111,7 @@ export default function NotifWarmupScreen() {
   return (
     <View style={styles.container}>
       <View style={styles.progressRow}>
-        <ProgressBar current={12} total={TOTAL} />
+        <ProgressBar current={getScreenStep("notif-warmup")} total={ONBOARDING_TOTAL} />
       </View>
 
       <View style={styles.content}>
