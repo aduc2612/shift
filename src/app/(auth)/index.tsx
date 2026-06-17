@@ -100,9 +100,9 @@ export default function AuthScreen() {
   const { signIn, loading, error } = useGoogleSignIn();
 
   useEffect(() => {
-    WebBrowser.warmUpAsync();
+    WebBrowser.warmUpAsync().catch(() => {});
     return () => {
-      WebBrowser.coolDownAsync();
+      WebBrowser.coolDownAsync().catch(() => {});
     };
   }, []);
 
