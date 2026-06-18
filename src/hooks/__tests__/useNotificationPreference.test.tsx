@@ -30,7 +30,7 @@ function Probe() {
 
 describe('useNotificationPreference', () => {
   beforeEach(async () => {
-    await (AsyncStorage as any).clear();
+    await AsyncStorage.clear();
     jest.clearAllMocks();
   });
 

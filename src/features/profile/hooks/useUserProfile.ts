@@ -36,7 +36,7 @@ export function useUserProfile(): UseUserProfileResult {
   const userId = user?.id ?? null;
 
   const profileQuery = useQuery<UserProfile>({
-    queryKey: ["userProfile"],
+    queryKey: ["userProfile", userId],
     queryFn: fetchUserProfile,
     enabled: !!userId,
   });

@@ -86,8 +86,7 @@ export async function updateUserPreferences(
 
   const { error } = await supabase
     .from('user_preferences')
-    .update(payload)
-    .eq('user_id', userId);
+    .upsert({ user_id: userId, ...payload }, { onConflict: 'user_id' });
 
   if (error) {
     throw new Error(`updateUserPreferences failed: ${error.message}`);

@@ -1,6 +1,5 @@
 import { useState } from "react";
 import {
-  Alert,
   Image,
   Pressable,
   ScrollView,
@@ -20,6 +19,7 @@ import { useUserProfile } from "@/features/profile/hooks/useUserProfile";
 import { signOut } from "@/features/auth/api";
 import SchedulingContextSheet from "@/features/profile/components/SchedulingContextSheet";
 import ListSelector, { type ListSelectorOption } from "@/components/primitives/ListSelector";
+import Alert from "@/components/primitives/Alert";
 import {
   buildMailtoUrl,
   feedbackTemplates,
@@ -208,29 +208,17 @@ export default function SettingsScreen() {
   const [showTheme, setShowTheme] = useState(false);
   const [showFeedback, setShowFeedback] = useState(false);
   const [signingOut, setSigningOut] = useState(false);
+  const [showSignOutConfirm, setShowSignOutConfirm] = useState(false);
 
-  async function handleSignOut() {
-    Alert.alert(
-      "Sign Out",
-      "Are you sure you want to sign out?",
-      [
-        { text: "Cancel", style: "cancel" },
-        {
-          text: "Sign Out",
-          style: "destructive",
-          onPress: async () => {
-            setSigningOut(true);
-            try {
-              await signOut();
-            } catch (e) {
-              console.error("Sign out failed", e);
-              toast.show({ message: "Sign out failed. Please try again.", duration: 4000 });
-              setSigningOut(false);
-            }
-          },
-        },
-      ],
-    );
+  async function performSignOut() {
+    setSigningOut(true);
+    try {
+      await signOut();
+    } catch (e) {
+      console.error("Sign out failed", e);
+      toast.show({ message: "Sign out failed. Please try again.", duration: 4000 });
+      setSigningOut(false);
+    }
   }
 
   return (
@@ -261,7 +249,7 @@ export default function SettingsScreen() {
             icon="log-out-outline"
             label="Sign Out"
             labelStyle={styles.rowLabelDanger}
-            onPress={handleSignOut}
+            onPress={() => setShowSignOutConfirm(true)}
             isLast
           />
         </View>
@@ -369,6 +357,19 @@ export default function SettingsScreen() {
             );
           }
           setShowFeedback(false);
+        }}
+      />
+
+      <Alert
+        visible={showSignOutConfirm}
+        title="Sign Out"
+        message="Are you sure you want to sign out?"
+        confirmLabel="Sign Out"
+        destructive
+        onCancel={() => setShowSignOutConfirm(false)}
+        onConfirm={() => {
+          setShowSignOutConfirm(false);
+          performSignOut();
         }}
       />
     </View>

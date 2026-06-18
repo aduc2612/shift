@@ -10,6 +10,7 @@ const mockSelect = jest.fn() as jest.Mock;
 const mockEq = jest.fn() as jest.Mock;
 const mockMaybeSingle = jest.fn() as jest.Mock;
 const mockUpdate = jest.fn() as jest.Mock;
+const mockUpsert = jest.fn() as jest.Mock;
 
 jest.mock('@/services/supabase', () => ({
   supabase: {
@@ -126,15 +127,11 @@ describe('updateUserPreferences', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockFrom.mockReturnValue({
-      update: mockUpdate.mockReturnValue({
-        eq: mockEq,
-      }),
+      upsert: mockUpsert.mockResolvedValue({ error: null }),
     });
   });
 
-  it('calls supabase update with mapped fields', async () => {
-    mockEq.mockResolvedValue({ error: null });
-
+  it('calls supabase upsert with mapped fields', async () => {
     await updateUserPreferences('u-1', {
       wakeUpTime: '08:30',
       sleepTime: '00:00',
@@ -142,23 +139,22 @@ describe('updateUserPreferences', () => {
     });
 
     expect(mockFrom).toHaveBeenCalledWith('user_preferences');
-    expect(mockUpdate).toHaveBeenCalledWith({
-      wake_up_time: '08:30',
-      sleep_time: '00:00',
-      user_context: 'updated',
-    });
-    expect(mockEq).toHaveBeenCalledWith('user_id', 'u-1');
+    expect(mockUpsert).toHaveBeenCalledWith(
+      { user_id: 'u-1', wake_up_time: '08:30', sleep_time: '00:00', user_context: 'updated' },
+      { onConflict: 'user_id' },
+    );
   });
 
   it('only sends provided fields', async () => {
-    mockEq.mockResolvedValue({ error: null });
-
     await updateUserPreferences('u-1', { userContext: 'only this' });
-    expect(mockUpdate).toHaveBeenCalledWith({ user_context: 'only this' });
+    expect(mockUpsert).toHaveBeenCalledWith(
+      { user_id: 'u-1', user_context: 'only this' },
+      { onConflict: 'user_id' },
+    );
   });
 
   it('throws on supabase error', async () => {
-    mockEq.mockResolvedValue({ error: { message: 'oops' } });
+    mockUpsert.mockResolvedValue({ error: { message: 'oops' } });
     await expect(
       updateUserPreferences('u-1', { userContext: 'x' }),
     ).rejects.toThrow(/oops/);

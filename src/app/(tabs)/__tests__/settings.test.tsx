@@ -1,11 +1,9 @@
 import { fireEvent, render, waitFor } from '@testing-library/react-native';
-import { Alert } from 'react-native';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import React from 'react';
 import * as Application from 'expo-application';
 import * as Linking from 'expo-linking';
 
-const mockAlert = jest.spyOn(Alert, 'alert');
 const mockSignOut = jest.fn();
 const mockSetEnabled = jest.fn();
 const mockSetThemePreference = jest.fn();
@@ -123,7 +121,6 @@ import SettingsScreen from '../settings';
 describe('SettingsScreen', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    mockAlert.mockReset();
   });
 
   it('renders header and account section', async () => {
@@ -212,14 +209,18 @@ describe('SettingsScreen', () => {
   });
 
   it('signs out when sign out button is pressed and confirmed', async () => {
-    mockAlert.mockImplementation((title, message, buttons) => {
-      const signOutBtn = buttons?.find(b => b.style === 'destructive');
-      signOutBtn?.onPress?.();
-    });
+    const { getByText, getAllByText } = await wrap(<SettingsScreen />);
 
-    const { getByText } = await wrap(<SettingsScreen />);
-
+    // Press the sign out row to open confirm alert
     fireEvent.press(getByText('Sign Out'));
+
+    // Wait for the custom alert to appear, then press the confirm button
+    await waitFor(() => {
+      expect(getByText('Are you sure you want to sign out?')).toBeTruthy();
+    });
+    // After alert opens, there are 2 "Sign Out" texts: the row and the confirm button
+    const signOutButtons = getAllByText('Sign Out');
+    fireEvent.press(signOutButtons[signOutButtons.length - 1]!);
 
     await waitFor(() => {
       expect(mockSignOut).toHaveBeenCalled();
@@ -228,14 +229,16 @@ describe('SettingsScreen', () => {
 
   it('shows toast when sign out fails', async () => {
     mockSignOut.mockRejectedValueOnce(new Error('fail'));
-    mockAlert.mockImplementation((title, message, buttons) => {
-      const signOutBtn = buttons?.find(b => b.style === 'destructive');
-      signOutBtn?.onPress?.();
-    });
 
-    const { getByText } = await wrap(<SettingsScreen />);
+    const { getByText, getAllByText } = await wrap(<SettingsScreen />);
 
     fireEvent.press(getByText('Sign Out'));
+
+    await waitFor(() => {
+      expect(getByText('Are you sure you want to sign out?')).toBeTruthy();
+    });
+    const signOutButtons = getAllByText('Sign Out');
+    fireEvent.press(signOutButtons[signOutButtons.length - 1]!);
 
     await waitFor(() => {
       expect(mockShow).toHaveBeenCalledWith(

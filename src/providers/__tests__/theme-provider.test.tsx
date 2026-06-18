@@ -20,7 +20,7 @@ function Probe() {
 
 describe('ThemeProvider', () => {
   beforeEach(async () => {
-    await (AsyncStorage as any).clear();
+    await AsyncStorage.clear();
     jest.clearAllMocks();
     mockUseColorScheme.mockReturnValue('light');
   });

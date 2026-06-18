@@ -26,11 +26,13 @@ export function formatDuration(minutes: number): string {
 
 /**
  * Parse a "HH:MM" string to hour and minute components.
- * Defaults to 07:00 if invalid.
+ * Defaults to 07:00 if invalid or out of range.
  */
 export function parseHHMM(value: string): { h: number; m: number } {
   const [h, m] = value.split(":").map((n) => parseInt(n, 10));
-  return { h: Number.isFinite(h) ? h : 7, m: Number.isFinite(m) ? m : 0 };
+  const validH = Number.isFinite(h) && h >= 0 && h <= 23;
+  const validM = Number.isFinite(m) && m >= 0 && m <= 59;
+  return { h: validH ? h : 7, m: validM ? m : 0 };
 }
 
 /**
