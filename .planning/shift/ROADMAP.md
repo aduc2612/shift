@@ -210,23 +210,19 @@ SQL migration scripts live in `supabase/migrations/`. Run each new migration in 
 
 ---
 
-### Phase 10: Payments & Polish
+### Phase 10: Payments & Polish ✅
 **Goal:** Implement RevenueCat subscription management, gate AI features. Final polish.
 
-**Deliverables:**
-- RevenueCat client in `lib/revenuecat.ts`
-- RevenueCat provider in `providers/`
-- Paywall component using RevenueCat UI
-- Daily reschedule limit for free users (define in `constants/limits.ts`)
-- Check entitlement before reschedule
-- Show paywall when free user hits limit
-- Track reschedule count per day (reset at midnight)
-- Loading states and error handling throughout app
-- Empty states with helpful messaging
-- Final UI polish (spacing, typography, animations)
-- Test on both iOS and Android
+**Status:** Complete — see `.planning/shift/10-01-SUMMARY.md`
 
-**Validation:** Free users reschedule up to daily limit, then see paywall. Paid users unlimited. App polished and tested on both platforms.
+**Key Deliverables:**
+- RevenueCat SDK integration (`react-native-purchases` + `react-native-purchases-ui`)
+- Shared subscription state via module-level store (`useSyncExternalStore`)
+- Native paywall screen with purchase/restore flow
+- Route guards: paywall ↔ tabs based on subscription status
+- AI reschedule gated behind entitlement check
+- Settings: current plan label mapped from product identifier, renewal date, Customer Center
+- 8 new tests for revenuecat service, 3 for useSubscription hook
 
 ---
 

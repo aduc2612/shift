@@ -25,6 +25,12 @@ jest.mock('@/providers/toast-provider', () => ({
   useToast: () => ({ show: mockShow, hide: mockHide }),
 }));
 
+// Mock RevenueCat service
+jest.mock('@/services/revenuecat', () => ({
+  isSubscribed: jest.fn(async () => true),
+  presentPaywall: jest.fn(async () => true),
+}));
+
 // Import mocked modules for assertions
 const api = jest.requireMock('@/features/schedule/api') as {
   fetchIncompleteTasks: jest.Mock;

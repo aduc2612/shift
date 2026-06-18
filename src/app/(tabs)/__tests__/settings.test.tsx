@@ -85,6 +85,19 @@ jest.mock('@/providers/toast-provider', () => ({
   useToast: () => ({ show: mockShow, hide: jest.fn() }),
 }));
 
+jest.mock('@/hooks/useSubscription', () => ({
+  useSubscription: () => ({
+    isSubscribed: true,
+    isLoading: false,
+    customerInfo: null,
+    refresh: jest.fn(),
+  }),
+}));
+
+jest.mock('@/services/revenuecat', () => ({
+  presentCustomerCenter: jest.fn(async () => {}),
+}));
+
 jest.mock('@/features/profile/components/SchedulingContextSheet', () => {
   const R = require('react');
   const RN = require('react-native');

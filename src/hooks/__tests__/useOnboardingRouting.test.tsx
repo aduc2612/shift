@@ -11,11 +11,17 @@ jest.mock('@/hooks/useOnboardingStatus', () => ({
   useOnboardingStatus: jest.fn(),
 }));
 
+jest.mock('@/hooks/useSubscription', () => ({
+  useSubscription: jest.fn(),
+}));
+
 import { useAuth } from '@/features/auth/hooks/useAuth';
 import { useOnboardingStatus } from '@/hooks/useOnboardingStatus';
+import { useSubscription } from '@/hooks/useSubscription';
 
 const mockedUseAuth = jest.mocked(useAuth);
 const mockedStatus = jest.mocked(useOnboardingStatus);
+const mockedSub = jest.mocked(useSubscription);
 
 function wrapper({ children }: { children: React.ReactNode }) {
   const qc = new QueryClient({
@@ -27,6 +33,12 @@ function wrapper({ children }: { children: React.ReactNode }) {
 describe('useOnboardingRouting', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    mockedSub.mockReturnValue({
+      isSubscribed: true,
+      isLoading: false,
+      customerInfo: null,
+      refresh: jest.fn(),
+    });
   });
 
   it('shows auth when not authenticated', async () => {

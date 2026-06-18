@@ -104,6 +104,36 @@ jest.mock('react-native-keyboard-controller', () => {
   };
 });
 
+// Mock react-native-purchases
+jest.mock('react-native-purchases', () => ({
+  __esModule: true,
+  default: {
+    configure: jest.fn(),
+    getCustomerInfo: jest.fn(async () => ({
+      entitlements: { active: {} },
+    })),
+  },
+}));
+
+// Mock react-native-purchases-ui
+jest.mock('react-native-purchases-ui', () => ({
+  __esModule: true,
+  default: {
+    Paywall: 'Paywall',
+    presentPaywall: jest.fn(async () => 'CANCELLED'),
+    presentPaywallIfNeeded: jest.fn(async () => 'NOT_PRESENTED'),
+    presentCustomerCenter: jest.fn(async () => {}),
+    CustomerCenterView: 'CustomerCenterView',
+  },
+  PAYWALL_RESULT: {
+    NOT_PRESENTED: 'NOT_PRESENTED',
+    ERROR: 'ERROR',
+    CANCELLED: 'CANCELLED',
+    PURCHASED: 'PURCHASED',
+    RESTORED: 'RESTORED',
+  },
+}));
+
 // Helper: wrap a component with ThemeProvider
 import { ThemeProvider } from '@/providers/theme-provider';
 

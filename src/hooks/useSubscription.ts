@@ -1,0 +1,75 @@
+import { useCallback, useEffect, useSyncExternalStore } from 'react';
+import { useFocusEffect } from 'expo-router';
+import { getCustomerInfo, isSubscribed } from '@/services/revenuecat';
+import type { CustomerInfo } from 'react-native-purchases';
+
+// ── Shared module-level store ─────────────────────────────────────────────
+// Each component that calls useSubscription() must see the same subscription
+// state. useState creates isolated state per component instance, so the
+// paywall screen and root layout would each have their own copy.  When the
+// paywall refreshed after purchase the root layout guards never updated.
+// A tiny external store fixes this: one source of truth, all consumers
+// subscribe and re-render together.
+
+type SubState = {
+  subscribed: boolean;
+  customerInfo: CustomerInfo | null;
+};
+
+let state: SubState = { subscribed: false, customerInfo: null };
+let listeners: Array<() => void> = [];
+
+function emitChange() {
+  for (const l of listeners) l();
+}
+
+function setState(next: Partial<SubState>) {
+  state = { ...state, ...next };
+  emitChange();
+}
+
+function subscribe(listener: () => void) {
+  listeners = [...listeners, listener];
+  return () => {
+    listeners = listeners.filter((l) => l !== listener);
+  };
+}
+
+function getSnapshot() {
+  return state;
+}
+
+// Fetch latest from RevenueCat and push into shared store.
+async function refreshStore() {
+  try {
+    const [info, active] = await Promise.all([getCustomerInfo(), isSubscribed()]);
+    setState({ customerInfo: info, subscribed: active });
+  } catch {
+    setState({ subscribed: false, customerInfo: null });
+  }
+}
+
+// ── Hook ──────────────────────────────────────────────────────────────────
+
+export function useSubscription() {
+  const snap = useSyncExternalStore(subscribe, getSnapshot);
+
+  // Initial fetch on first mount.
+  useEffect(() => {
+    refreshStore();
+  }, []);
+
+  // Re-fetch whenever the consuming screen regains focus.
+  useFocusEffect(
+    useCallback(() => {
+      refreshStore();
+    }, []),
+  );
+
+  return {
+    isSubscribed: snap.subscribed,
+    isLoading: false as const,
+    customerInfo: snap.customerInfo,
+    refresh: refreshStore,
+  };
+}
