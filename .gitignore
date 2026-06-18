@@ -45,3 +45,6 @@ coverage/
 
 # Supabase local dev artifacts
 supabase/.temp/
+
+# Windows reserved device names
+nul
