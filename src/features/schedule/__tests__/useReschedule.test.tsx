@@ -26,9 +26,11 @@ jest.mock('@/providers/toast-provider', () => ({
 }));
 
 // Mock RevenueCat service
+const mockIsSubscribed = jest.fn(async () => true);
+const mockPresentPaywall = jest.fn(async () => true);
 jest.mock('@/services/revenuecat', () => ({
-  isSubscribed: jest.fn(async () => true),
-  presentPaywall: jest.fn(async () => true),
+  isSubscribed: () => mockIsSubscribed(),
+  presentPaywall: () => mockPresentPaywall(),
 }));
 
 // Import mocked modules for assertions
@@ -121,6 +123,8 @@ describe('useReschedule', () => {
     api.fetchIncompleteTasks.mockResolvedValue(mockTasks);
     ai.rescheduleTasks.mockResolvedValue(mockRescheduleResult);
     api.batchUpdateTasks.mockResolvedValue(mockUpdatedTasks);
+    mockIsSubscribed.mockResolvedValue(true);
+    mockPresentPaywall.mockResolvedValue(true);
   });
 
   it('fetches incomplete tasks, calls AI, writes results via batchUpdateTasks', async () => {
@@ -285,6 +289,43 @@ describe('useReschedule', () => {
       });
 
       expect(api.batchUpdateTasks).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('subscription gating', () => {
+    it('throws when not subscribed and paywall not purchased', async () => {
+      mockIsSubscribed.mockResolvedValue(false);
+      mockPresentPaywall.mockResolvedValue(false);
+
+      const { result } = await renderHook(() => useReschedule(), {
+        wrapper: createWrapper(),
+      });
+
+      await act(async () => {
+        await expect(
+          result.current.mutateAsync({ whatChanged: '' }),
+        ).rejects.toThrow('Subscription required');
+      });
+
+      expect(mockPresentPaywall).toHaveBeenCalledTimes(1);
+      expect(api.fetchIncompleteTasks).not.toHaveBeenCalled();
+    });
+
+    it('continues reschedule when paywall purchase succeeds', async () => {
+      mockIsSubscribed.mockResolvedValue(false);
+      mockPresentPaywall.mockResolvedValue(true);
+
+      const { result } = await renderHook(() => useReschedule(), {
+        wrapper: createWrapper(),
+      });
+
+      await act(async () => {
+        await result.current.mutateAsync({ whatChanged: 'test' });
+      });
+
+      expect(mockPresentPaywall).toHaveBeenCalledTimes(1);
+      expect(api.fetchIncompleteTasks).toHaveBeenCalledTimes(1);
+      expect(ai.rescheduleTasks).toHaveBeenCalled();
     });
   });
 });

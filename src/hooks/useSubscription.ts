@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useSyncExternalStore } from 'react';
 import { useFocusEffect } from 'expo-router';
-import { getCustomerInfo, isSubscribed } from '@/services/revenuecat';
+import { getCustomerInfo } from '@/services/revenuecat';
 import type { CustomerInfo } from 'react-native-purchases';
 
 // ── Shared module-level store ─────────────────────────────────────────────
@@ -11,12 +11,15 @@ import type { CustomerInfo } from 'react-native-purchases';
 // A tiny external store fixes this: one source of truth, all consumers
 // subscribe and re-render together.
 
+const ENTITLEMENT_ID = 'Shift AI Pro';
+
 type SubState = {
   subscribed: boolean;
   customerInfo: CustomerInfo | null;
+  loading: boolean;
 };
 
-let state: SubState = { subscribed: false, customerInfo: null };
+let state: SubState = { subscribed: false, customerInfo: null, loading: true };
 let listeners: Array<() => void> = [];
 
 function emitChange() {
@@ -40,12 +43,15 @@ function getSnapshot() {
 }
 
 // Fetch latest from RevenueCat and push into shared store.
+// Single getCustomerInfo() call — we check entitlements inline rather than
+// calling isSubscribed() which would fetch customer info a second time.
 async function refreshStore() {
   try {
-    const [info, active] = await Promise.all([getCustomerInfo(), isSubscribed()]);
-    setState({ customerInfo: info, subscribed: active });
+    const info = await getCustomerInfo();
+    const active = ENTITLEMENT_ID in info.entitlements.active;
+    setState({ customerInfo: info, subscribed: active, loading: false });
   } catch {
-    setState({ subscribed: false, customerInfo: null });
+    setState({ subscribed: false, customerInfo: null, loading: false });
   }
 }
 
@@ -68,7 +74,7 @@ export function useSubscription() {
 
   return {
     isSubscribed: snap.subscribed,
-    isLoading: false as const,
+    isLoading: snap.loading,
     customerInfo: snap.customerInfo,
     refresh: refreshStore,
   };

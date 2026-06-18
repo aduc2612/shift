@@ -266,7 +266,7 @@ export default function SettingsScreen() {
             subtitle={
               (() => {
                 const entitlement = customerInfo?.entitlements.active["Shift AI Pro"];
-                if (!entitlement) return "Loading...";
+                if (!entitlement) return "No active subscription";
                 return PLAN_LABELS[entitlement.productIdentifier] ?? "Shift AI Pro";
               })()
             }

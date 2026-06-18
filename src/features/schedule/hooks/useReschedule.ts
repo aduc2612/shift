@@ -34,8 +34,10 @@ export function useReschedule() {
     mutationFn: async ({ whatChanged }: { whatChanged: string }) => {
       const subscribed = await isSubscribed();
       if (!subscribed) {
-        await presentPaywall();
-        throw new Error('Subscription required');
+        const purchased = await presentPaywall();
+        if (!purchased) {
+          throw new Error('Subscription required');
+        }
       }
 
       const tasks = await fetchIncompleteTasks();
