@@ -1,5 +1,6 @@
 import { supabase } from '@/services/supabase';
 import type { OnboardingData } from '@/types/onboarding';
+import { buildUserContextText } from './utils';
 
 export async function saveOnboardingData(
   userId: string,
@@ -8,13 +9,9 @@ export async function saveOnboardingData(
   const payload = {
     user_id: userId,
     onboarding_completed: true,
-    persona: data.persona,
     sleep_time: data.sleepTime,
     wake_up_time: data.wakeUpTime,
-    productivity_peak: data.productivityPeak,
-    pain_points: data.painPoints,
-    hard_constraints: data.hardConstraints,
-    scheduling_context: data.schedulingContext,
+    user_context: buildUserContextText(data),
   };
 
   const { error } = await supabase
