@@ -191,8 +191,27 @@ SQL migration scripts live in `supabase/migrations/`. Run each new migration in 
 
 ---
 
-### Phase 9: Payments
-**Goal:** Implement RevenueCat subscription management, gate AI features.
+### Phase 9: Settings
+**Goal:** Build settings screen with account info, scheduling context editing, notifications, theme, feedback.
+
+**Deliverables:**
+- Settings screen with sections: Account, AI Preferences, Notifications, Preferences, About
+- User profile from Supabase auth (avatar, name, email)
+- Scheduling context bottom sheet (wake time, bed time, freeform text)
+- Notification toggle with OS permission flow
+- Theme picker (system/light/dark) persisted in AsyncStorage
+- Feedback via mailto with pre-filled templates
+- Version display from expo-application
+- Privacy policy row (no-op)
+- ListSelector primitive (bottom sheet with full-width rows)
+- Toast primitive
+
+**Validation:** All settings sections functional. Theme persists across restarts. Notification toggle handles permission flow. Scheduling context saves to Supabase.
+
+---
+
+### Phase 10: Payments & Polish
+**Goal:** Implement RevenueCat subscription management, gate AI features. Final polish.
 
 **Deliverables:**
 - RevenueCat client in `lib/revenuecat.ts`
@@ -202,31 +221,12 @@ SQL migration scripts live in `supabase/migrations/`. Run each new migration in 
 - Check entitlement before reschedule
 - Show paywall when free user hits limit
 - Track reschedule count per day (reset at midnight)
-
-**Validation:** Free users reschedule up to daily limit, then see paywall. Paid users unlimited.
-
-**Manual Setup Required:**
-- Create RevenueCat project
-- Configure products (monthly/annual subscriptions)
-- Set up offerings
-- Add RevenueCat API keys to app
-
----
-
-### Phase 10: Settings & Polish
-**Goal:** Add settings screen and final polish.
-
-**Deliverables:**
-- Settings screen accessible from profile/settings tab
-- Freeform text input for updating scheduling context
-- Save changes to Supabase `user_preferences`
-- Dark mode support (theme adapts to system)
 - Loading states and error handling throughout app
 - Empty states with helpful messaging
 - Final UI polish (spacing, typography, animations)
 - Test on both iOS and Android
 
-**Validation:** Users update preferences in settings. App looks good in light/dark mode. No crashes or major bugs.
+**Validation:** Free users reschedule up to daily limit, then see paywall. Paid users unlimited. App polished and tested on both platforms.
 
 ---
 
@@ -249,9 +249,9 @@ Phase 7 (Notifications) ← Integrates with Phase 5 & 6
     ↓
 Phase 8 (Onboarding)
     ↓
-Phase 9 (Payments) ← Can potentially run in parallel with 8
+Phase 9 (Settings)
     ↓
-Phase 10 (Settings & Polish)
+Phase 10 (Payments & Polish) ← Can potentially run in parallel with 9
 ```
 
 ## Testing Strategy

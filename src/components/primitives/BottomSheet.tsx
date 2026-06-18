@@ -19,6 +19,7 @@ function createStyles(theme: Theme) {
     sheetContainer: {
       flex: 1,
       justifyContent: "flex-end",
+      pointerEvents: "box-none",
     },
     sheetContent: {
       backgroundColor: theme.colors.background,

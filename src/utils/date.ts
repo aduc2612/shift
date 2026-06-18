@@ -25,6 +25,42 @@ export function formatDuration(minutes: number): string {
 }
 
 /**
+ * Parse a "HH:MM" string to hour and minute components.
+ * Defaults to 07:00 if invalid or out of range.
+ */
+export function parseHHMM(value: string): { h: number; m: number } {
+  const [h, m] = value.split(":").map((n) => parseInt(n, 10));
+  const validH = Number.isFinite(h) && h >= 0 && h <= 23;
+  const validM = Number.isFinite(m) && m >= 0 && m <= 59;
+  return { h: validH ? h : 7, m: validM ? m : 0 };
+}
+
+/**
+ * Format hour/minute to 12h display like "8:00 AM"
+ */
+export function formatTime12h(hour: number, minute: number): string {
+  const period = hour >= 12 ? "PM" : "AM";
+  const h12 = hour === 0 ? 12 : hour > 12 ? hour - 12 : hour;
+  return `${h12}:${minute.toString().padStart(2, "0")} ${period}`;
+}
+
+/**
+ * Convert hour/minute to "HH:MM" string for DB storage
+ */
+export function toHHMM(hour: number, minute: number): string {
+  return `${hour.toString().padStart(2, "0")}:${minute.toString().padStart(2, "0")}`;
+}
+
+/**
+ * Create a Date object at a specific hour/minute (for pickers)
+ */
+export function pickerDate(hour: number, minute: number): Date {
+  const d = new Date();
+  d.setHours(hour, minute, 0, 0);
+  return d;
+}
+
+/**
  * Return "Today" if date is today, "Past" if before today, empty string if future
  */
 export function formatRelativeDay(date: Date): string {

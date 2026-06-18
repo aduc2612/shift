@@ -1,6 +1,33 @@
 import React from 'react';
 import { render } from '@testing-library/react-native';
 
+// Mock AsyncStorage globally so all tests get the in-memory store
+jest.mock('@react-native-async-storage/async-storage', () => {
+  let store: Record<string, string> = {};
+  return {
+    __esModule: true,
+    default: {
+      getItem: jest.fn(async (key: string) => store[key] ?? null),
+      setItem: jest.fn(async (key: string, value: string) => {
+        store[key] = value;
+      }),
+      removeItem: jest.fn(async (key: string) => {
+        delete store[key];
+      }),
+      clear: jest.fn(async () => {
+        store = {};
+      }),
+      getAllKeys: jest.fn(async () => Object.keys(store)),
+      multiGet: jest.fn(async (keys: string[]) =>
+        keys.map((k) => [k, store[k] ?? null] as [string, string | null]),
+      ),
+      multiSet: jest.fn(async (pairs: [string, string][]) => {
+        for (const [k, v] of pairs) store[k] = v;
+      }),
+    },
+  };
+});
+
 // Mock react-native-reanimated
 jest.mock('react-native-reanimated', () => {
   const Reanimated = require('react-native-reanimated/mock');
