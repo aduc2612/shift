@@ -4,6 +4,7 @@ import { rescheduleTasks } from '@/services/ai';
 import { useUndoStore } from '@/store/undo-store';
 import { useToast } from '@/providers/toast-provider';
 import { RESCHEDULE_CONSTANTS } from '@/constants/reschedule';
+import { isSubscribed, presentPaywall } from '@/services/revenuecat';
 
 export function useReschedule() {
   const queryClient = useQueryClient();
@@ -31,6 +32,14 @@ export function useReschedule() {
 
   const mutation = useMutation({
     mutationFn: async ({ whatChanged }: { whatChanged: string }) => {
+      const subscribed = await isSubscribed();
+      if (!subscribed) {
+        const purchased = await presentPaywall();
+        if (!purchased) {
+          throw new Error('Subscription required');
+        }
+      }
+
       const tasks = await fetchIncompleteTasks();
       undoStore.setSnapshot(tasks);
       const result = await rescheduleTasks(tasks, '', whatChanged);

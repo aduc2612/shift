@@ -16,6 +16,9 @@ import { useTheme, useThemePreference, type ThemePreference } from "@/providers/
 import { useNotificationPreference } from "@/hooks/useNotificationPreference";
 import { useToast } from "@/providers/toast-provider";
 import { useUserProfile } from "@/features/profile/hooks/useUserProfile";
+import { useSubscription } from "@/hooks/useSubscription";
+import { PLAN_LABELS } from "@/constants/limits";
+import { presentCustomerCenter } from "@/services/revenuecat";
 import { signOut } from "@/features/auth/api";
 import SchedulingContextSheet from "@/features/profile/components/SchedulingContextSheet";
 import ListSelector, { type ListSelectorOption } from "@/components/primitives/ListSelector";
@@ -204,6 +207,7 @@ export default function SettingsScreen() {
   const { enabled, setEnabled } = useNotificationPreference();
   const toast = useToast();
   const { profile, initials } = useUserProfile();
+  const { customerInfo } = useSubscription();
   const [showScheduling, setShowScheduling] = useState(false);
   const [showTheme, setShowTheme] = useState(false);
   const [showFeedback, setShowFeedback] = useState(false);
@@ -251,6 +255,45 @@ export default function SettingsScreen() {
             labelStyle={styles.rowLabelDanger}
             onPress={() => setShowSignOutConfirm(true)}
             isLast
+          />
+        </View>
+
+        <Text style={styles.sectionLabel}>Subscription</Text>
+        <View style={styles.card}>
+          <SettingsRow
+            icon="diamond-outline"
+            label="Current plan"
+            subtitle={
+              (() => {
+                const entitlement = customerInfo?.entitlements.active["Shift AI Pro"];
+                if (!entitlement) return "No active subscription";
+                return PLAN_LABELS[entitlement.productIdentifier] ?? "Shift AI Pro";
+              })()
+            }
+            isLast={!customerInfo?.entitlements.active["Shift AI Pro"]}
+          />
+          {customerInfo?.entitlements.active["Shift AI Pro"]?.expirationDate && (
+            <SettingsRow
+              icon="calendar-outline"
+              label="Renewal date"
+              subtitle={new Date(
+                customerInfo.entitlements.active["Shift AI Pro"].expirationDate,
+              ).toLocaleDateString()}
+            />
+          )}
+          <SettingsRow
+            icon="settings-outline"
+            label="Manage subscription"
+            subtitle="View or cancel"
+            onPress={() => presentCustomerCenter().catch(console.error)}
+            isLast
+            right={
+              <Ionicons
+                name="chevron-forward"
+                size={18}
+                color={theme.colors.onSurfaceVariant}
+              />
+            }
           />
         </View>
 

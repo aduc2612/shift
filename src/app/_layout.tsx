@@ -13,19 +13,23 @@ import { useOnboardingRouting } from "@/features/onboarding/hooks/useOnboardingR
 import { initSentry } from "@/services/sentry";
 import { setupNotificationChannel } from "@/services/notifications";
 import { useNotificationTapListener } from "@/hooks/useNotificationTapListener";
+import { configureRevenueCat } from "@/services/revenuecat";
 
 initSentry();
 
 function RootNavigator() {
   const theme = useTheme();
   const { isAuthenticated, loading: authLoading } = useAuth();
-  const { loading: routingLoading, shouldShowAuth, shouldShowOnboarding, shouldShowTabs = false } = useOnboardingRouting();
+  const { loading: routingLoading, shouldShowAuth, shouldShowOnboarding, shouldShowPaywall, shouldShowTabs = false } = useOnboardingRouting();
 
   useNotificationTapListener();
 
   useEffect(() => {
     setupNotificationChannel().catch((err) => {
       console.error('Failed to setup notification channel:', err);
+    });
+    configureRevenueCat().catch((err) => {
+      console.error('Failed to configure RevenueCat:', err);
     });
   }, []);
 
@@ -58,6 +62,9 @@ function RootNavigator() {
         </Stack.Protected>
         <Stack.Protected guard={shouldShowOnboarding}>
           <Stack.Screen name="(onboarding)" />
+        </Stack.Protected>
+        <Stack.Protected guard={shouldShowPaywall}>
+          <Stack.Screen name="(paywall)" />
         </Stack.Protected>
         <Stack.Protected guard={shouldShowTabs}>
           <Stack.Screen name="(tabs)" />

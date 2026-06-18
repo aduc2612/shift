@@ -85,6 +85,22 @@ jest.mock('@/providers/toast-provider', () => ({
   useToast: () => ({ show: mockShow, hide: jest.fn() }),
 }));
 
+const mockPresentCustomerCenter = jest.fn(async () => {});
+jest.mock('@/services/revenuecat', () => ({
+  presentCustomerCenter: () => mockPresentCustomerCenter(),
+}));
+
+// var required — jest.mock is hoisted above let/const declarations
+var mockCustomerInfo: any = null;
+jest.mock('@/hooks/useSubscription', () => ({
+  useSubscription: () => ({
+    isSubscribed: true,
+    isLoading: false,
+    customerInfo: mockCustomerInfo,
+    refresh: jest.fn(),
+  }),
+}));
+
 jest.mock('@/features/profile/components/SchedulingContextSheet', () => {
   const R = require('react');
   const RN = require('react-native');
@@ -121,6 +137,7 @@ import SettingsScreen from '../settings';
 describe('SettingsScreen', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    mockCustomerInfo = null;
   });
 
   it('renders header and account section', async () => {
@@ -261,5 +278,36 @@ describe('SettingsScreen', () => {
     // Should not have called Linking when just opening the selector
     expect(mockOpenURL).not.toHaveBeenCalled();
     mockOpenURL.mockRestore();
+  });
+
+  it('shows plan label when subscription is active', async () => {
+    mockCustomerInfo = {
+      entitlements: {
+        active: {
+          'Shift AI Pro': { productIdentifier: 'monthly_main' },
+        },
+      },
+    };
+
+    const { getByText } = await wrap(<SettingsScreen />);
+    expect(getByText('Subscription')).toBeTruthy();
+    expect(getByText('Shift AI Pro Monthly')).toBeTruthy();
+  });
+
+  it('shows "No active subscription" when entitlement is missing', async () => {
+    mockCustomerInfo = { entitlements: { active: {} } };
+
+    const { getByText } = await wrap(<SettingsScreen />);
+    expect(getByText('No active subscription')).toBeTruthy();
+  });
+
+  it('calls presentCustomerCenter when manage subscription is pressed', async () => {
+    const { getByText } = await wrap(<SettingsScreen />);
+
+    fireEvent.press(getByText('Manage subscription'));
+
+    await waitFor(() => {
+      expect(mockPresentCustomerCenter).toHaveBeenCalledTimes(1);
+    });
   });
 });
