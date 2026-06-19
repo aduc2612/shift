@@ -30,6 +30,7 @@ export async function syncNotifications(tasks: Task[]): Promise<void> {
     await Notifications.cancelAllScheduledNotificationsAsync();
   } catch (e) {
     console.error('[Notifications] Failed to cancel scheduled notifications:', e);
+    return;
   }
 
   const now = new Date();

@@ -105,12 +105,14 @@ export default function ProcessingTheatreScreen() {
   const saveStarted = useRef(false);
   const mountedRef = useRef(true);
   const retryCount = useRef(0);
+  const retryTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const progressAnim = useRef(new Animated.Value(0)).current;
   const [progressPct, setProgressPct] = useState(0);
 
   useEffect(() => {
     return () => {
       mountedRef.current = false;
+      if (retryTimeoutRef.current) clearTimeout(retryTimeoutRef.current);
     };
   }, []);
 
@@ -130,13 +132,14 @@ export default function ProcessingTheatreScreen() {
         if (retryCount.current < 3) {
           retryCount.current += 1;
           toast.show({ message: "Something went wrong. Retrying...", duration: 3000 });
-          setTimeout(() => doSave(), 2000);
+          retryTimeoutRef.current = setTimeout(() => doSave(), 2000);
         } else {
           toast.show({ message: "Save failed. Please try back later." });
+          setDone(true);
         }
       }
     }
-  }, [userId, data]);
+  }, [userId, data, toast]);
 
   // Start the real save — re-attempts when userId becomes available
   useEffect(() => {

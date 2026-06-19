@@ -40,13 +40,18 @@ function getSnapshot() {
   return state;
 }
 
+let latestRequestId = 0;
+
 function refreshStore() {
+  const requestId = ++latestRequestId;
   (async () => {
     try {
       const customerInfo = await getCustomerInfo();
+      if (requestId !== latestRequestId) return;
       const subscribed = ENTITLEMENT_ID in customerInfo.entitlements.active;
       state = { subscribed, customerInfo, loading: false, error: null };
     } catch (e) {
+      if (requestId !== latestRequestId) return;
       // Preserve previous subscription state on transient errors (e.g. network blip).
       // Only a successful RevenueCat response can confirm no entitlement.
       console.error('[useSubscription] Failed to check subscription:', e);
@@ -55,9 +60,6 @@ function refreshStore() {
     emit();
   })();
 }
-
-// Expose refresh so callers (PaywallScreen, etc.) can force a re-check after purchases.
-refreshStore.refresh = refreshStore;
 
 export { refreshStore };
 

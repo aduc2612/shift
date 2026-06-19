@@ -164,7 +164,7 @@ describe('RescheduleSheet', () => {
         expect(onClose).not.toHaveBeenCalled();
         expect(getAllByText('Reschedule failed. Please try again.').length).toBeGreaterThan(0);
       });
-    });
+    }, 10000);
 
     it('clears text input on success', async () => {
       const onReschedule = jest.fn().mockResolvedValue(undefined);

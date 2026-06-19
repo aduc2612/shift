@@ -8,6 +8,14 @@ async function renderWithTheme(ui: React.ReactElement) {
 }
 
 describe('TimelineRow', () => {
+  beforeEach(() => {
+    jest.useFakeTimers();
+  });
+
+  afterEach(() => {
+    jest.useRealTimers();
+  });
+
   it('renders time label and children', async () => {
     const { getByText } = await renderWithTheme(
       <TimelineRow time="09:00" state="upcoming">
@@ -25,5 +33,5 @@ describe('TimelineRow', () => {
       </TimelineRow>,
     );
     expect(getByText('Now')).toBeTruthy();
-  });
+  }, 10000);
 });

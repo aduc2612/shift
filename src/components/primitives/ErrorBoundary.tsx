@@ -39,6 +39,7 @@ class ErrorBoundaryInner extends React.Component<
           </Text>
           <Pressable
             onPress={this.handleRetry}
+            hitSlop={14}
             style={({ pressed }) => [
               styles.button,
               { backgroundColor: theme.colors.primary, opacity: pressed ? theme.interaction.pressedOpacity : 1 },

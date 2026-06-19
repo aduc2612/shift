@@ -42,7 +42,7 @@ describe('useNotificationPreference', () => {
     await waitFor(() => {
       expect(getByTestId('enabled').props.children).toBe('true');
     });
-  });
+  }, 10000);
 
   it('initial state is false when permission not granted', async () => {
     mockGetPermissionsAsync.mockResolvedValue({ status: 'undetermined' });

@@ -466,6 +466,7 @@ export default function TaskFormSheet({
     onSave,
     onClose,
     placeTask,
+    toast,
   ]);
 
   const handleDeleteConfirm = useCallback(() => {

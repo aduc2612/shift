@@ -109,7 +109,7 @@ Comprehensive error handling hardening across the app. Two phases: critical/medi
 - `src/services/__tests__/ai.test.ts`
 
 ## Verification
-- ✅ 47 test suites, 370 tests all passing
-- ✅ No inline error text remaining in user-facing UI
-- ✅ All error paths show toast notifications
-- ✅ Onboarding routing stays on loading screen when subscription/status queries fail
+- ✅ 47 test suites, 373 tests all passing
+- ✅ No inline error text remaining in user-facing UI (grep audit clean)
+- ✅ All user-facing error paths show toast notifications (catch blocks in services log to console appropriately)
+- ✅ Onboarding routing error handling — 3 error branch tests already present in `useOnboardingRouting.test.tsx`

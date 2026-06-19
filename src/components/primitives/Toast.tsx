@@ -58,7 +58,9 @@ export default function Toast({
   const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const animRef = useRef<Animated.CompositeAnimation | null>(null);
   const onDismissRef = useRef(onDismiss);
-  onDismissRef.current = onDismiss;
+  useEffect(() => {
+    onDismissRef.current = onDismiss;
+  }, [onDismiss]);
 
   useEffect(() => {
     if (visible) {

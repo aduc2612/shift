@@ -9,7 +9,7 @@ export function useOnboardingRouting() {
   );
   const { isSubscribed, isLoading: subLoading, error: subError } = useSubscription();
 
-  const loading = authLoading || statusLoading || subLoading || !!subError || onbError;
+  const loading = authLoading || statusLoading || subLoading;
 
   return {
     loading,

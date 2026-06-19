@@ -104,7 +104,7 @@ export default function ScheduleScreen() {
     if (isError) {
       toast.show({ message: "Failed to load tasks." });
     }
-  }, [isError]);
+  }, [isError, toast]);
 
   const createTask = useCreateTask();
   const updateTask = useUpdateTask();

@@ -14,7 +14,7 @@ import { useOnboardingRouting } from "@/features/onboarding/hooks/useOnboardingR
 import { initSentry } from "@/services/sentry";
 import { setupNotificationChannel } from "@/services/notifications";
 import { useNotificationTapListener } from "@/hooks/useNotificationTapListener";
-import { configureRevenueCat } from "@/services/revenuecat";
+
 
 initSentry();
 
@@ -28,9 +28,6 @@ function RootNavigator() {
   useEffect(() => {
     setupNotificationChannel().catch((err) => {
       console.error('Failed to setup notification channel:', err);
-    });
-    configureRevenueCat().catch((err) => {
-      console.error('Failed to configure RevenueCat:', err);
     });
   }, []);
 

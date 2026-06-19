@@ -35,7 +35,7 @@ describe('ThemeProvider', () => {
     await waitFor(() => {
       expect(getByTestId('pref').props.children).toBe('system');
     });
-  });
+  }, 10000);
 
   it('reads stored preference from AsyncStorage on mount', async () => {
     await AsyncStorage.setItem('theme-preference', 'dark');

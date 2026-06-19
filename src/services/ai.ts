@@ -14,7 +14,7 @@ async function fetchWithTimeout(
   try {
     return await fetch(url, { ...init, signal: controller.signal });
   } catch (e) {
-    if (e instanceof DOMException && e.name === "AbortError") {
+    if (controller.signal.aborted) {
       throw new Error("Request timed out. Please try again.");
     }
     if (e instanceof TypeError) {

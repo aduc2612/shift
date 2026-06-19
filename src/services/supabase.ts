@@ -62,6 +62,7 @@ const secureStorageAdapter: SupportedStorage = {
       await SecureStore.setItemAsync(key, `${CHUNK_PREFIX}${chunks.length}`);
     } catch (e) {
       console.error('[SecureStore] setItem failed:', key, e);
+      throw e;
     }
   },
 
@@ -79,6 +80,7 @@ const secureStorageAdapter: SupportedStorage = {
       await SecureStore.deleteItemAsync(key);
     } catch (e) {
       console.error('[SecureStore] removeItem failed:', key, e);
+      throw e;
     }
   },
 };
