@@ -22,6 +22,7 @@ const NewTaskSchema = z.object({
   startTime: z.string(),
   endTime: z.string(),
   durationMinutes: z.number(),
+  deadline: z.string().nullable(),
   aiJustification: z.string(),
   aiContext: z.string(),
 });

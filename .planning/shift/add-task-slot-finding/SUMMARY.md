@@ -43,5 +43,17 @@
 - 258 tests passed
 - 0 failures
 
+## AI Deadline Support (Added Later)
+
+The `place-task` Edge Function now returns a `deadline` field, allowing the AI to set deadlines when the user explicitly requests it via `aiContext` (e.g., "due today", "deadline next Friday").
+
+### Changes
+- `supabase/functions/place-task/index.ts` — `NewTaskSchema` includes `deadline: z.string().nullable()`
+- `supabase/functions/place-task/config.ts` — DEADLINE RULE + deadline field description added to prompt
+- `src/services/ai.ts` — `PlaceTaskResult` includes `deadline: string | null`
+- `src/features/schedule/hooks/usePlaceTask.ts` — Uses `result.deadline` (AI-returned) instead of `taskData.deadline`
+
+See `06-01-SUMMARY.md` for full details on the deadline feature design.
+
 ## Manual Step Required
 - Deploy Edge Function: `supabase functions deploy place-task`

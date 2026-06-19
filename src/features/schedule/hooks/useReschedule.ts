@@ -22,6 +22,7 @@ export function useReschedule() {
           startTime: t.startTime,
           endTime: t.endTime,
           durationMinutes: t.durationMinutes,
+          deadline: t.deadline,
           aiJustification: t.aiJustification,
           aiContext: t.aiContext,
         })),

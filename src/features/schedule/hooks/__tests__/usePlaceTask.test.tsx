@@ -107,6 +107,7 @@ const placeTaskResult = {
   startTime: "2025-06-10T07:00:00",
   endTime: "2025-06-10T07:30:00",
   durationMinutes: 30,
+  deadline: null,
   aiJustification: "Early morning wellness",
   aiContext: "relaxation",
 };
@@ -208,6 +209,27 @@ describe("usePlaceTask", () => {
           aiJustification: placeTaskResult.aiJustification,
           aiContext: placeTaskResult.aiContext,
           aiDecidesTime: true,
+        }),
+      );
+    });
+
+    it("uses AI-returned deadline when AI sets one", async () => {
+      ai.placeTask.mockResolvedValue({
+        ...placeTaskResult,
+        deadline: "2025-06-25",
+      });
+
+      const { result } = await renderHook(() => usePlaceTask(), {
+        wrapper: createWrapper(),
+      });
+
+      await act(async () => {
+        await result.current.mutateAsync(addParams);
+      });
+
+      expect(api.createTask).toHaveBeenCalledWith(
+        expect.objectContaining({
+          deadline: "2025-06-25",
         }),
       );
     });

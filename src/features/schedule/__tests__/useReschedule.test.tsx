@@ -81,6 +81,7 @@ const mockRescheduleResult: RescheduleResult[] = [
     startTime: '2025-06-10T10:00:00',
     endTime: '2025-06-10T11:00:00',
     durationMinutes: 60,
+    deadline: null,
     aiJustification: 'Moved to after coffee',
     aiContext: 'high focus',
   },
@@ -89,6 +90,7 @@ const mockRescheduleResult: RescheduleResult[] = [
     startTime: '2025-06-10T13:00:00',
     endTime: '2025-06-10T13:30:00',
     durationMinutes: 30,
+    deadline: null,
     aiJustification: 'Later lunch',
     aiContext: '',
   },
@@ -230,6 +232,7 @@ describe('useReschedule', () => {
         startTime: mockTasks[0].startTime,
         endTime: mockTasks[0].endTime,
         durationMinutes: mockTasks[0].durationMinutes,
+        deadline: mockTasks[0].deadline,
         aiJustification: mockTasks[0].aiJustification,
         aiContext: mockTasks[0].aiContext,
       });
@@ -238,6 +241,7 @@ describe('useReschedule', () => {
         startTime: mockTasks[1].startTime,
         endTime: mockTasks[1].endTime,
         durationMinutes: mockTasks[1].durationMinutes,
+        deadline: mockTasks[1].deadline,
         aiJustification: mockTasks[1].aiJustification,
         aiContext: mockTasks[1].aiContext,
       });

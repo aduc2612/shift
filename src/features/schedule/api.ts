@@ -113,6 +113,7 @@ export type TaskUpdate = {
   startTime: string;
   endTime: string;
   durationMinutes: number;
+  deadline: string | null;
   aiJustification: string | null;
   aiContext: string | null;
 };
@@ -139,6 +140,7 @@ export async function batchUpdateTasks(
         start_time: update.startTime,
         end_time: update.endTime,
         duration_minutes: update.durationMinutes,
+        deadline: update.deadline ?? null,
         ai_justification: update.aiJustification,
         ai_context: update.aiContext,
       })
