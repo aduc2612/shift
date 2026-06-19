@@ -10,6 +10,7 @@ import {
   View,
 } from "react-native";
 import { useTheme } from "@/providers/theme-provider";
+import { useToast } from "@/providers/toast-provider";
 import type { Theme } from "@/constants/theme";
 import BottomSheet from "@/components/primitives/BottomSheet";
 
@@ -95,11 +96,6 @@ function createStyles(theme: Theme) {
       ...theme.typography.titleSmall,
       color: theme.colors.onPrimary,
     },
-    errorText: {
-      ...theme.typography.bodySmall,
-      color: theme.colors.error,
-      marginTop: 8,
-    },
   });
 }
 
@@ -112,30 +108,27 @@ export default function RescheduleSheet({
   const theme = useTheme();
   const styles = createStyles(theme);
   const [text, setText] = useState("");
-  const [error, setError] = useState<string | null>(null);
+  const toast = useToast();
 
   useEffect(() => {
     if (visible) {
       setText("");
-      setError(null);
     }
   }, [visible]);
 
   const handleReschedule = async () => {
     if (!onReschedule || isRescheduling) return;
-    setError(null);
     try {
       await onReschedule(text);
       setText("");
       onClose();
     } catch (e) {
-      setError("Reschedule failed. Please try again.");
+      toast.show({ message: "Reschedule failed. Please try again." });
     }
   };
 
   const handleChangeText = (value: string) => {
     setText(value);
-    if (error) setError(null);
   };
 
   return (
@@ -162,7 +155,6 @@ export default function RescheduleSheet({
             </View>
           ))}
         </View>
-        {error && <Text style={styles.errorText}>{error}</Text>}
         <View style={styles.buttonRow}>
           <Pressable
             testID="cancel-btn"

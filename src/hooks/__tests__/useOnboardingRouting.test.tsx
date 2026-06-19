@@ -38,6 +38,7 @@ describe('useOnboardingRouting', () => {
       isLoading: false,
       customerInfo: null,
       refresh: jest.fn(),
+      error: null,
     });
   });
 
@@ -51,6 +52,7 @@ describe('useOnboardingRouting', () => {
     mockedStatus.mockReturnValue({
       data: false,
       isLoading: false,
+      isError: false,
     } as ReturnType<typeof useOnboardingStatus>);
 
     const { result } = await renderHook(() => useOnboardingRouting(), { wrapper });
@@ -74,6 +76,7 @@ describe('useOnboardingRouting', () => {
     mockedStatus.mockReturnValue({
       data: false,
       isLoading: false,
+      isError: false,
     } as ReturnType<typeof useOnboardingStatus>);
 
     const { result } = await renderHook(() => useOnboardingRouting(), { wrapper });
@@ -97,12 +100,14 @@ describe('useOnboardingRouting', () => {
     mockedStatus.mockReturnValue({
       data: true,
       isLoading: false,
+      isError: false,
     } as ReturnType<typeof useOnboardingStatus>);
     mockedSub.mockReturnValue({
       isSubscribed: false,
       isLoading: false,
       customerInfo: null,
       refresh: jest.fn(),
+      error: null,
     });
 
     const { result } = await renderHook(() => useOnboardingRouting(), { wrapper });
@@ -127,12 +132,14 @@ describe('useOnboardingRouting', () => {
     mockedStatus.mockReturnValue({
       data: true,
       isLoading: false,
+      isError: false,
     } as ReturnType<typeof useOnboardingStatus>);
     mockedSub.mockReturnValue({
       isSubscribed: false,
       isLoading: true,
       customerInfo: null,
       refresh: jest.fn(),
+      error: null,
     });
 
     const { result } = await renderHook(() => useOnboardingRouting(), { wrapper });

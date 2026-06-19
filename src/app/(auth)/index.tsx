@@ -84,12 +84,6 @@ function createStyles(theme: Theme, insets: { top: number; bottom: number }) {
       ...theme.typography.labelLarge,
       color: theme.colors.onPrimary,
     },
-    errorText: {
-      ...theme.typography.bodySmall,
-      color: theme.colors.error,
-      textAlign: "center",
-      marginTop: theme.spacing.md,
-    },
   });
 }
 
@@ -97,7 +91,7 @@ export default function AuthScreen() {
   const theme = useTheme();
   const insets = useSafeAreaInsets();
   const styles = useMemo(() => createStyles(theme, insets), [theme, insets]);
-  const { signIn, loading, error } = useGoogleSignIn();
+  const { signIn, loading } = useGoogleSignIn();
 
   useEffect(() => {
     WebBrowser.warmUpAsync().catch(() => {});
@@ -136,8 +130,6 @@ export default function AuthScreen() {
             <Text style={styles.buttonText}>Get Started</Text>
           )}
         </Pressable>
-
-        {error && <Text style={styles.errorText}>{error}</Text>}
       </View>
     </View>
   );

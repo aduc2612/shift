@@ -1,4 +1,4 @@
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import {
   ActivityIndicator,
   FlatList,
@@ -9,6 +9,7 @@ import {
 import { DateTimePicker } from "@expo/ui/community/datetime-picker";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useTheme } from "@/providers/theme-provider";
+import { useToast } from "@/providers/toast-provider";
 import type { Theme } from "@/constants/theme";
 import type { Task } from "@/types/task";
 import {
@@ -70,17 +71,6 @@ function createStyles(theme: Theme) {
       justifyContent: "center",
       alignItems: "center",
     },
-    errorContainer: {
-      flex: 1,
-      justifyContent: "center",
-      alignItems: "center",
-      padding: 40,
-    },
-    errorText: {
-      ...theme.typography.bodyMedium,
-      color: theme.colors.error,
-      textAlign: "center",
-    },
   });
 }
 
@@ -89,6 +79,7 @@ export default function ScheduleScreen() {
   const insets = useSafeAreaInsets();
   const styles = createStyles(theme);
   const now = useCurrentTime(30_000);
+  const toast = useToast();
 
   const [selectedDate, setSelectedDate] = useState(new Date());
   const [showDatePicker, setShowDatePicker] = useState(false);
@@ -107,8 +98,13 @@ export default function ScheduleScreen() {
     data: tasks = [],
     status,
     isError,
-    error,
   } = useTasks(selectedDate, authLoading);
+
+  useEffect(() => {
+    if (isError) {
+      toast.show({ message: "Failed to load tasks." });
+    }
+  }, [isError]);
 
   const createTask = useCreateTask();
   const updateTask = useUpdateTask();
@@ -240,16 +236,6 @@ export default function ScheduleScreen() {
     return (
       <View style={[styles.container, styles.loadingContainer, { paddingTop: insets.top }]}>
         <ActivityIndicator size="large" color={theme.colors.primary} />
-      </View>
-    );
-  }
-
-  if (isError) {
-    return (
-      <View style={[styles.container, styles.errorContainer, { paddingTop: insets.top }]}>
-        <Text style={styles.errorText}>
-          {"Failed to load tasks"}
-        </Text>
       </View>
     );
   }
