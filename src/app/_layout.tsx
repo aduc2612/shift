@@ -1,5 +1,5 @@
 import { useEffect, useMemo } from "react";
-import { StyleSheet } from "react-native";
+import { ActivityIndicator, StyleSheet, View } from "react-native";
 import { Stack } from "expo-router";
 import { StatusBar } from "expo-status-bar";
 import { SafeAreaProvider } from "react-native-safe-area-context";
@@ -8,12 +8,13 @@ import * as Sentry from "@sentry/react-native";
 import { ThemeProvider, useTheme } from "@/providers/theme-provider";
 import { QueryProvider } from "@/providers/query-provider";
 import { ToastProvider } from "@/providers/toast-provider";
+import ErrorBoundary from "@/components/primitives/ErrorBoundary";
 import { useAuth } from "@/features/auth/hooks/useAuth";
 import { useOnboardingRouting } from "@/features/onboarding/hooks/useOnboardingRouting";
 import { initSentry } from "@/services/sentry";
 import { setupNotificationChannel } from "@/services/notifications";
 import { useNotificationTapListener } from "@/hooks/useNotificationTapListener";
-import { configureRevenueCat } from "@/services/revenuecat";
+
 
 initSentry();
 
@@ -28,14 +29,16 @@ function RootNavigator() {
     setupNotificationChannel().catch((err) => {
       console.error('Failed to setup notification channel:', err);
     });
-    configureRevenueCat().catch((err) => {
-      console.error('Failed to configure RevenueCat:', err);
-    });
   }, []);
 
   const styles = useMemo(
     () =>
       StyleSheet.create({
+        container: {
+          flex: 1,
+          justifyContent: 'center',
+          alignItems: 'center',
+        },
         contentBackground: {
           backgroundColor: theme.colors.background,
         },
@@ -44,7 +47,13 @@ function RootNavigator() {
   );
 
   const loading = authLoading || routingLoading;
-  if (loading) return null;
+  if (loading) {
+    return (
+      <View style={[styles.container, { backgroundColor: theme.colors.background }]}>
+        <ActivityIndicator />
+      </View>
+    );
+  }
 
   return (
     <>
@@ -81,7 +90,9 @@ function RootLayout() {
         <QueryProvider>
           <ThemeProvider>
             <ToastProvider>
-              <RootNavigator />
+              <ErrorBoundary>
+                <RootNavigator />
+              </ErrorBoundary>
             </ToastProvider>
           </ThemeProvider>
         </QueryProvider>

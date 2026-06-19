@@ -167,9 +167,17 @@ export async function handler(req: Request): Promise<Response> {
       `User context: ${userContext || "None provided"}\n\n` +
       `What changed: ${whatChanged || "Adding a new task"}`;
 
+    const apiKey = Deno.env.get("OPENROUTER_API_KEY");
+    if (!apiKey) {
+      return new Response(
+        JSON.stringify({ error: "Server configuration error" }),
+        { status: 500, headers: { "Content-Type": "application/json" } },
+      );
+    }
+
     const openai = new OpenAI({
       baseURL: OPENROUTER_BASE_URL,
-      apiKey: Deno.env.get("OPENROUTER_API_KEY"),
+      apiKey,
       timeout: TIMEOUT_MS,
       maxRetries: 0,
     });

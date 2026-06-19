@@ -8,9 +8,12 @@ type ToastOptions = {
   duration?: number;
 };
 
+type ToastState = ToastOptions & { visible: boolean };
+
 type ToastContextType = {
   show: (options: ToastOptions) => void;
   hide: () => void;
+  toast: ToastState;
 };
 
 const ToastContext = createContext<ToastContextType | null>(null);
@@ -46,7 +49,7 @@ export function ToastProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   return (
-    <ToastContext.Provider value={{ show, hide }}>
+    <ToastContext.Provider value={{ show, hide, toast }}>
       {children}
       <Toast
         visible={toast.visible}

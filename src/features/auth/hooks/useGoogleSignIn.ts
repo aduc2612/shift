@@ -3,6 +3,7 @@ import * as AuthSession from "expo-auth-session";
 import * as WebBrowser from "expo-web-browser";
 import { supabase } from "@/services/supabase";
 import { extractAuthTokensFromUrl } from "@/utils/auth";
+import { useToast } from "@/providers/toast-provider";
 
 const redirectUri = AuthSession.makeRedirectUri({
   scheme: "shift",
@@ -11,11 +12,10 @@ const redirectUri = AuthSession.makeRedirectUri({
 
 export function useGoogleSignIn() {
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const toast = useToast();
 
   async function signIn() {
     setLoading(true);
-    setError(null);
 
     try {
       const { data, error: oauthError } = await supabase.auth.signInWithOAuth({
@@ -52,15 +52,11 @@ export function useGoogleSignIn() {
         }
       }
     } catch (err) {
-      setError(
-        err instanceof Error
-          ? err.message
-          : "Sign in failed. Please try again.",
-      );
+      toast.show({ message: "Sign in failed. Please try again." });
     } finally {
       setLoading(false);
     }
   }
 
-  return { signIn, loading, error };
+  return { signIn, loading };
 }

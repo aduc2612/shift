@@ -38,6 +38,7 @@ describe('useOnboardingRouting', () => {
       isLoading: false,
       customerInfo: null,
       refresh: jest.fn(),
+      error: null,
     });
   });
 
@@ -51,6 +52,7 @@ describe('useOnboardingRouting', () => {
     mockedStatus.mockReturnValue({
       data: false,
       isLoading: false,
+      isError: false,
     } as ReturnType<typeof useOnboardingStatus>);
 
     const { result } = await renderHook(() => useOnboardingRouting(), { wrapper });
@@ -74,6 +76,7 @@ describe('useOnboardingRouting', () => {
     mockedStatus.mockReturnValue({
       data: false,
       isLoading: false,
+      isError: false,
     } as ReturnType<typeof useOnboardingStatus>);
 
     const { result } = await renderHook(() => useOnboardingRouting(), { wrapper });
@@ -97,12 +100,14 @@ describe('useOnboardingRouting', () => {
     mockedStatus.mockReturnValue({
       data: true,
       isLoading: false,
+      isError: false,
     } as ReturnType<typeof useOnboardingStatus>);
     mockedSub.mockReturnValue({
       isSubscribed: false,
       isLoading: false,
       customerInfo: null,
       refresh: jest.fn(),
+      error: null,
     });
 
     const { result } = await renderHook(() => useOnboardingRouting(), { wrapper });
@@ -127,12 +132,14 @@ describe('useOnboardingRouting', () => {
     mockedStatus.mockReturnValue({
       data: true,
       isLoading: false,
+      isError: false,
     } as ReturnType<typeof useOnboardingStatus>);
     mockedSub.mockReturnValue({
       isSubscribed: false,
       isLoading: true,
       customerInfo: null,
       refresh: jest.fn(),
+      error: null,
     });
 
     const { result } = await renderHook(() => useOnboardingRouting(), { wrapper });
@@ -142,5 +149,81 @@ describe('useOnboardingRouting', () => {
     expect(result.current.shouldShowOnboarding).toBe(false);
     expect(result.current.shouldShowPaywall).toBe(false);
     expect(result.current.shouldShowTabs).toBe(false);
+  });
+
+  it('does not block routing when subscription has an error', async () => {
+    mockedUseAuth.mockReturnValue({
+      session: null,
+      user: { id: 'u1', app_metadata: {}, user_metadata: {}, aud: '', created_at: '' },
+      isAuthenticated: true,
+      loading: false,
+    });
+    mockedStatus.mockReturnValue({
+      data: true,
+      isLoading: false,
+      isError: false,
+    } as ReturnType<typeof useOnboardingStatus>);
+    mockedSub.mockReturnValue({
+      isSubscribed: false,
+      isLoading: false,
+      customerInfo: null,
+      refresh: jest.fn(),
+      error: new Error('network'),
+    });
+
+    const { result } = await renderHook(() => useOnboardingRouting(), { wrapper });
+
+    expect(result.current.loading).toBe(false);
+    expect(result.current.shouldShowPaywall).toBe(true);
+  });
+
+  it('does not block routing when onboarding status has an error', async () => {
+    mockedUseAuth.mockReturnValue({
+      session: null,
+      user: { id: 'u1', app_metadata: {}, user_metadata: {}, aud: '', created_at: '' },
+      isAuthenticated: true,
+      loading: false,
+    });
+    mockedStatus.mockReturnValue({
+      data: undefined,
+      isLoading: false,
+      isError: true,
+    } as ReturnType<typeof useOnboardingStatus>);
+    mockedSub.mockReturnValue({
+      isSubscribed: true,
+      isLoading: false,
+      customerInfo: null,
+      refresh: jest.fn(),
+      error: null,
+    });
+
+    const { result } = await renderHook(() => useOnboardingRouting(), { wrapper });
+
+    expect(result.current.loading).toBe(false);
+  });
+
+  it('does not block routing when both subscription and onboarding have errors', async () => {
+    mockedUseAuth.mockReturnValue({
+      session: null,
+      user: { id: 'u1', app_metadata: {}, user_metadata: {}, aud: '', created_at: '' },
+      isAuthenticated: true,
+      loading: false,
+    });
+    mockedStatus.mockReturnValue({
+      data: undefined,
+      isLoading: false,
+      isError: true,
+    } as ReturnType<typeof useOnboardingStatus>);
+    mockedSub.mockReturnValue({
+      isSubscribed: false,
+      isLoading: false,
+      customerInfo: null,
+      refresh: jest.fn(),
+      error: new Error('network'),
+    });
+
+    const { result } = await renderHook(() => useOnboardingRouting(), { wrapper });
+
+    expect(result.current.loading).toBe(false);
   });
 });

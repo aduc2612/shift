@@ -1,6 +1,31 @@
 import { supabase } from "@/services/supabase";
 import type { Task } from "@/types/task";
 
+const RESCHEDULE_TIMEOUT_MS = 90_000;
+const PLACE_TASK_TIMEOUT_MS = 30_000;
+
+async function fetchWithTimeout(
+  url: string,
+  init: RequestInit,
+  timeoutMs: number,
+): Promise<Response> {
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), timeoutMs);
+  try {
+    return await fetch(url, { ...init, signal: controller.signal });
+  } catch (e) {
+    if (controller.signal.aborted) {
+      throw new Error("Request timed out. Please try again.");
+    }
+    if (e instanceof TypeError) {
+      throw new Error("Network error. Check your connection and try again.");
+    }
+    throw e;
+  } finally {
+    clearTimeout(timer);
+  }
+}
+
 export type RescheduleResult = {
   id: string;
   startTime: string;
@@ -32,7 +57,7 @@ export async function rescheduleTasks(
   const supabaseUrl = process.env.EXPO_PUBLIC_SUPABASE_URL;
   if (!supabaseUrl) throw new Error("Missing EXPO_PUBLIC_SUPABASE_URL");
 
-  const response = await fetch(`${supabaseUrl}/functions/v1/reschedule`, {
+  const response = await fetchWithTimeout(`${supabaseUrl}/functions/v1/reschedule`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
@@ -51,11 +76,12 @@ export async function rescheduleTasks(
       whatChanged,
       timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
     }),
-  });
+  },
+  RESCHEDULE_TIMEOUT_MS,
+  );
 
   if (!response.ok) {
-    const error = await response.text();
-    throw new Error(`Reschedule failed: ${error}`);
+    throw new Error("Reschedule failed. Please try again.");
   }
 
   const result = await response.json();
@@ -90,7 +116,7 @@ export async function placeTask(
   const supabaseUrl = process.env.EXPO_PUBLIC_SUPABASE_URL;
   if (!supabaseUrl) throw new Error("Missing EXPO_PUBLIC_SUPABASE_URL");
 
-  const response = await fetch(`${supabaseUrl}/functions/v1/place-task`, {
+  const response = await fetchWithTimeout(`${supabaseUrl}/functions/v1/place-task`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
@@ -103,11 +129,12 @@ export async function placeTask(
       whatChanged,
       timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
     }),
-  });
+  },
+  PLACE_TASK_TIMEOUT_MS,
+  );
 
   if (!response.ok) {
-    const error = await response.text();
-    throw new Error(`Place task failed: ${error}`);
+    throw new Error("Couldn't schedule task. Please try again.");
   }
 
   const result = await response.json();

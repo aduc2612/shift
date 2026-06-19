@@ -4,6 +4,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { router } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import { useTheme } from "@/providers/theme-provider";
+import { useToast } from "@/providers/toast-provider";
 import { useOnboardingStore } from "@/features/onboarding/state";
 import { saveOnboardingData } from "@/features/onboarding/api";
 import ProgressBar from "@/features/onboarding/components/ProgressBar";
@@ -82,28 +83,6 @@ function createStyles(theme: Theme, insets: { top: number; bottom: number }) {
       ...theme.typography.bodyLarge,
       color: theme.colors.onSurface,
     },
-    errorBox: {
-      backgroundColor: theme.colors.errorContainer,
-      borderRadius: theme.borderRadius.lg,
-      padding: theme.spacing.lg,
-      alignItems: "center",
-      marginTop: theme.spacing.lg,
-    },
-    errorText: {
-      ...theme.typography.bodyMedium,
-      color: theme.colors.onErrorContainer,
-      marginBottom: theme.spacing.md,
-      textAlign: "center",
-    },
-    retryButton: {
-      ...theme.componentStyles.button,
-      backgroundColor: theme.colors.error,
-      minHeight: 48,
-    },
-    retryText: {
-      ...theme.typography.labelLarge,
-      color: theme.colors.onError,
-    },
     bottom: {
       paddingBottom: insets.bottom + theme.spacing.xl,
     },
@@ -118,39 +97,49 @@ export default function ProcessingTheatreScreen() {
   const setField = useOnboardingStore((s) => s.setField);
   const { user } = useAuth();
   const userId = user?.id;
+  const toast = useToast();
 
   const [visibleItems, setVisibleItems] = useState<number>(0);
-  const [error, setError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
   const [done, setDone] = useState(false);
   const saveStarted = useRef(false);
   const mountedRef = useRef(true);
+  const retryCount = useRef(0);
+  const retryTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const progressAnim = useRef(new Animated.Value(0)).current;
   const [progressPct, setProgressPct] = useState(0);
 
   useEffect(() => {
     return () => {
       mountedRef.current = false;
+      if (retryTimeoutRef.current) clearTimeout(retryTimeoutRef.current);
     };
   }, []);
 
   const doSave = useCallback(async () => {
     if (!userId) return;
     setSaving(true);
-    setError(null);
     try {
       await saveOnboardingData(userId, data);
       if (mountedRef.current) {
         setSaving(false);
         setDone(true);
+        retryCount.current = 0;
       }
     } catch (err) {
       if (mountedRef.current) {
-        setError("Something went wrong. Please try again.");
         setSaving(false);
+        if (retryCount.current < 3) {
+          retryCount.current += 1;
+          toast.show({ message: "Something went wrong. Retrying...", duration: 3000 });
+          retryTimeoutRef.current = setTimeout(() => doSave(), 2000);
+        } else {
+          toast.show({ message: "Save failed. Please try back later." });
+          setDone(true);
+        }
       }
     }
-  }, [userId, data]);
+  }, [userId, data, toast]);
 
   // Start the real save — re-attempts when userId becomes available
   useEffect(() => {
@@ -247,26 +236,6 @@ export default function ProcessingTheatreScreen() {
             );
           })}
         </View>
-
-        {error && (
-          <View style={styles.errorBox}>
-            <Text style={styles.errorText}>{error}</Text>
-            <Pressable
-              style={({ pressed }) => [
-                styles.retryButton,
-                pressed && { opacity: theme.interaction.pressedOpacity },
-              ]}
-              onPress={doSave}
-              disabled={saving}
-              accessibilityRole="button"
-              accessibilityLabel="Try again"
-            >
-              <Text style={styles.retryText}>
-                {saving ? "Saving..." : "Try again"}
-              </Text>
-            </Pressable>
-          </View>
-        )}
       </View>
 
       <View style={styles.bottom}>

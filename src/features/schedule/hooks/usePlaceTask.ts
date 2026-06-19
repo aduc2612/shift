@@ -55,27 +55,31 @@ export function usePlaceTask() {
     if (!snapshot) return;
     undoStore.cancelTimeout();
 
-    const meta = undoMetaRef.current;
+    try {
+      const meta = undoMetaRef.current;
 
-    if (meta?.mode === "add" && meta.createdTaskId) {
-      await deleteTask(meta.createdTaskId);
-    } else if (meta?.mode === "edit" && meta.previousTask) {
-      await updateTask(meta.previousTask.id, {
-        name: meta.previousTask.name,
-        startTime: meta.previousTask.startTime,
-        endTime: meta.previousTask.endTime,
-        durationMinutes: meta.previousTask.durationMinutes,
-        deadline: meta.previousTask.deadline,
-        aiContext: meta.previousTask.aiContext,
-        aiDecidesTime: meta.previousTask.aiDecidesTime,
-        aiJustification: meta.previousTask.aiJustification,
-      });
+      if (meta?.mode === "add" && meta.createdTaskId) {
+        await deleteTask(meta.createdTaskId);
+      } else if (meta?.mode === "edit" && meta.previousTask) {
+        await updateTask(meta.previousTask.id, {
+          name: meta.previousTask.name,
+          startTime: meta.previousTask.startTime,
+          endTime: meta.previousTask.endTime,
+          durationMinutes: meta.previousTask.durationMinutes,
+          deadline: meta.previousTask.deadline,
+          aiContext: meta.previousTask.aiContext,
+          aiDecidesTime: meta.previousTask.aiDecidesTime,
+          aiJustification: meta.previousTask.aiJustification,
+        });
+      }
+
+      await queryClient.invalidateQueries({ queryKey: ["tasks"] });
+      undoMetaRef.current = null;
+      undoStore.clearSnapshot();
+      toast.hide();
+    } catch {
+      toast.show({ message: "Couldn't undo. Please try again." });
     }
-
-    await queryClient.invalidateQueries({ queryKey: ["tasks"] });
-    undoMetaRef.current = null;
-    undoStore.clearSnapshot();
-    toast.hide();
   }
 
   const mutation = useMutation({
@@ -157,6 +161,7 @@ export function usePlaceTask() {
     onError: () => {
       undoMetaRef.current = null;
       undoStore.clearSnapshot();
+      toast.show({ message: "Couldn't place task. Please try again." });
     },
   });
 

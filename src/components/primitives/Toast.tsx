@@ -57,6 +57,10 @@ export default function Toast({
   const opacity = useRef(new Animated.Value(0)).current;
   const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const animRef = useRef<Animated.CompositeAnimation | null>(null);
+  const onDismissRef = useRef(onDismiss);
+  useEffect(() => {
+    onDismissRef.current = onDismiss;
+  }, [onDismiss]);
 
   useEffect(() => {
     if (visible) {
@@ -69,13 +73,17 @@ export default function Toast({
 
       if (duration > 0) {
         timeoutRef.current = setTimeout(() => {
+          if (timeoutRef.current) {
+            clearTimeout(timeoutRef.current);
+            timeoutRef.current = null;
+          }
           animRef.current = Animated.timing(opacity, {
             toValue: 0,
             duration: 200,
             useNativeDriver: true,
           });
           animRef.current.start();
-          onDismiss();
+          onDismissRef.current();
         }, duration);
       }
     } else {
@@ -86,7 +94,7 @@ export default function Toast({
       if (timeoutRef.current) clearTimeout(timeoutRef.current);
       if (animRef.current) animRef.current.stop();
     };
-  }, [visible, duration, onDismiss, opacity]);
+  }, [visible, duration, opacity]);
 
   if (!visible) return null;
 
@@ -95,7 +103,13 @@ export default function Toast({
       style={[styles.container, { top: insets.top, opacity }]}
       pointerEvents="auto"
     >
-      <View style={styles.content}>
+      <Pressable
+        onPress={onDismiss}
+        style={({ pressed }) => [
+          styles.content,
+          pressed && { opacity: theme.interaction.pressedOpacity },
+        ]}
+      >
         <Text style={styles.message}>{message}</Text>
         {actionLabel && (
           <Pressable
@@ -108,7 +122,7 @@ export default function Toast({
             <Text style={styles.action}>{actionLabel}</Text>
           </Pressable>
         )}
-      </View>
+      </Pressable>
     </Animated.View>
   );
 }

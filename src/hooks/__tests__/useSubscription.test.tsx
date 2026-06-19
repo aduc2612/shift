@@ -11,11 +11,12 @@ jest.mock('@/services/revenuecat', () => ({
 
 const mockedGetCustomerInfo = jest.mocked(getCustomerInfo);
 
-import { useSubscription } from '../useSubscription';
+import { useSubscription, resetSubscriptionState } from '../useSubscription';
 
 describe('useSubscription', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    resetSubscriptionState();
   });
 
   it('starts in loading state', async () => {

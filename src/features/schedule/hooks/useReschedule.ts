@@ -15,19 +15,23 @@ export function useReschedule() {
     const snapshot = useUndoStore.getState().snapshot;
     if (!snapshot) return;
     undoStore.cancelTimeout();
-    await batchUpdateTasks(
-      snapshot.map(t => ({
-        id: t.id,
-        startTime: t.startTime,
-        endTime: t.endTime,
-        durationMinutes: t.durationMinutes,
-        aiJustification: t.aiJustification,
-        aiContext: t.aiContext,
-      })),
-    );
-    await queryClient.invalidateQueries({ queryKey: ['tasks'] });
-    undoStore.clearSnapshot();
-    toast.hide();
+    try {
+      await batchUpdateTasks(
+        snapshot.map(t => ({
+          id: t.id,
+          startTime: t.startTime,
+          endTime: t.endTime,
+          durationMinutes: t.durationMinutes,
+          aiJustification: t.aiJustification,
+          aiContext: t.aiContext,
+        })),
+      );
+      await queryClient.invalidateQueries({ queryKey: ['tasks'] });
+      undoStore.clearSnapshot();
+      toast.hide();
+    } catch {
+      toast.show({ message: "Couldn't undo. Please try again." });
+    }
   }
 
   const mutation = useMutation({
@@ -60,6 +64,7 @@ export function useReschedule() {
     },
     onError: () => {
       undoStore.clearSnapshot();
+      toast.show({ message: 'Reschedule failed. Please try again.' });
     },
   });
 

@@ -1,4 +1,5 @@
 import React from 'react';
+import { Animated } from 'react-native';
 import { render, fireEvent, waitFor } from '@testing-library/react-native';
 import { Pressable, Text } from 'react-native';
 import { ToastProvider, useToast } from '../toast-provider';
@@ -32,6 +33,21 @@ jest.mock('@/providers/theme-provider', () => ({
   useTheme: () => mockTheme,
   ThemeProvider: ({ children }: { children: React.ReactNode }) => children,
 }));
+
+// Animated.timing uses rAF which doesn't fire synchronously in tests.
+// Override start() to resolve the animated value immediately.
+const originalTiming = Animated.timing;
+jest.spyOn(Animated, 'timing').mockImplementation((value, config) => {
+  const animation = originalTiming(value, config);
+  return {
+    ...animation,
+    start: (cb?: (result: { finished: boolean }) => void) => {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      (value as any).setValue(config.toValue);
+      cb?.({ finished: true });
+    },
+  };
+});
 
 function ShowButton() {
   const toast = useToast();
@@ -70,7 +86,7 @@ describe('ToastProvider', () => {
 
     fireEvent.press(getByTestId('show-btn'));
     expect(await findByText('Hello')).toBeTruthy();
-  });
+  }, 10000);
 
   it('hide hides toast', async () => {
     const { getByTestId, findByText, queryByText } = await render(

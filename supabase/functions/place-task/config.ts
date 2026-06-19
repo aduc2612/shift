@@ -67,12 +67,15 @@ Names, deadlines, and times of already-scheduled tasks.
 ## FIELDS
 
 * aiJustification: WHY you placed the task at this time. Max 10 words, user-facing.
+  - **Must be in user's time zone**
   - This is your scheduling decision rationale — it explains the "why" of placement.
   - Example: "Scheduled at 2 PM — matches user's request for afternoon"
 
 * aiContext: WHAT the task is about. Max 15 words, not shown to user, used for future scheduling.
+  - **Must be in user's time zone**
   - This describes the task's own characteristics — flexibility, effort, priority, time preferences.
   - This is NOT about your scheduling decision. Never include words like "moved", "scheduled", "placed".
+  - Don't change this field unless the user wants to change the **characteristics** (effort, duration, focus?, deadline, etc...) of the task. Change only what's needed if you need to.
   - Example: "University class, fixed time, important"
 
 * durationMinutes: you decide this based on task complexity:

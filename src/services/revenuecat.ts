@@ -4,8 +4,14 @@ import RevenueCatUI, { PAYWALL_RESULT } from 'react-native-purchases-ui';
 const API_KEY = 'test_RjiJngvmmoReLpTJNcmunXnrJSf';
 const ENTITLEMENT_ID = 'Shift AI Pro';
 
+// Configure once at import time — creates the singleton on the native side
+// before any component mounts. The native bridge call completes well before
+// any useEffect fires.
+Purchases.configure({ apiKey: API_KEY });
+
+/** Backward-compat wrapper — callers that imported this still work. */
 export async function configureRevenueCat(): Promise<void> {
-  await Purchases.configure({ apiKey: API_KEY });
+  // Already configured at import. No-op.
 }
 
 export async function getCustomerInfo(): Promise<CustomerInfo> {

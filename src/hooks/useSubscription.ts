@@ -1,34 +1,32 @@
 import { useCallback, useEffect, useSyncExternalStore } from 'react';
-import { useFocusEffect } from 'expo-router';
+import { AppState } from 'react-native';
 import { getCustomerInfo } from '@/services/revenuecat';
+import { ENTITLEMENT_ID } from '@/constants/limits';
 import type { CustomerInfo } from 'react-native-purchases';
-
-// ── Shared module-level store ─────────────────────────────────────────────
-// Each component that calls useSubscription() must see the same subscription
-// state. useState creates isolated state per component instance, so the
-// paywall screen and root layout would each have their own copy.  When the
-// paywall refreshed after purchase the root layout guards never updated.
-// A tiny external store fixes this: one source of truth, all consumers
-// subscribe and re-render together.
-
-const ENTITLEMENT_ID = 'Shift AI Pro';
 
 type SubState = {
   subscribed: boolean;
   customerInfo: CustomerInfo | null;
   loading: boolean;
+  error: unknown;
 };
 
-let state: SubState = { subscribed: false, customerInfo: null, loading: true };
+let state: SubState = {
+  subscribed: false,
+  customerInfo: null,
+  loading: true,
+  error: null,
+};
 let listeners: Array<() => void> = [];
 
-function emitChange() {
-  for (const l of listeners) l();
+/** Reset shared state — used in tests to avoid leakage between test cases. */
+export function resetSubscriptionState() {
+  state = { subscribed: false, customerInfo: null, loading: true, error: null };
+  listeners = [];
 }
 
-function setState(next: Partial<SubState>) {
-  state = { ...state, ...next };
-  emitChange();
+function emit() {
+  for (const l of listeners) l();
 }
 
 function subscribe(listener: () => void) {
@@ -42,40 +40,51 @@ function getSnapshot() {
   return state;
 }
 
-// Fetch latest from RevenueCat and push into shared store.
-// Single getCustomerInfo() call — we check entitlements inline rather than
-// calling isSubscribed() which would fetch customer info a second time.
-async function refreshStore() {
-  try {
-    const info = await getCustomerInfo();
-    const active = ENTITLEMENT_ID in info.entitlements.active;
-    setState({ customerInfo: info, subscribed: active, loading: false });
-  } catch {
-    setState({ subscribed: false, customerInfo: null, loading: false });
-  }
+let latestRequestId = 0;
+
+function refreshStore() {
+  const requestId = ++latestRequestId;
+  (async () => {
+    try {
+      const customerInfo = await getCustomerInfo();
+      if (requestId !== latestRequestId) return;
+      const subscribed = ENTITLEMENT_ID in customerInfo.entitlements.active;
+      state = { subscribed, customerInfo, loading: false, error: null };
+    } catch (e) {
+      if (requestId !== latestRequestId) return;
+      // Preserve previous subscription state on transient errors (e.g. network blip).
+      // Only a successful RevenueCat response can confirm no entitlement.
+      console.error('[useSubscription] Failed to check subscription:', e);
+      state = { ...state, loading: false, error: e };
+    }
+    emit();
+  })();
 }
 
-// ── Hook ──────────────────────────────────────────────────────────────────
+export { refreshStore };
 
 export function useSubscription() {
-  const snap = useSyncExternalStore(subscribe, getSnapshot);
+  const { subscribed, customerInfo, loading, error } = useSyncExternalStore(
+    subscribe,
+    getSnapshot,
+  );
 
-  // Initial fetch on first mount.
   useEffect(() => {
     refreshStore();
   }, []);
 
-  // Re-fetch whenever the consuming screen regains focus.
-  useFocusEffect(
-    useCallback(() => {
-      refreshStore();
-    }, []),
-  );
+  useEffect(() => {
+    const sub = AppState.addEventListener('change', (status) => {
+      if (status === 'active') refreshStore();
+    });
+    return () => sub.remove();
+  }, []);
 
-  return {
-    isSubscribed: snap.subscribed,
-    isLoading: snap.loading,
-    customerInfo: snap.customerInfo,
-    refresh: refreshStore,
-  };
+  const refresh = useCallback(() => {
+    state = { ...state, loading: true };
+    emit();
+    refreshStore();
+  }, []);
+
+  return { isSubscribed: subscribed, isLoading: loading, customerInfo, refresh, error };
 }
