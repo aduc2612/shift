@@ -1,6 +1,7 @@
 import React from "react";
 import { act, fireEvent, render, waitFor } from "@testing-library/react-native";
 import { ThemeProvider } from "@/providers/theme-provider";
+import { ToastProvider } from "@/providers/toast-provider";
 import TaskFormSheet from "../TaskFormSheet";
 import type { Task } from "@/types/task";
 
@@ -121,7 +122,7 @@ function makeTask(overrides: Partial<Task> = {}): Task {
 }
 
 async function renderWithTheme(ui: React.ReactElement) {
-  return render(<ThemeProvider>{ui}</ThemeProvider>);
+  return render(<ThemeProvider><ToastProvider>{ui}</ToastProvider></ThemeProvider>);
 }
 
 describe("TaskFormSheet", () => {

@@ -160,7 +160,7 @@ describe("rescheduleTasks", () => {
       });
 
       await expect(rescheduleTasks([sampleTask], "", "")).rejects.toThrow(
-        "Reschedule failed: Internal Server Error",
+        "Reschedule failed. Please try again.",
       );
     });
 
@@ -305,7 +305,7 @@ describe("placeTask", () => {
 
       await expect(
         placeTask(placeTaskInput, existingTasks, "", ""),
-      ).rejects.toThrow("Place task failed: Internal Server Error");
+      ).rejects.toThrow("Couldn't schedule task. Please try again.");
     });
 
     it('throws "Invalid response: missing task" when task field is missing', async () => {

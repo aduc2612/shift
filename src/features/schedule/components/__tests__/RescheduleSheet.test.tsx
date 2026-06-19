@@ -162,7 +162,7 @@ describe('RescheduleSheet', () => {
 
       await waitFor(() => {
         expect(onClose).not.toHaveBeenCalled();
-        expect(getByText('Reschedule failed')).toBeTruthy();
+        expect(getByText('Reschedule failed. Please try again.')).toBeTruthy();
       });
     });
 

@@ -248,7 +248,7 @@ export default function ScheduleScreen() {
     return (
       <View style={[styles.container, styles.errorContainer, { paddingTop: insets.top }]}>
         <Text style={styles.errorText}>
-          {error?.message ?? "Failed to load tasks"}
+          {"Failed to load tasks"}
         </Text>
       </View>
     );

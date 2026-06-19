@@ -129,9 +129,7 @@ export default function RescheduleSheet({
       setText("");
       onClose();
     } catch (e) {
-      setError(
-        e instanceof Error ? e.message : "Reschedule failed. Please try again.",
-      );
+      setError("Reschedule failed. Please try again.");
     }
   };
 

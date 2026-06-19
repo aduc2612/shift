@@ -42,7 +42,15 @@ Deno.serve(async (req) => {
       });
     }
 
-    const body = await req.json();
+    let body: Record<string, unknown>;
+    try {
+      body = await req.json();
+    } catch {
+      return new Response(
+        JSON.stringify({ error: "Invalid or malformed JSON body" }),
+        { status: 400, headers: { "Content-Type": "application/json" } },
+      );
+    }
     const { tasks, userContext, whatChanged, timezone } = body;
 
     if (!Array.isArray(tasks) || tasks.length === 0) {
@@ -130,9 +138,17 @@ Deno.serve(async (req) => {
       MAX_TIMEOUT_MS,
     );
 
+    const apiKey = Deno.env.get("OPENROUTER_API_KEY");
+    if (!apiKey) {
+      return new Response(
+        JSON.stringify({ error: "Server configuration error" }),
+        { status: 500, headers: { "Content-Type": "application/json" } },
+      );
+    }
+
     const openai = new OpenAI({
       baseURL: OPENROUTER_BASE_URL,
-      apiKey: Deno.env.get("OPENROUTER_API_KEY"),
+      apiKey,
       timeout,
       maxRetries: 0,
     });

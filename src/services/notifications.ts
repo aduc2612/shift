@@ -26,68 +26,82 @@ export async function setupNotificationChannel(): Promise<void> {
 }
 
 export async function syncNotifications(tasks: Task[]): Promise<void> {
-  await Notifications.cancelAllScheduledNotificationsAsync();
+  try {
+    await Notifications.cancelAllScheduledNotificationsAsync();
+  } catch (e) {
+    console.error('[Notifications] Failed to cancel scheduled notifications:', e);
+  }
 
   const now = new Date();
 
   for (const task of tasks) {
     if (task.completed) continue;
 
-    const start = new Date(task.startTime);
-    const end = new Date(task.endTime);
-    const tenBefore = new Date(start.getTime() - 10 * 60 * 1000);
-    const fiveAfter = new Date(end.getTime() + 5 * 60 * 1000);
+    try {
+      const start = new Date(task.startTime);
+      const end = new Date(task.endTime);
 
-    // 10 min before start
-    if (tenBefore > now) {
-      await Notifications.scheduleNotificationAsync({
-        content: {
-          title: `${task.name} starts soon`,
-          body: 'Starting in 10 minutes',
-          data: { taskId: task.id },
-          ...(Platform.OS === 'android' ? { channelId: CHANNEL_ID } : {}),
-        },
-        trigger: { type: Notifications.SchedulableTriggerInputTypes.DATE, date: tenBefore },
-      });
-    }
+      if (isNaN(start.getTime()) || isNaN(end.getTime())) {
+        console.warn(`[Notifications] Skipping task ${task.id}: invalid date`);
+        continue;
+      }
 
-    // Task begins
-    if (start > now) {
-      await Notifications.scheduleNotificationAsync({
-        content: {
-          title: `${task.name} starts now`,
-          body: 'Time to begin',
-          data: { taskId: task.id },
-          ...(Platform.OS === 'android' ? { channelId: CHANNEL_ID } : {}),
-        },
-        trigger: { type: Notifications.SchedulableTriggerInputTypes.DATE, date: start },
-      });
-    }
+      const tenBefore = new Date(start.getTime() - 10 * 60 * 1000);
+      const fiveAfter = new Date(end.getTime() + 5 * 60 * 1000);
 
-    // On task end
-    if (end > now) {
-      await Notifications.scheduleNotificationAsync({
-        content: {
-          title: `Time is up — ${task.name}`,
-          body: 'Your scheduled time for this task has ended',
-          data: { taskId: task.id },
-          ...(Platform.OS === 'android' ? { channelId: CHANNEL_ID } : {}),
-        },
-        trigger: { type: Notifications.SchedulableTriggerInputTypes.DATE, date: end },
-      });
-    }
+      // 10 min before start
+      if (tenBefore > now) {
+        await Notifications.scheduleNotificationAsync({
+          content: {
+            title: `${task.name} starts soon`,
+            body: 'Starting in 10 minutes',
+            data: { taskId: task.id },
+            ...(Platform.OS === 'android' ? { channelId: CHANNEL_ID } : {}),
+          },
+          trigger: { type: Notifications.SchedulableTriggerInputTypes.DATE, date: tenBefore },
+        });
+      }
 
-    // Nudge 5 min after end
-    if (fiveAfter > now) {
-      await Notifications.scheduleNotificationAsync({
-        content: {
-          title: `Haven't finished ${task.name}?`,
-          body: "It's been 5 minutes since your scheduled time ended",
-          data: { taskId: task.id },
-          ...(Platform.OS === 'android' ? { channelId: CHANNEL_ID } : {}),
-        },
-        trigger: { type: Notifications.SchedulableTriggerInputTypes.DATE, date: fiveAfter },
-      });
+      // Task begins
+      if (start > now) {
+        await Notifications.scheduleNotificationAsync({
+          content: {
+            title: `${task.name} starts now`,
+            body: 'Time to begin',
+            data: { taskId: task.id },
+            ...(Platform.OS === 'android' ? { channelId: CHANNEL_ID } : {}),
+          },
+          trigger: { type: Notifications.SchedulableTriggerInputTypes.DATE, date: start },
+        });
+      }
+
+      // On task end
+      if (end > now) {
+        await Notifications.scheduleNotificationAsync({
+          content: {
+            title: `Time is up — ${task.name}`,
+            body: 'Your scheduled time for this task has ended',
+            data: { taskId: task.id },
+            ...(Platform.OS === 'android' ? { channelId: CHANNEL_ID } : {}),
+          },
+          trigger: { type: Notifications.SchedulableTriggerInputTypes.DATE, date: end },
+        });
+      }
+
+      // Nudge 5 min after end
+      if (fiveAfter > now) {
+        await Notifications.scheduleNotificationAsync({
+          content: {
+            title: `Haven't finished ${task.name}?`,
+            body: "It's been 5 minutes since your scheduled time ended",
+            data: { taskId: task.id },
+            ...(Platform.OS === 'android' ? { channelId: CHANNEL_ID } : {}),
+          },
+          trigger: { type: Notifications.SchedulableTriggerInputTypes.DATE, date: fiveAfter },
+        });
+      }
+    } catch (e) {
+      console.error(`[Notifications] Failed to schedule notifications for task ${task.id}:`, e);
     }
   }
 }

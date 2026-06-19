@@ -93,8 +93,9 @@ function setUpMutation() {
 
 function wrap(ui: React.ReactElement) {
   const queryClient = new QueryClient({ defaultOptions: { queries: { retry: false } } });
+  const { ToastProvider } = require('@/providers/toast-provider');
   return render(
-    <QueryClientProvider client={queryClient}>{ui}</QueryClientProvider>,
+    <QueryClientProvider client={queryClient}><ToastProvider>{ui}</ToastProvider></QueryClientProvider>,
   );
 }
 

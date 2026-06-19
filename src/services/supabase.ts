@@ -10,58 +10,76 @@ const MAX_CHUNK_SIZE = 2048;
  */
 const secureStorageAdapter: SupportedStorage = {
   getItem: async (key: string) => {
-    const meta = await SecureStore.getItemAsync(key);
-    if (!meta) return meta;
+    try {
+      const meta = await SecureStore.getItemAsync(key);
+      if (!meta) return meta;
 
-    if (meta.startsWith(CHUNK_PREFIX)) {
-      const count = parseInt(meta.slice(CHUNK_PREFIX.length), 10);
-      const chunks: string[] = [];
-      for (let i = 0; i < count; i++) {
-        const chunk = await SecureStore.getItemAsync(`${key}_${i}`);
-        if (chunk === null) return null;
-        chunks.push(chunk);
+      if (meta.startsWith(CHUNK_PREFIX)) {
+        const count = parseInt(meta.slice(CHUNK_PREFIX.length), 10);
+        if (isNaN(count)) return null;
+        const chunks: string[] = [];
+        for (let i = 0; i < count; i++) {
+          const chunk = await SecureStore.getItemAsync(`${key}_${i}`);
+          if (chunk === null) return null;
+          chunks.push(chunk);
+        }
+        return chunks.join('');
       }
-      return chunks.join('');
-    }
 
-    return meta;
+      return meta;
+    } catch (e) {
+      console.error('[SecureStore] getItem failed:', key, e);
+      return null;
+    }
   },
 
   setItem: async (key: string, value: string) => {
-    const existing = await SecureStore.getItemAsync(key);
-    if (existing?.startsWith(CHUNK_PREFIX)) {
-      const oldCount = parseInt(existing.slice(CHUNK_PREFIX.length), 10);
-      for (let i = 0; i < oldCount; i++) {
-        await SecureStore.deleteItemAsync(`${key}_${i}`);
+    try {
+      const existing = await SecureStore.getItemAsync(key);
+      if (existing?.startsWith(CHUNK_PREFIX)) {
+        const oldCount = parseInt(existing.slice(CHUNK_PREFIX.length), 10);
+        if (!isNaN(oldCount)) {
+          for (let i = 0; i < oldCount; i++) {
+            await SecureStore.deleteItemAsync(`${key}_${i}`);
+          }
+        }
       }
-    }
 
-    if (value.length <= MAX_CHUNK_SIZE) {
-      await SecureStore.setItemAsync(key, value);
-      return;
-    }
+      if (value.length <= MAX_CHUNK_SIZE) {
+        await SecureStore.setItemAsync(key, value);
+        return;
+      }
 
-    const chunks: string[] = [];
-    for (let i = 0; i < value.length; i += MAX_CHUNK_SIZE) {
-      chunks.push(value.slice(i, i + MAX_CHUNK_SIZE));
-    }
+      const chunks: string[] = [];
+      for (let i = 0; i < value.length; i += MAX_CHUNK_SIZE) {
+        chunks.push(value.slice(i, i + MAX_CHUNK_SIZE));
+      }
 
-    for (let i = 0; i < chunks.length; i++) {
-      await SecureStore.setItemAsync(`${key}_${i}`, chunks[i]);
-    }
+      for (let i = 0; i < chunks.length; i++) {
+        await SecureStore.setItemAsync(`${key}_${i}`, chunks[i]);
+      }
 
-    await SecureStore.setItemAsync(key, `${CHUNK_PREFIX}${chunks.length}`);
+      await SecureStore.setItemAsync(key, `${CHUNK_PREFIX}${chunks.length}`);
+    } catch (e) {
+      console.error('[SecureStore] setItem failed:', key, e);
+    }
   },
 
   removeItem: async (key: string) => {
-    const meta = await SecureStore.getItemAsync(key);
-    if (meta?.startsWith(CHUNK_PREFIX)) {
-      const count = parseInt(meta.slice(CHUNK_PREFIX.length), 10);
-      for (let i = 0; i < count; i++) {
-        await SecureStore.deleteItemAsync(`${key}_${i}`);
+    try {
+      const meta = await SecureStore.getItemAsync(key);
+      if (meta?.startsWith(CHUNK_PREFIX)) {
+        const count = parseInt(meta.slice(CHUNK_PREFIX.length), 10);
+        if (!isNaN(count)) {
+          for (let i = 0; i < count; i++) {
+            await SecureStore.deleteItemAsync(`${key}_${i}`);
+          }
+        }
       }
+      await SecureStore.deleteItemAsync(key);
+    } catch (e) {
+      console.error('[SecureStore] removeItem failed:', key, e);
     }
-    await SecureStore.deleteItemAsync(key);
   },
 };
 

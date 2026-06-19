@@ -52,11 +52,7 @@ export function useGoogleSignIn() {
         }
       }
     } catch (err) {
-      setError(
-        err instanceof Error
-          ? err.message
-          : "Sign in failed. Please try again.",
-      );
+      setError("Sign in failed. Please try again.");
     } finally {
       setLoading(false);
     }

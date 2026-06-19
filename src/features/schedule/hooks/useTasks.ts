@@ -1,5 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import * as api from "@/features/schedule/api";
+import { useToast } from "@/providers/toast-provider";
 import type { Task } from "@/types/task";
 
 const TASKS_QUERY_KEY = ["tasks"] as const;
@@ -41,17 +42,22 @@ export function useUpdateTask() {
 
 export function useDeleteTask() {
   const queryClient = useQueryClient();
+  const toast = useToast();
 
   return useMutation({
     mutationFn: (id: string) => api.deleteTask(id),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: TASKS_QUERY_KEY });
     },
+    onError: () => {
+      toast.show({ message: "Couldn't delete task." });
+    },
   });
 }
 
 export function useToggleComplete() {
   const queryClient = useQueryClient();
+  const toast = useToast();
 
   return useMutation({
     mutationFn: ({
@@ -88,6 +94,7 @@ export function useToggleComplete() {
           queryClient.setQueryData(queryKey, data);
         }
       }
+      toast.show({ message: "Couldn't update task." });
     },
     onSettled: () => {
       queryClient.invalidateQueries({ queryKey: TASKS_QUERY_KEY });
