@@ -339,6 +339,26 @@ export default function SettingsScreen() {
           />
         </View>
 
+        {__DEV__ && (
+          <>
+            <Text style={styles.sectionLabel}>Debug</Text>
+            <View style={styles.card}>
+              <SettingsRow
+                icon="flask-outline"
+                label="Test toast in sheet"
+                subtitle="Verify toast renders above bottom sheet"
+                onPress={() => {
+                  setShowFeedback(true);
+                  setTimeout(() => {
+                    toast.show({ message: "Toast inside sheet!", duration: 4000 });
+                  }, 300);
+                }}
+                isLast
+              />
+            </View>
+          </>
+        )}
+
         <Text style={styles.sectionLabel}>About</Text>
         <View style={styles.card}>
           <SettingsRow

@@ -1,6 +1,7 @@
 import React from 'react';
 import { render, fireEvent } from '@testing-library/react-native';
 import { Text } from 'react-native';
+import { ToastProvider } from '@/providers/toast-provider';
 import BottomSheet from '../BottomSheet';
 
 const mockTheme = {
@@ -25,10 +26,14 @@ jest.mock('@expo/vector-icons', () => {
   };
 });
 
+function renderWithProviders(ui: React.ReactElement) {
+  return render(<ToastProvider>{ui}</ToastProvider>);
+}
+
 describe('BottomSheet', () => {
   it('renders children when visible', async () => {
     const onClose = jest.fn();
-    const { getByTestId, getByText } = await render(
+    const { getByTestId, getByText } = await renderWithProviders(
       <BottomSheet visible={true} onClose={onClose}>
         <Text testID="child-content">Sheet Content</Text>
       </BottomSheet>,
@@ -39,7 +44,7 @@ describe('BottomSheet', () => {
 
   it('does not render children when visible=false', async () => {
     const onClose = jest.fn();
-    const { queryByTestId } = await render(
+    const { queryByTestId } = await renderWithProviders(
       <BottomSheet visible={false} onClose={onClose}>
         <Text testID="child-content">Sheet Content</Text>
       </BottomSheet>,
@@ -49,7 +54,7 @@ describe('BottomSheet', () => {
 
   it('calls onClose when backdrop is pressed', async () => {
     const onClose = jest.fn();
-    const { getByTestId } = await render(
+    const { getByTestId } = await renderWithProviders(
       <BottomSheet visible={true} onClose={onClose}>
         <Text>Content</Text>
       </BottomSheet>,

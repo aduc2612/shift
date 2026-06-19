@@ -2,6 +2,8 @@ import { Modal, Pressable, StyleSheet, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { KeyboardAvoidingView, useKeyboardState } from "react-native-keyboard-controller";
 import { useTheme } from "@/providers/theme-provider";
+import { useToast } from "@/providers/toast-provider";
+import Toast from "@/components/primitives/Toast";
 import type { Theme } from "@/constants/theme";
 
 type BottomSheetProps = {
@@ -49,6 +51,7 @@ export default function BottomSheet({
   const insets = useSafeAreaInsets();
   const styles = createStyles(theme);
   const isKeyboardVisible = useKeyboardState((state) => state.isVisible);
+  const { toast, hide } = useToast();
 
   return (
     <Modal
@@ -75,6 +78,17 @@ export default function BottomSheet({
           </View>
         </View>
       </KeyboardAvoidingView>
+      <Toast
+        visible={toast.visible}
+        message={toast.message}
+        actionLabel={toast.actionLabel}
+        onAction={() => {
+          toast.onAction?.();
+          hide();
+        }}
+        onDismiss={hide}
+        duration={toast.duration}
+      />
     </Modal>
   );
 }
