@@ -11,24 +11,34 @@ import { MODELS, MAX_TOKENS, TIMEOUT_MS } from "../config";
 
 // --- Response schema shape validation (mirrors Zod schema in index.ts) ---
 
+const DATE_REGEX = /^\d{4}-\d{2}-\d{2}$/;
+
 function isValidTaskShape(task: unknown): task is {
   id: string;
   startTime: string;
   endTime: string;
   durationMinutes: number;
+  deadline: string | null;
   aiJustification: string;
   aiContext: string;
 } {
   if (!task || typeof task !== "object") return false;
   const t = task as Record<string, unknown>;
-  return (
-    typeof t.id === "string" &&
-    typeof t.startTime === "string" &&
-    typeof t.endTime === "string" &&
-    typeof t.durationMinutes === "number" &&
-    typeof t.aiJustification === "string" &&
-    typeof t.aiContext === "string"
-  );
+  if (
+    typeof t.id !== "string" ||
+    typeof t.startTime !== "string" ||
+    typeof t.endTime !== "string" ||
+    typeof t.durationMinutes !== "number" ||
+    typeof t.aiJustification !== "string" ||
+    typeof t.aiContext !== "string"
+  ) {
+    return false;
+  }
+  // deadline must be null or a YYYY-MM-DD string
+  if (t.deadline !== null && (typeof t.deadline !== "string" || !DATE_REGEX.test(t.deadline))) {
+    return false;
+  }
+  return true;
 }
 
 function isValidPlaceTaskResponse(body: unknown): boolean {
@@ -68,6 +78,7 @@ describe("place-task response schema shape", () => {
     startTime: "2025-06-10T09:00:00Z",
     endTime: "2025-06-10T10:00:00Z",
     durationMinutes: 60,
+    deadline: null,
     aiJustification: "Placed after morning meeting.",
     aiContext: "High effort, prefers morning.",
   };
@@ -111,6 +122,31 @@ describe("place-task response schema shape", () => {
 
   it("rejects task with missing aiContext", () => {
     const { aiContext: _, ...bad } = validTask;
+    expect(isValidPlaceTaskResponse({ task: bad })).toBe(false);
+  });
+
+  it("accepts task with valid YYYY-MM-DD deadline", () => {
+    const task = { ...validTask, deadline: "2025-06-20" };
+    expect(isValidPlaceTaskResponse({ task })).toBe(true);
+  });
+
+  it("accepts task with null deadline", () => {
+    const task = { ...validTask, deadline: null };
+    expect(isValidPlaceTaskResponse({ task })).toBe(true);
+  });
+
+  it("rejects task with invalid deadline format", () => {
+    const task = { ...validTask, deadline: "tomorrow" };
+    expect(isValidPlaceTaskResponse({ task })).toBe(false);
+  });
+
+  it("rejects task with ISO datetime as deadline", () => {
+    const task = { ...validTask, deadline: "2025-06-20T00:00:00Z" };
+    expect(isValidPlaceTaskResponse({ task })).toBe(false);
+  });
+
+  it("rejects task with missing deadline field", () => {
+    const { deadline: _, ...bad } = validTask;
     expect(isValidPlaceTaskResponse({ task: bad })).toBe(false);
   });
 

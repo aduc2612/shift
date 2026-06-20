@@ -25,7 +25,7 @@ const TaskResultSchema = z.object({
   startTime: z.string(),
   endTime: z.string(),
   durationMinutes: z.number(),
-  deadline: z.string().nullable(),
+  deadline: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "YYYY-MM-DD format required").nullable(),
   aiJustification: z.string(),
   aiContext: z.string(),
 });
