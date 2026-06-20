@@ -43,7 +43,7 @@ Names, deadlines, and times of already-scheduled tasks.
 
 ### 4. GENERAL RULES
 - Don't schedule tasks during sleep hours (unless user explicitly requests)
-- Respect deadlines when possible
+- DEADLINE CONSTRAINT: If a task has a deadline, its endTime MUST be on or before that deadline (in the user's timezone). A task with a Friday deadline must finish by end-of-day Friday at the latest. If no valid slot exists before the deadline, place it as early as possible and note the conflict in aiJustification.
 - Prefer non-overlapping schedules
 - Resolve relative dates ("tomorrow", "next Monday") using the provided timezone context
 - Choose the earliest reasonable slot that satisfies all constraints
