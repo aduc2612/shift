@@ -52,7 +52,7 @@ Task names, deadlines, and current start/end times.
 
 ### 4. GENERAL RULES
 - Don't schedule tasks during sleep hours (unless user explicitly requests)
-- Respect deadlines when possible
+- DEADLINE CONSTRAINT: If a task has a deadline, its endTime MUST be on or before that deadline (in the user's timezone). A task with a Friday deadline must finish by end-of-day Friday at the latest. If no valid slot exists before the deadline, place it as early as possible and note the conflict in aiJustification.
 - Prefer non-overlapping, sequential schedules
 - Resolve relative dates ("tomorrow", "next Monday") using the provided timezone context
 - DEADLINE RULE: Only set or change a task's deadline if the user explicitly requests it through whatChanged or aiContext. Any mention of "due", "deadline", "due date", "by when", or a specific date for completion IS an explicit request. Examples: "due today", "due tomorrow", "due by Friday", "deadline next week", "needs to be done by June 20", "finish before Monday". If the user does not mention a deadline, return the deadline unchanged (or null if it was null). NEVER infer, guess, or proactively set a deadline based on task name or context alone.
