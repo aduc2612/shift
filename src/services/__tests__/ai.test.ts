@@ -116,6 +116,7 @@ describe("rescheduleTasks", () => {
           startTime: "2025-06-10T10:00:00",
           endTime: "2025-06-10T11:00:00",
           durationMinutes: 60,
+          deadline: null,
           aiJustification: "Moved to accommodate gym",
           aiContext: "morning person",
         },
@@ -127,6 +128,27 @@ describe("rescheduleTasks", () => {
 
       const result = await rescheduleTasks([sampleTask], "", "");
       expect(result).toEqual(expected);
+    });
+
+    it("returns deadline when AI sets one", async () => {
+      const expected = [
+        {
+          id: "task-1",
+          startTime: "2025-06-10T10:00:00",
+          endTime: "2025-06-10T11:00:00",
+          durationMinutes: 60,
+          deadline: "2025-06-20",
+          aiJustification: "Moved to accommodate gym",
+          aiContext: "morning person",
+        },
+      ];
+      mockFetch.mockResolvedValueOnce({
+        ok: true,
+        json: async () => ({ tasks: expected }),
+      });
+
+      const result = await rescheduleTasks([sampleTask], "", "");
+      expect(result[0].deadline).toBe("2025-06-20");
     });
   });
 
@@ -261,6 +283,7 @@ describe("placeTask", () => {
         startTime: "2025-06-10T08:00:00",
         endTime: "2025-06-10T08:45:00",
         durationMinutes: 45,
+        deadline: null,
         aiJustification: "Early morning slot available",
         aiContext: "prefer mornings",
       };
@@ -271,6 +294,25 @@ describe("placeTask", () => {
 
       const result = await placeTask(placeTaskInput, existingTasks, "", "");
       expect(result).toEqual(expectedTask);
+    });
+
+    it("returns deadline when AI sets one", async () => {
+      const expectedTask = {
+        id: "new-task",
+        startTime: "2025-06-10T08:00:00",
+        endTime: "2025-06-10T08:45:00",
+        durationMinutes: 45,
+        deadline: "2025-06-25",
+        aiJustification: "Early morning slot available",
+        aiContext: "prefer mornings",
+      };
+      mockFetch.mockResolvedValueOnce({
+        ok: true,
+        json: async () => ({ task: expectedTask }),
+      });
+
+      const result = await placeTask(placeTaskInput, existingTasks, "", "");
+      expect(result.deadline).toBe("2025-06-25");
     });
   });
 

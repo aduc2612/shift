@@ -11,24 +11,45 @@ import { MODELS, MAX_TOKENS, TIMEOUT_MS } from "../config";
 
 // --- Response schema shape validation (mirrors Zod schema in index.ts) ---
 
+function isValidDateString(value: string): boolean {
+  const match = value.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+  if (!match) return false;
+  const year = Number(match[1]);
+  const month = Number(match[2]);
+  const day = Number(match[3]);
+  if (month < 1 || month > 12) return false;
+  const date = new Date(year, month - 1, day);
+  return date.getFullYear() === year &&
+    date.getMonth() === month - 1 &&
+    date.getDate() === day;
+}
+
 function isValidTaskShape(task: unknown): task is {
   id: string;
   startTime: string;
   endTime: string;
   durationMinutes: number;
+  deadline: string | null;
   aiJustification: string;
   aiContext: string;
 } {
   if (!task || typeof task !== "object") return false;
   const t = task as Record<string, unknown>;
-  return (
-    typeof t.id === "string" &&
-    typeof t.startTime === "string" &&
-    typeof t.endTime === "string" &&
-    typeof t.durationMinutes === "number" &&
-    typeof t.aiJustification === "string" &&
-    typeof t.aiContext === "string"
-  );
+  if (
+    typeof t.id !== "string" ||
+    typeof t.startTime !== "string" ||
+    typeof t.endTime !== "string" ||
+    typeof t.durationMinutes !== "number" ||
+    typeof t.aiJustification !== "string" ||
+    typeof t.aiContext !== "string"
+  ) {
+    return false;
+  }
+  // deadline must be null or a valid YYYY-MM-DD calendar date
+  if (t.deadline !== null && (typeof t.deadline !== "string" || !isValidDateString(t.deadline))) {
+    return false;
+  }
+  return true;
 }
 
 function isValidPlaceTaskResponse(body: unknown): boolean {
@@ -68,6 +89,7 @@ describe("place-task response schema shape", () => {
     startTime: "2025-06-10T09:00:00Z",
     endTime: "2025-06-10T10:00:00Z",
     durationMinutes: 60,
+    deadline: null,
     aiJustification: "Placed after morning meeting.",
     aiContext: "High effort, prefers morning.",
   };
@@ -112,6 +134,66 @@ describe("place-task response schema shape", () => {
   it("rejects task with missing aiContext", () => {
     const { aiContext: _, ...bad } = validTask;
     expect(isValidPlaceTaskResponse({ task: bad })).toBe(false);
+  });
+
+  it("accepts task with valid YYYY-MM-DD deadline", () => {
+    const task = { ...validTask, deadline: "2025-06-20" };
+    expect(isValidPlaceTaskResponse({ task })).toBe(true);
+  });
+
+  it("accepts task with null deadline", () => {
+    const task = { ...validTask, deadline: null };
+    expect(isValidPlaceTaskResponse({ task })).toBe(true);
+  });
+
+  it("rejects task with invalid deadline format", () => {
+    const task = { ...validTask, deadline: "tomorrow" };
+    expect(isValidPlaceTaskResponse({ task })).toBe(false);
+  });
+
+  it("rejects task with ISO datetime as deadline", () => {
+    const task = { ...validTask, deadline: "2025-06-20T00:00:00Z" };
+    expect(isValidPlaceTaskResponse({ task })).toBe(false);
+  });
+
+  it("rejects task with missing deadline field", () => {
+    const { deadline: _, ...bad } = validTask;
+    expect(isValidPlaceTaskResponse({ task: bad })).toBe(false);
+  });
+
+  it("rejects impossible date Feb 31", () => {
+    const task = { ...validTask, deadline: "2025-02-31" };
+    expect(isValidPlaceTaskResponse({ task })).toBe(false);
+  });
+
+  it("rejects impossible date Apr 31", () => {
+    const task = { ...validTask, deadline: "2025-04-31" };
+    expect(isValidPlaceTaskResponse({ task })).toBe(false);
+  });
+
+  it("rejects invalid month 00", () => {
+    const task = { ...validTask, deadline: "2025-00-15" };
+    expect(isValidPlaceTaskResponse({ task })).toBe(false);
+  });
+
+  it("rejects invalid month 13", () => {
+    const task = { ...validTask, deadline: "2025-13-15" };
+    expect(isValidPlaceTaskResponse({ task })).toBe(false);
+  });
+
+  it("rejects invalid day 00", () => {
+    const task = { ...validTask, deadline: "2025-06-00" };
+    expect(isValidPlaceTaskResponse({ task })).toBe(false);
+  });
+
+  it("rejects Feb 29 on non-leap year", () => {
+    const task = { ...validTask, deadline: "2025-02-29" };
+    expect(isValidPlaceTaskResponse({ task })).toBe(false);
+  });
+
+  it("accepts Feb 29 on leap year", () => {
+    const task = { ...validTask, deadline: "2024-02-29" };
+    expect(isValidPlaceTaskResponse({ task })).toBe(true);
   });
 
   it("rejects undefined body", () => {

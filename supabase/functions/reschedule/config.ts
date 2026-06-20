@@ -55,6 +55,7 @@ Task names, deadlines, and current start/end times.
 - Respect deadlines when possible
 - Prefer non-overlapping, sequential schedules
 - Resolve relative dates ("tomorrow", "next Monday") using the provided timezone context
+- DEADLINE RULE: Only set or change a task's deadline if the user explicitly requests it through whatChanged or aiContext. Any mention of "due", "deadline", "due date", "by when", or a specific date for completion IS an explicit request. Examples: "due today", "due tomorrow", "due by Friday", "deadline next week", "needs to be done by June 20", "finish before Monday". If the user does not mention a deadline, return the deadline unchanged (or null if it was null). NEVER infer, guess, or proactively set a deadline based on task name or context alone.
 
 ## CONTEXT
 
@@ -75,6 +76,12 @@ Task names, deadlines, and current start/end times.
 * Minimize changes unless the user's request requires extensive rearrangement.
 
 ## FIELDS
+
+* deadline: ISO 8601 date string (YYYY-MM-DD) or null.
+  - Set this if the user mentions "due", "deadline", "by when", or a specific completion date.
+  - Resolve relative dates ("today", "tomorrow", "next Friday") using the timezone context provided.
+  - If the task already has a deadline and the user didn't mention changing it, return it unchanged.
+  - If the task has no deadline and the user didn't request one, return null.
 
 * aiJustification: WHY you placed the task at this time. Max 10 words, user-facing.
   - **Must be in user's time zone**

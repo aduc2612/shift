@@ -561,6 +561,40 @@ supabase/functions/reschedule/index.ts           — Edge Function handler
 
 ---
 
+## AI Deadline Support (Added Later)
+
+Both Edge Functions (`reschedule` and `place-task`) now return a `deadline` field in their response, allowing the AI to set or edit task deadlines when the user explicitly requests it.
+
+### What Changed
+
+| File | Change |
+|------|--------|
+| `supabase/functions/reschedule/index.ts` | Added `deadline: z.string().nullable()` to `TaskResultSchema` |
+| `supabase/functions/place-task/index.ts` | Added `deadline: z.string().nullable()` to `NewTaskSchema` |
+| `supabase/functions/reschedule/config.ts` | Added DEADLINE RULE + deadline field description to prompt |
+| `supabase/functions/place-task/config.ts` | Added DEADLINE RULE + deadline field description to prompt |
+| `src/services/ai.ts` | Added `deadline: string \| null` to `RescheduleResult` and `PlaceTaskResult` |
+| `src/features/schedule/api.ts` | Added `deadline` to `TaskUpdate` type; `batchUpdateTasks` writes deadline |
+| `src/features/schedule/hooks/usePlaceTask.ts` | Uses `result.deadline` (AI-returned) instead of `taskData.deadline` |
+| `src/features/schedule/hooks/useReschedule.ts` | Undo snapshot includes `deadline` in batch update payload |
+
+### Prompt Rules
+
+The DEADLINE RULE in both prompts instructs the AI:
+- Any mention of "due", "deadline", "by when", or a specific completion date IS an explicit request
+- Examples: "due today", "due tomorrow", "due by Friday", "deadline next week"
+- If user doesn't mention a deadline, return it unchanged (or null)
+- NEVER infer or guess deadlines from task name or context alone
+- Resolve relative dates ("today", "tomorrow") using the provided timezone context
+
+### Design Decisions
+- AI-set deadlines look identical to user-picked ones (no visual distinction)
+- AI-set deadlines persist and remain editable via the date picker
+- Both `place-task` and `reschedule` can set deadlines
+- No database migration needed — `deadline` column already exists
+
+---
+
 ## Summary
 
 Phase 6 delivers a complete AI rescheduling flow with:
@@ -570,7 +604,8 @@ Phase 6 delivers a complete AI rescheduling flow with:
 - ✅ Undo with 5-second timeout and snapshot restore
 - ✅ Toast notification system
 - ✅ Selective reschedule triggers (only when AI fields change)
-- ✅ 186 tests passing
+- ✅ AI can set/edit deadlines when user explicitly requests
+- ✅ 376 tests passing
 - ✅ TypeScript clean
 - ✅ Toast for info only (not errors)
 - ✅ Inline errors in sheets

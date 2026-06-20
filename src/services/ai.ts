@@ -31,6 +31,7 @@ export type RescheduleResult = {
   startTime: string;
   endTime: string;
   durationMinutes: number;
+  deadline: string | null;
   aiJustification: string;
   aiContext: string;
 };
@@ -40,6 +41,7 @@ export type PlaceTaskResult = {
   startTime: string;
   endTime: string;
   durationMinutes: number;
+  deadline: string | null;
   aiJustification: string;
   aiContext: string;
 };
