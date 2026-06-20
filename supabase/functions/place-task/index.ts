@@ -17,12 +17,27 @@ import {
 
 // --- Zod schemas for structured output ---
 
+function isValidDateString(value: string): boolean {
+  const match = value.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+  if (!match) return false;
+  const year = Number(match[1]);
+  const month = Number(match[2]);
+  const day = Number(match[3]);
+  if (month < 1 || month > 12) return false;
+  const date = new Date(year, month - 1, day);
+  return date.getFullYear() === year &&
+    date.getMonth() === month - 1 &&
+    date.getDate() === day;
+}
+
+const dateSchema = z.string().refine(isValidDateString, "Valid YYYY-MM-DD date required");
+
 const NewTaskSchema = z.object({
   id: z.string(),
   startTime: z.string(),
   endTime: z.string(),
   durationMinutes: z.number(),
-  deadline: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "YYYY-MM-DD format required").nullable(),
+  deadline: dateSchema.nullable(),
   aiJustification: z.string(),
   aiContext: z.string(),
 });
