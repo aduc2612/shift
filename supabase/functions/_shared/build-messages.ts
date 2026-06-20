@@ -68,7 +68,7 @@ export function resolveTimezone(
   const offset = now
     .toLocaleString("en-US", { timeZone: tz, timeZoneName: "shortOffset" })
     .split(" ")
-    .pop();
+    .pop() ?? "UTC";
   const tzDisplay = `${tz} (${offset})`;
   return { nowUTC, nowLocal, dayOfWeek, isWeekend, tzDisplay };
 }
