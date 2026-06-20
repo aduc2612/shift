@@ -9,7 +9,7 @@ import {
   MAX_TOKENS,
   TIMEOUT_MS,
 } from "./config.ts";
-import { buildSystemPrompt } from "../_shared/ai-prompt.ts";
+import { buildMessages } from "../_shared/build-messages.ts";
 import {
   createUserClient,
   fetchUserPreferences,
@@ -112,76 +112,41 @@ export async function handler(req: Request): Promise<Response> {
       );
     }
 
-    const now = new Date();
-    const nowUTC = now.toLocaleString("en-US", { timeZone: "UTC" }) + " UTC";
-    const nowLocal = now.toLocaleString("en-US", { timeZone: tz });
-    const dayOfWeek = now.toLocaleDateString("en-US", {
-      timeZone: tz,
-      weekday: "long",
-    });
-    const isWeekend = ["Saturday", "Sunday"].includes(dayOfWeek);
-    const offset = now
-      .toLocaleString("en-US", { timeZone: tz, timeZoneName: "shortOffset" })
-      .split(" ")
-      .pop();
-    const tzDisplay = `${tz} (${offset})`;
-
-    const systemPrompt = SYSTEM_PROMPT.replace("{now}", nowUTC)
-      .replace("{nowLocal}", nowLocal)
-      .replace("{dayOfWeek}", dayOfWeek)
-      .replace("{isWeekend}", isWeekend ? "Yes" : "No")
-      .replace("{timezone}", tzDisplay);
-
-    // Augment with user's onboarding-completed preferences (best-effort).
-    // If the user hasn't done onboarding or the prefs read fails, we fall
-    // through with the unmodified system prompt.
-    let augmentedPrompt = systemPrompt;
+    // Fetch user preferences (best-effort). The pure prompt assembly
+    // lives in buildMessages so it can be tested outside Deno.
+    let prefs = null;
     try {
       const userClient = createUserClient(authHeader);
       const { data: userData } = await userClient.auth.getUser();
       if (userData?.user) {
-        const prefs = await fetchUserPreferences(userClient, userData.user.id);
-        if (prefs) {
-          const fragment = buildSystemPrompt(prefs);
-          if (fragment) {
-            augmentedPrompt = `${systemPrompt}\n\nUser preferences (from onboarding):\n${fragment}`;
-          }
-        }
+        prefs = await fetchUserPreferences(userClient, userData.user.id);
       }
     } catch (err) {
       console.error("Failed to load user preferences:", err);
     }
 
-    // Strip fields the AI might treat as fixed constraints.
-    // For the new task: keep id, name, deadline, aiContext (user's direct instruction).
-    // Remove: durationMinutes (AI decides duration based on task complexity).
-    const newTaskInfo = {
-      id: task.id,
-      name: task.name,
-      deadline: task.deadline || null,
-      aiContext: task.aiContext || null,
-    };
-
-    // Strip existing tasks: keep id, name, startTime, endTime, deadline.
-    // Remove: durationMinutes, aiJustification, aiContext, completed, createdAt, updatedAt.
-    const strippedExistingTasks = existingTasks.map(
-      (t: Record<string, unknown>) => ({
-        id: t.id,
-        name: t.name,
-        startTime: t.startTime,
-        endTime: t.endTime,
-        deadline: t.deadline || null,
-      }),
-    );
-
-    const userMessage =
-      `New task to place:\n${JSON.stringify(newTaskInfo, null, 2)}\n\n` +
-      (task.aiContext
-        ? `USER'S DIRECT INSTRUCTIONS FOR THIS TASK (HIGHEST PRIORITY):\n${task.aiContext}\n\n`
-        : "") +
-      `Existing scheduled tasks (READ-ONLY — do not modify):\n${JSON.stringify(strippedExistingTasks, null, 2)}\n\n` +
-      `User context: ${userContext || "None provided"}\n\n` +
-      `What changed: ${whatChanged || "Adding a new task"}`;
+    const messages = buildMessages({
+      mode: "place-task",
+      systemPromptTemplate: SYSTEM_PROMPT,
+      now: new Date(),
+      timezone: tz,
+      prefs,
+      task: {
+        id: task.id as string,
+        name: task.name as string,
+        deadline: task.deadline as string | null | undefined,
+        aiContext: task.aiContext as string | null | undefined,
+      },
+      existingTasks: existingTasks as {
+        id: string;
+        name: string;
+        startTime: string;
+        endTime: string;
+        deadline?: string | null;
+      }[],
+      userContext: userContext as string | undefined,
+      whatChanged: whatChanged as string | undefined,
+    });
 
     const apiKey = Deno.env.get("OPENROUTER_API_KEY");
     if (!apiKey) {
@@ -204,10 +169,7 @@ export async function handler(req: Request): Promise<Response> {
       try {
         const completion = await openai.chat.completions.create({
           model,
-          messages: [
-            { role: "system", content: augmentedPrompt },
-            { role: "user", content: userMessage },
-          ],
+          messages,
           response_format: zodResponseFormat(
             PlaceTaskResponseSchema,
             "place_task",

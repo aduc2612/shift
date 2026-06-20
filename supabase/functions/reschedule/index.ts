@@ -13,7 +13,7 @@ import {
   MAX_TOKENS,
   MAX_TIMEOUT_MS,
 } from "./config.ts";
-import { buildSystemPrompt } from "../_shared/ai-prompt.ts";
+import { buildMessages } from "../_shared/build-messages.ts";
 import {
   createUserClient,
   fetchUserPreferences,
@@ -88,63 +88,38 @@ Deno.serve(async (req) => {
       );
     }
 
-    const now = new Date();
-    const nowUTC = now.toLocaleString("en-US", { timeZone: "UTC" }) + " UTC";
-    const nowLocal = now.toLocaleString("en-US", { timeZone: tz });
-    const dayOfWeek = now.toLocaleDateString("en-US", {
-      timeZone: tz,
-      weekday: "long",
-    });
-    const isWeekend = ["Saturday", "Sunday"].includes(dayOfWeek);
-    const offset = now
-      .toLocaleString("en-US", { timeZone: tz, timeZoneName: "shortOffset" })
-      .split(" ")
-      .pop();
-    const tzDisplay = `${tz} (${offset})`;
+    const inputIds = new Set(tasks.map((t: { id: string }) => t.id));
 
-    const systemPrompt = SYSTEM_PROMPT.replace("{now}", nowUTC)
-      .replace("{nowLocal}", nowLocal)
-      .replace("{dayOfWeek}", dayOfWeek)
-      .replace("{isWeekend}", isWeekend ? "Yes" : "No")
-      .replace("{timezone}", tzDisplay);
-
-    // Augment with user's onboarding-completed preferences (best-effort).
-    // If the user hasn't done onboarding or the prefs read fails, we fall
-    // through with the unmodified system prompt.
-    let augmentedPrompt = systemPrompt;
+    // Fetch user preferences (best-effort). The pure prompt assembly
+    // lives in buildMessages so it can be tested outside Deno.
+    let prefs = null;
     try {
       const userClient = createUserClient(authHeader);
       const { data: userData } = await userClient.auth.getUser();
       if (userData?.user) {
-        const prefs = await fetchUserPreferences(userClient, userData.user.id);
-        if (prefs) {
-          const fragment = buildSystemPrompt(prefs);
-          if (fragment) {
-            augmentedPrompt = `${systemPrompt}\n\nUser preferences (from onboarding):\n${fragment}`;
-          }
-        }
+        prefs = await fetchUserPreferences(userClient, userData.user.id);
       }
     } catch (err) {
       console.error("Failed to load user preferences:", err);
     }
 
-    const inputIds = new Set(tasks.map((t: { id: string }) => t.id));
-
-    // Strip fields the AI might treat as fixed constraints.
-    // Keep: id, name, startTime, endTime, deadline (current state, all mutable except id/name).
-    // Remove: durationMinutes (AI decides duration), aiJustification (AI wrote this),
-    //         completed, createdAt, updatedAt (metadata, irrelevant for scheduling).
-    // Keep: aiContext (task characteristics, useful for rescheduling).
-    const strippedTasks = tasks.map((t: Record<string, unknown>) => ({
-      id: t.id,
-      name: t.name,
-      startTime: t.startTime,
-      endTime: t.endTime,
-      deadline: t.deadline || null,
-      aiContext: t.aiContext || null,
-    }));
-
-    const userMessage = `Tasks (current schedule — all fields except id and name are mutable):\n${JSON.stringify(strippedTasks, null, 2)}\n\nUser context: ${userContext || "None provided"}\n\nWhat changed: ${whatChanged || "Initial scheduling"}`;
+    const messages = buildMessages({
+      mode: "reschedule",
+      systemPromptTemplate: SYSTEM_PROMPT,
+      now: new Date(),
+      timezone: tz,
+      prefs,
+      tasks: tasks as {
+        id: string;
+        name: string;
+        startTime: string;
+        endTime: string;
+        deadline?: string | null;
+        aiContext?: string | null;
+      }[],
+      userContext: userContext as string | undefined,
+      whatChanged: whatChanged as string | undefined,
+    });
 
     const maxTokens = Math.min(
       tasks.length * TOKENS_PER_TASK + TOKENS_BASE,
@@ -176,10 +151,7 @@ Deno.serve(async (req) => {
       try {
         const completion = await openai.chat.completions.create({
           model,
-          messages: [
-            { role: "system", content: augmentedPrompt },
-            { role: "user", content: userMessage },
-          ],
+          messages,
           response_format: zodResponseFormat(RescheduleSchema, "reschedule"),
           max_tokens: maxTokens,
           reasoning: {
